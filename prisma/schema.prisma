@@ -209,6 +209,7 @@ model User {
   primaryArtists  Artist[]       @relation("PrimaryArtistOwner")
   verifiedCertifications ArtistCertification[] @relation("CertVerifier")
   verificationRequests VerificationRequest[] @relation("VerificationRequester")
+  refreshTokens   RefreshToken[] @relation("UserRefreshTokens")
 
   @@map("users_user")
   @@index([cityId])
@@ -1059,6 +1060,35 @@ model VerificationDocument {
 
   @@index([verificationRequestId])
   @@index([mediaId])
+}
+
+//////////////////////
+// --- Models (Auth Fallback) ---
+//////////////////////
+
+model Otp {
+  id        BigInt   @id @default(autoincrement())
+  phoneE164 String   @unique @db.VarChar(32)
+  code      String   @db.VarChar(10)
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phoneE164, expiresAt])
+  @@map("auth_otp")
+}
+
+model RefreshToken {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt
+  token     String   @unique @db.Text
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_refreshtoken")
 }
 
 ///////////////////////////////////

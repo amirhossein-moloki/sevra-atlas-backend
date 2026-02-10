@@ -1,92 +1,233 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Sevra Atlas API",
     "version": "1.0.0",
-    "description": "Unified Directory + Blog API"
+    "title": "Sevra Atlas API",
+    "description": "Unified Directory + Blog API - Automatically generated and enforced."
   },
   "servers": [
-    { "url": "/api/v1" }
+    {
+      "url": "/api/v1"
+    }
   ],
   "components": {
     "securitySchemes": {
-      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
-    }
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "phoneNumber": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "phoneNumber",
+              "role"
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "user"
+        ]
+      }
+    },
+    "parameters": {}
   },
-  "security": [{ "bearerAuth": [] }],
   "paths": {
     "/auth/otp/request": {
       "post": {
-        "tags": ["Auth"],
         "summary": "Request OTP code",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": { "phoneNumber": { "type": "string" } },
-                "required": ["phoneNumber"]
-              }
-            }
-          }
-        },
-        "responses": { "200": { "description": "OTP sent" } }
-      }
-    },
-    "/auth/otp/verify": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Verify OTP and login",
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phoneNumber": { "type": "string" },
-                  "code": { "type": "string", "minLength": 6, "maxLength": 6 }
+                  "phoneNumber": {
+                    "type": "string",
+                    "pattern": "^(\\+98|0)?9\\d{9}$",
+                    "description": "Iranian phone number",
+                    "example": "09123456789"
+                  }
                 },
-                "required": ["phoneNumber", "code"]
+                "required": [
+                  "phoneNumber"
+                ]
               }
             }
           }
         },
-        "responses": { "200": { "description": "Logged in" } }
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/me": {
-      "get": {
-        "tags": ["Me"],
-        "summary": "Get current user profile",
-        "responses": { "200": { "description": "User profile" } }
-      },
-      "patch": {
-        "tags": ["Me"],
-        "summary": "Update user profile",
-        "responses": { "200": { "description": "Profile updated" } }
-      }
-    },
-    "/salons": {
-      "get": {
-        "tags": ["Salons"],
-        "summary": "List salons with filters",
-        "parameters": [
-          { "name": "city", "in": "query", "schema": { "type": "string" } },
-          { "name": "service", "in": "query", "schema": { "type": "string" } }
-        ],
-        "responses": { "200": { "description": "List of salons" } }
-      },
+    "/auth/otp/verify": {
       "post": {
-        "tags": ["Salons"],
-        "summary": "Create a new salon",
-        "responses": { "201": { "description": "Salon created" } }
+        "summary": "Verify OTP and login",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "pattern": "^(\\+98|0)?9\\d{9}$",
+                    "example": "09123456789"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "example": "123456"
+                  }
+                },
+                "required": [
+                  "phoneNumber",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/blog/posts": {
-      "get": {
-        "tags": ["Blog"],
-        "summary": "List blog posts",
-        "responses": { "200": { "description": "List of posts" } }
+    "/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                },
+                "required": [
+                  "refreshToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout user",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                },
+                "required": [
+                  "refreshToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Logged out successfully"
+          }
+        }
       }
     }
   }

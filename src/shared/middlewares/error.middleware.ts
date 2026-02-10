@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { ApiFailure } from '../utils/response';
 import { env } from '../config/env';
+import { logger } from '../logger/logger';
 
 type NormalizedError = {
   status: number;
@@ -103,6 +104,22 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
   if (res.headersSent) return;
 
   const isServerError = normalized.status >= 500;
+
+  // Log the error
+  const logData = {
+    method: req.method,
+    url: req.originalUrl,
+    status: normalized.status,
+    code: normalized.code,
+    ...(normalized.details ? { details: normalized.details } : {}),
+  };
+
+  if (isServerError) {
+    logger.error({ err, ...logData }, `Server Error: ${normalized.message}`);
+  } else {
+    logger.warn(logData, `Operational Error: ${normalized.message}`);
+  }
+
   const includeDetails = !isServerError || env.NODE_ENV !== 'production';
 
   const body: ApiFailure = {

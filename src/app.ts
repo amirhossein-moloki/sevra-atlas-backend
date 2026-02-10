@@ -19,8 +19,13 @@ app.use(helmet());
 app.use(cors());
 app.use(compression());
 app.use(express.json());
-app.use(pinoHttp({ logger }));
 app.use(requestIdMiddleware);
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req: any) => req.requestId || req.headers['x-request-id'] || `req-${Date.now()}`,
+  })
+);
 app.use(responseMiddleware);
 
 const swaggerOptions = {

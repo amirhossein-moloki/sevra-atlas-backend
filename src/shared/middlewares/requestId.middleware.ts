@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 
 // uuidv4 might not be installed, I'll use a simple one if not
 // Actually I didn't add uuid to package.json. Let's use Date.now() + random

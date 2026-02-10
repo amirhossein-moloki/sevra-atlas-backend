@@ -1,40 +1,33 @@
 import { Router } from 'express';
-import { prisma } from '../../shared/db/prisma';
-import { authMiddleware, AuthRequest, requireRole } from '../../shared/middlewares/auth.middleware';
-import { UserRole, VerificationStatus } from '@prisma/client';
+import { VerificationController } from './verification.controller';
+import { requireAuth, requireRole } from '../../shared/middlewares/auth.middleware';
+import { validate } from '../../shared/middlewares/validate.middleware';
+import { requestVerificationSchema, reviewVerificationSchema } from './verification.validators';
+import { UserRole } from '@prisma/client';
 
 const router = Router();
+const controller = new VerificationController();
 
-router.post('/request', authMiddleware, async (req: AuthRequest, res) => {
-  const { targetType, targetId, documents } = req.body;
-  const id = BigInt(targetId);
-  
-  const request = await prisma.verificationRequest.create({
-    data: {
-      requestedById: req.user!.id,
-      ...(targetType === 'SALON' ? { salonId: id } : { artistId: id }),
-      status: VerificationStatus.PENDING,
-      documents: {
-        create: documents.map((docId: string) => ({
-          mediaId: BigInt(docId),
-        })),
-      },
-    },
-  });
-  res.json(request);
-});
+router.post(
+  '/request',
+  requireAuth(),
+  validate(requestVerificationSchema),
+  controller.requestVerification
+);
 
-router.patch('/:id', authMiddleware, requireRole([UserRole.ADMIN, UserRole.MODERATOR]), async (req: AuthRequest, res) => {
-  const { status, notes } = req.body;
-  const result = await prisma.verificationRequest.update({
-    where: { id: BigInt(req.params.id) },
-    data: {
-      status,
-      notes,
-      reviewedById: req.user!.id,
-    },
-  });
-  res.json(result);
-});
+router.get(
+  '/requests',
+  requireAuth(),
+  requireRole([UserRole.ADMIN, UserRole.MODERATOR]),
+  controller.listRequests
+);
+
+router.patch(
+  '/:id',
+  requireAuth(),
+  requireRole([UserRole.ADMIN, UserRole.MODERATOR]),
+  validate(reviewVerificationSchema),
+  controller.reviewRequest
+);
 
 export default router;

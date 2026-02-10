@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 // Actually I didn't add uuid to package.json. Let's use Date.now() + random
 
 export const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const requestId = req.headers['x-request-id'] || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  req.headers['x-request-id'] = requestId;
+  const requestId = req.headers['x-request-id'] || `req-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+  (req as any).requestId = requestId;
   res.setHeader('x-request-id', requestId as string);
   next();
 };

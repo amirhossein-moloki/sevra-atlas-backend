@@ -18,4 +18,20 @@ export class ReviewsController {
     );
     res.json(result);
   }
+
+  async getSalonReviews(req: AuthRequest, res: Response) {
+    const result = await reviewsService.getReviews('SALON', req.params.slug, req.query);
+    res.json(result);
+  }
+
+  async getArtistReviews(req: AuthRequest, res: Response) {
+    const result = await reviewsService.getReviews('ARTIST', req.params.slug, req.query);
+    res.json(result);
+  }
+
+  async deleteReview(req: AuthRequest, res: Response) {
+    const isAdmin = (req as any).user.role === 'ADMIN' || (req as any).user.role === 'MODERATOR';
+    const result = await reviewsService.deleteReview(BigInt(req.params.id), req.user!.id, isAdmin);
+    res.json(result);
+  }
 }

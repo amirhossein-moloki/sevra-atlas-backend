@@ -11,17 +11,22 @@ export class GeoController {
 
   async getProvinceCities(req: Request, res: Response) {
     const result = await geoService.getProvinceCities(req.params.slug);
-    res.json(result);
+    res.json({ data: result });
   }
 
   async getCity(req: Request, res: Response) {
-    const result = await geoService.getCity(BigInt(req.params.id));
+    const result = await geoService.getCityBySlug(req.params.slug);
     res.json(result);
+  }
+
+  async getCityNeighborhoods(req: Request, res: Response) {
+    const result = await geoService.getCityNeighborhoods(req.params.slug);
+    res.json({ data: result });
   }
 
   async createProvince(req: Request, res: Response) {
     const result = await geoService.createProvince(req.body);
-    res.status(211).json(result);
+    res.status(201).json(result);
   }
 
   async createCity(req: Request, res: Response) {
@@ -32,5 +37,15 @@ export class GeoController {
   async createNeighborhood(req: Request, res: Response) {
     const result = await geoService.createNeighborhood(req.body);
     res.status(201).json(result);
+  }
+
+  async updateCity(req: Request, res: Response) {
+    const result = await geoService.updateCity(req.params.id, req.body);
+    res.json(result);
+  }
+
+  async updateNeighborhood(req: Request, res: Response) {
+    const result = await geoService.updateNeighborhood(req.params.id, req.body);
+    res.json(result);
   }
 }

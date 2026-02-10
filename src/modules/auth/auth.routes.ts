@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { AuthController } from './auth.controller';
 import { validate } from '../../shared/middlewares/validate.middleware';
-import { requestOtpSchema, verifyOtpSchema } from './auth.validators';
+import { requestOtpSchema, verifyOtpSchema, refreshTokenSchema } from './auth.validators';
 import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { env } from '../../shared/config/env';
+import { requireAuth } from '../../shared/middlewares/auth.middleware';
 
 const router = Router();
 const controller = new AuthController();
@@ -19,6 +20,19 @@ router.post(
   '/otp/verify',
   validate(verifyOtpSchema),
   controller.verifyOtp
+);
+
+router.post(
+  '/refresh',
+  validate(refreshTokenSchema),
+  controller.refresh
+);
+
+router.post(
+  '/logout',
+  requireAuth(),
+  validate(refreshTokenSchema),
+  controller.logout
 );
 
 export default router;

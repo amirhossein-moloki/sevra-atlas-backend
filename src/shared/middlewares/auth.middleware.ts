@@ -11,31 +11,35 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new ApiError(401, 'Please authenticate');
+export const requireAuth = () => {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new ApiError(401, 'Please authenticate');
+      }
+
+      const token = authHeader.split(' ')[1];
+      const payload = verifyAccessToken(token);
+
+      const user = await prisma.user.findUnique({
+        where: { id: BigInt(payload.sub) },
+        select: { id: true, role: true, isActive: true },
+      });
+
+      if (!user || !user.isActive) {
+        throw new ApiError(401, 'User not found or inactive');
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      next(new ApiError(401, 'Unauthorized'));
     }
-
-    const token = authHeader.split(' ')[1];
-    const payload = verifyAccessToken(token);
-
-    const user = await prisma.user.findUnique({
-      where: { id: BigInt(payload.sub) },
-      select: { id: true, role: true, isActive: true },
-    });
-
-    if (!user || !user.isActive) {
-      throw new ApiError(401, 'User not found or inactive');
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    next(new ApiError(401, 'Unauthorized'));
-  }
+  };
 };
+
+export const authMiddleware = requireAuth();
 
 export const requireRole = (allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {

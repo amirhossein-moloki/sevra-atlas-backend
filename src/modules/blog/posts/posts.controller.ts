@@ -1,23 +1,17 @@
 import { Request, Response } from 'express';
 import { PostsService } from './posts.service';
 import { AuthRequest } from '../../../shared/middlewares/auth.middleware';
-import { getPagination, formatPaginatedResponse } from '../../../shared/utils/pagination';
-import { UserRole } from '@prisma/client';
 
 const postsService = new PostsService();
 
 export class PostsController {
-  async getPosts(req: Request, res: Response) {
-    const pagination = getPagination(req.query);
-    const { data, total } = await postsService.getPosts({
-      ...req.query,
-      ...pagination,
-    });
-    res.json(formatPaginatedResponse(data, total, pagination));
+  async listPosts(req: Request, res: Response) {
+    const result = await postsService.listPosts(req.query, (req as any).user);
+    res.json(result);
   }
 
   async getPost(req: Request, res: Response) {
-    const result = await postsService.getPostBySlug(req.params.slug);
+    const result = await postsService.getPostBySlug(req.params.slug, (req as any).user);
     res.json(result);
   }
 
@@ -27,18 +21,32 @@ export class PostsController {
   }
 
   async updatePost(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
-    const result = await postsService.updatePost(
-      BigInt(req.params.id),
-      req.body,
-      req.user!.id,
-      isAdmin
-    );
+    const result = await postsService.updatePost(req.params.slug, req.body, req.user);
+    res.json(result);
+  }
+
+  async deletePost(req: AuthRequest, res: Response) {
+    const result = await postsService.deletePost(req.params.slug, req.user);
+    res.json(result);
+  }
+
+  async getSimilarPosts(req: Request, res: Response) {
+    const result = await postsService.getSimilarPosts(req.params.slug);
+    res.json(result);
+  }
+
+  async getSameCategoryPosts(req: Request, res: Response) {
+    const result = await postsService.getSameCategoryPosts(req.params.slug, req.query);
+    res.json(result);
+  }
+
+  async getRelatedPosts(req: Request, res: Response) {
+    const result = await postsService.getRelatedPosts(req.params.slug);
     res.json(result);
   }
 
   async publishPost(req: AuthRequest, res: Response) {
-    const result = await postsService.publishPost(BigInt(req.params.id));
+    const result = await postsService.publishPost(req.params.slug, req.user);
     res.json(result);
   }
 }

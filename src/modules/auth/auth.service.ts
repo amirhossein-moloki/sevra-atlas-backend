@@ -88,6 +88,9 @@ export class AuthService {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
+    // Store refresh token in Redis for rotation/invalidation
+    await redis.set(`refresh_token:${user.id}:${refreshToken}`, '1', 'EX', env.JWT_REFRESH_TTL);
+
     return {
       accessToken,
       refreshToken,
@@ -97,5 +100,26 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async refresh(refreshToken: string) {
+    try {
+      const payload = verifyRefreshToken(refreshToken);
+      const exists = await redis.get(`refresh_token:${payload.sub}:${refreshToken}`);
+
+      if (!exists) {
+        throw new ApiError(401, 'Refresh token invalid or expired');
+      }
+
+      const newAccessToken = generateAccessToken({ sub: payload.sub, role: payload.role });
+      return { accessToken: newAccessToken, expiresIn: env.JWT_ACCESS_TTL };
+    } catch (error) {
+      throw new ApiError(401, 'Invalid refresh token');
+    }
+  }
+
+  async logout(userId: string, refreshToken: string) {
+    await redis.del(`refresh_token:${userId}:${refreshToken}`);
+    return { ok: true };
   }
 }

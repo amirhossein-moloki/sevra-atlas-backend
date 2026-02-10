@@ -7,6 +7,8 @@ import { createMediaSchema } from './media.validators';
 const router = Router();
 const controller = new MediaController();
 
+router.get('/', authMiddleware, controller.listMedia);
+
 router.post(
   '/',
   authMiddleware,
@@ -15,5 +17,8 @@ router.post(
 );
 
 router.get('/:id', controller.getMedia);
+router.get('/:id/download', controller.downloadMedia);
+
+router.delete('/:id', authMiddleware, controller.deleteMedia);
 
 export default router;

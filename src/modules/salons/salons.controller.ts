@@ -8,12 +8,8 @@ const salonsService = new SalonsService();
 
 export class SalonsController {
   async getSalons(req: Request, res: Response) {
-    const pagination = getPagination(req.query);
-    const { data, total } = await salonsService.getSalons({
-      ...req.query,
-      ...pagination,
-    });
-    res.json(formatPaginatedResponse(data, total, pagination));
+    const result = await salonsService.getSalons(req.query);
+    res.json(result);
   }
 
   async getSalon(req: Request, res: Response) {
@@ -33,6 +29,80 @@ export class SalonsController {
       req.body,
       req.user!.id,
       isAdmin
+    );
+    res.json(result);
+  }
+
+  async deleteSalon(req: AuthRequest, res: Response) {
+    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const result = await salonsService.deleteSalon(
+      BigInt(req.params.id),
+      req.user!.id,
+      isAdmin
+    );
+    res.json(result);
+  }
+
+  async assignServices(req: AuthRequest, res: Response) {
+    const mode = (req.query.mode as 'append' | 'replace') || 'append';
+    const result = await salonsService.assignServices(
+      BigInt(req.params.id),
+      req.body.services,
+      mode
+    );
+    res.json(result);
+  }
+
+  async removeService(req: AuthRequest, res: Response) {
+    const result = await salonsService.removeService(
+      BigInt(req.params.id),
+      BigInt(req.params.serviceId)
+    );
+    res.json(result);
+  }
+
+  async setAvatar(req: AuthRequest, res: Response) {
+    const result = await salonsService.attachMedia(
+      BigInt(req.params.id),
+      req.body.media,
+      'AVATAR',
+      req.user!.id
+    );
+    res.json(result);
+  }
+
+  async setCover(req: AuthRequest, res: Response) {
+    const result = await salonsService.attachMedia(
+      BigInt(req.params.id),
+      req.body.media,
+      'COVER',
+      req.user!.id
+    );
+    res.json(result);
+  }
+
+  async addGallery(req: AuthRequest, res: Response) {
+    const result = await salonsService.attachMedia(
+      BigInt(req.params.id),
+      req.body.media,
+      'GALLERY',
+      req.user!.id
+    );
+    res.json(result);
+  }
+
+  async linkArtist(req: AuthRequest, res: Response) {
+    const result = await salonsService.linkArtist(
+      BigInt(req.params.id),
+      req.body
+    );
+    res.json(result);
+  }
+
+  async unlinkArtist(req: AuthRequest, res: Response) {
+    const result = await salonsService.unlinkArtist(
+      BigInt(req.params.id),
+      BigInt(req.params.artistId)
     );
     res.json(result);
   }

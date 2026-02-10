@@ -1,0 +1,86 @@
+import { prisma } from '../../shared/db/prisma';
+import { ApiError } from '../../shared/errors/ApiError';
+import { UserRole, AccountStatus } from '@prisma/client';
+
+export class UsersService {
+  async getUserById(id: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(id) },
+    });
+    if (!user) throw new ApiError(404, 'User not found');
+    return this.serializeUser(user);
+  }
+
+  async updateUser(id: string, data: any) {
+    const user = await prisma.user.update({
+      where: { id: BigInt(id) },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        bio: data.bio,
+        cityId: data.cityId ? BigInt(data.cityId) : undefined,
+        gender: data.gender,
+      },
+    });
+    return this.serializeUser(user);
+  }
+
+  async listUsers(query: any) {
+    const { q, role, status, page = 1, pageSize = 20 } = query;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+    if (q) {
+      where.OR = [
+        { username: { contains: q, mode: 'insensitive' } },
+        { phoneNumber: { contains: q } },
+      ];
+    }
+    if (role) where.role = role;
+    if (status) where.status = status;
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return {
+      data: users.map(u => this.serializeUser(u)),
+      meta: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  async updateUserRole(id: string, role: UserRole) {
+    await prisma.user.update({
+      where: { id: BigInt(id) },
+      data: { role },
+    });
+    return { ok: true };
+  }
+
+  async updateUserStatus(id: string, status: AccountStatus) {
+    await prisma.user.update({
+      where: { id: BigInt(id) },
+      data: { status },
+    });
+    return { ok: true };
+  }
+
+  private serializeUser(user: any) {
+    return {
+      ...user,
+      id: user.id.toString(),
+      cityId: user.cityId?.toString(),
+    };
+  }
+}

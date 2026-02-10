@@ -30,18 +30,116 @@ export class ReviewsService {
       },
     });
 
-    // Update avg rating (simple version)
-    // In production, use a more robust way or async task
-    return review;
+    await this.recomputeAggregates(targetType, id);
+
+    return this.serialize(review);
+  }
+
+  async getReviews(targetType: 'SALON' | 'ARTIST', slug: string, query: any) {
+    const { page = 1, pageSize = 20, status } = query;
+    const limit = parseInt(pageSize as string) || 20;
+    const skip = (parseInt(page as string || '1') - 1) * limit;
+
+    const where: any = {
+      status: status || ReviewStatus.PUBLISHED,
+      ...(targetType === 'SALON' ? { salon: { slug } } : { artist: { slug } }),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        include: { author: { select: { id: true, firstName: true, lastName: true, profilePicture: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.review.count({ where }),
+    ]);
+
+    return {
+      data: data.map(r => this.serialize(r)),
+      meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async deleteReview(reviewId: bigint, userId: bigint, isAdmin: boolean) {
+    const review = await prisma.review.findUnique({ where: { id: reviewId } });
+    if (!review) throw new ApiError(404, 'Review not found');
+
+    if (!isAdmin && review.authorId !== userId) {
+      throw new ApiError(403, 'Forbidden');
+    }
+
+    await prisma.review.update({
+      where: { id: reviewId },
+      data: { status: ReviewStatus.REMOVED, deletedAt: new Date() },
+    });
+
+    if (review.salonId) await this.recomputeAggregates('SALON', review.salonId);
+    if (review.artistId) await this.recomputeAggregates('ARTIST', review.artistId);
+
+    return { ok: true };
   }
 
   async voteReview(reviewId: bigint, userId: bigint, isLike: boolean) {
-    return prisma.reviewVote.upsert({
+    await prisma.reviewVote.upsert({
       where: {
         userId_reviewId: { userId, reviewId },
       },
       update: { isLike },
       create: { userId, reviewId, isLike },
     });
+
+    // Update counts on review
+    const [likes, dislikes] = await Promise.all([
+      prisma.reviewVote.count({ where: { reviewId, isLike: true } }),
+      prisma.reviewVote.count({ where: { reviewId, isLike: false } }),
+    ]);
+
+    await prisma.review.update({
+      where: { id: reviewId },
+      data: { likeCount: likes, dislikeCount: dislikes },
+    });
+
+    return { ok: true, likeCount: likes, dislikeCount: dislikes };
+  }
+
+  private async recomputeAggregates(targetType: 'SALON' | 'ARTIST', targetId: bigint) {
+    const where = {
+      status: ReviewStatus.PUBLISHED,
+      ...(targetType === 'SALON' ? { salonId: targetId } : { artistId: targetId }),
+    };
+
+    const aggregations = await prisma.review.aggregate({
+      where,
+      _avg: { rating: true },
+      _count: { id: true },
+    });
+
+    const avgRating = aggregations._avg.rating || 0;
+    const reviewCount = aggregations._count.id || 0;
+
+    if (targetType === 'SALON') {
+      await prisma.salon.update({
+        where: { id: targetId },
+        data: { avgRating, reviewCount },
+      });
+    } else {
+      await prisma.artist.update({
+        where: { id: targetId },
+        data: { avgRating, reviewCount },
+      });
+    }
+  }
+
+  private serialize(obj: any): any {
+    if (!obj) return null;
+    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
+    const res = { ...obj };
+    for (const key in res) {
+      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
+      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
+    }
+    return res;
   }
 }

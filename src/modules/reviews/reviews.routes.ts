@@ -21,4 +21,10 @@ router.post(
   controller.voteReview
 );
 
+router.delete(
+  '/:id',
+  authMiddleware,
+  controller.deleteReview
+);
+
 export default router;

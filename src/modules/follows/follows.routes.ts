@@ -1,47 +1,12 @@
 import { Router } from 'express';
-import { prisma } from '../../shared/db/prisma';
-import { authMiddleware, AuthRequest } from '../../shared/middlewares/auth.middleware';
+import { FollowsController } from './follows.controller';
+import { requireAuth } from '../../shared/middlewares/auth.middleware';
 
 const router = Router();
+const controller = new FollowsController();
 
-router.post('/follow', authMiddleware, async (req: AuthRequest, res) => {
-  const { targetType, targetId } = req.body;
-  const id = BigInt(targetId);
-  const result = await prisma.follow.create({
-    data: {
-      followerId: req.user!.id,
-      targetType,
-      ...(targetType === 'SALON' ? { salonId: id } : { artistId: id }),
-    },
-  });
-  res.json(result);
-});
-
-router.delete('/follow', authMiddleware, async (req: AuthRequest, res) => {
-  const { targetType, targetId } = req.body;
-  const id = BigInt(targetId);
-  await prisma.follow.deleteMany({
-    where: {
-      followerId: req.user!.id,
-      targetType,
-      ...(targetType === 'SALON' ? { salonId: id } : { artistId: id }),
-    },
-  });
-  res.status(204).send();
-});
-
-router.post('/save', authMiddleware, async (req: AuthRequest, res) => {
-  const { targetType, targetId } = req.body;
-  const id = BigInt(targetId);
-  const result = await prisma.save.create({
-    data: {
-      userId: req.user!.id,
-      targetType,
-      ...(targetType === 'SALON' ? { salonId: id } : 
-         targetType === 'ARTIST' ? { artistId: id } : { postId: id }),
-    },
-  });
-  res.json(result);
-});
+router.post('/', requireAuth(), controller.follow);
+router.delete('/', requireAuth(), controller.unfollow);
+router.get('/me', requireAuth(), controller.getMyFollows);
 
 export default router;

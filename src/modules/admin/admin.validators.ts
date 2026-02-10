@@ -1,0 +1,8 @@
+import { z } from 'zod';
+
+export const statsQuerySchema = z.object({
+  query: z.object({
+    from: z.string().datetime(),
+    to: z.string().datetime(),
+  }),
+});

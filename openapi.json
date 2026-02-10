@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sevra Atlas API",
+    "version": "1.0.0",
+    "description": "Unified Directory + Blog API"
+  },
+  "servers": [
+    { "url": "/api/v1" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/auth/otp/request": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Request OTP code",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "phoneNumber": { "type": "string" } },
+                "required": ["phoneNumber"]
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "OTP sent" } }
+      }
+    },
+    "/auth/otp/verify": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verify OTP and login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phoneNumber": { "type": "string" },
+                  "code": { "type": "string", "minLength": 6, "maxLength": 6 }
+                },
+                "required": ["phoneNumber", "code"]
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Logged in" } }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["Me"],
+        "summary": "Get current user profile",
+        "responses": { "200": { "description": "User profile" } }
+      },
+      "patch": {
+        "tags": ["Me"],
+        "summary": "Update user profile",
+        "responses": { "200": { "description": "Profile updated" } }
+      }
+    },
+    "/salons": {
+      "get": {
+        "tags": ["Salons"],
+        "summary": "List salons with filters",
+        "parameters": [
+          { "name": "city", "in": "query", "schema": { "type": "string" } },
+          { "name": "service", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "List of salons" } }
+      },
+      "post": {
+        "tags": ["Salons"],
+        "summary": "Create a new salon",
+        "responses": { "201": { "description": "Salon created" } }
+      }
+    },
+    "/blog/posts": {
+      "get": {
+        "tags": ["Blog"],
+        "summary": "List blog posts",
+        "responses": { "200": { "description": "List of posts" } }
+      }
+    }
+  }
+}

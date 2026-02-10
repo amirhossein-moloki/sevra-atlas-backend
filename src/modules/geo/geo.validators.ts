@@ -22,3 +22,11 @@ const neighborhoodSchema = z.object({
 export const createProvinceSchema = z.object({ body: provinceSchema });
 export const createCitySchema = z.object({ body: citySchema });
 export const createNeighborhoodSchema = z.object({ body: neighborhoodSchema });
+
+export const updateCitySchema = z.object({
+  body: citySchema.partial(),
+});
+
+export const updateNeighborhoodSchema = z.object({
+  body: neighborhoodSchema.partial(),
+});

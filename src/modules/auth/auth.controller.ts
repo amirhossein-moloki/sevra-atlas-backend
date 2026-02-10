@@ -24,4 +24,16 @@ export class AuthController {
     );
     res.json(result);
   }
+
+  async refresh(req: Request, res: Response) {
+    const { refreshToken } = req.body;
+    const result = await authService.refresh(refreshToken);
+    res.json(result);
+  }
+
+  async logout(req: Request, res: Response) {
+    const { refreshToken } = req.body;
+    const result = await authService.logout((req as any).user.id.toString(), refreshToken);
+    res.json(result);
+  }
 }

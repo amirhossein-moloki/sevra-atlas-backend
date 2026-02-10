@@ -12,3 +12,9 @@ export const verifyOtpSchema = z.object({
     code: z.string().length(6),
   }),
 });
+
+export const refreshTokenSchema = z.object({
+  body: z.object({
+    refreshToken: z.string(),
+  }),
+});

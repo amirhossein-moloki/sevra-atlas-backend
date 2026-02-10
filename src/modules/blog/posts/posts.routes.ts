@@ -1,35 +1,48 @@
 import { Router } from 'express';
 import { PostsController } from './posts.controller';
-import { authMiddleware, requireRole } from '../../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { BlogCommentsController } from '../comments/comments.controller';
+import { requireAuth } from '../../../shared/middlewares/auth.middleware';
 import { validate } from '../../../shared/middlewares/validate.middleware';
-import { createPostSchema } from './posts.validators';
+import { createPostSchema, updatePostSchema } from './posts.validators';
 
 const router = Router();
 const controller = new PostsController();
+const commentsController = new BlogCommentsController();
 
-router.get('/', controller.getPosts);
+router.get('/', controller.listPosts);
+router.get('/slug/:slug', controller.getPost);
 router.get('/:slug', controller.getPost);
+router.get('/:slug/similar', controller.getSimilarPosts);
+router.get('/:slug/same-category', controller.getSameCategoryPosts);
+router.get('/:slug/related', controller.getRelatedPosts);
+
+// Nested comments
+router.get('/:slug/comments', commentsController.listPostComments);
+router.post('/:slug/comments', requireAuth(), commentsController.createComment);
 
 router.post(
   '/',
-  authMiddleware,
-  requireRole([UserRole.AUTHOR, UserRole.ADMIN]),
+  requireAuth(),
   validate(createPostSchema),
   controller.createPost
 );
 
 router.patch(
-  '/:id',
-  authMiddleware,
-  requireRole([UserRole.AUTHOR, UserRole.ADMIN]),
+  '/:slug',
+  requireAuth(),
+  validate(updatePostSchema),
   controller.updatePost
 );
 
+router.delete(
+  '/:slug',
+  requireAuth(),
+  controller.deletePost
+);
+
 router.post(
-  '/:id/publish',
-  authMiddleware,
-  requireRole([UserRole.AUTHOR, UserRole.ADMIN]),
+  '/:slug/publish',
+  requireAuth(),
   controller.publishPost
 );
 

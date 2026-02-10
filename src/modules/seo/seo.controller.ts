@@ -7,7 +7,15 @@ export class SeoController {
   async resolveRedirect(req: Request, res: Response) {
     const path = req.query.path as string;
     const result = await seoService.resolveRedirect(path);
-    res.json(result);
+    if (!result) {
+      return res.json({ redirect: null });
+    }
+    res.json({
+      redirect: {
+        toPath: result.toPath,
+        type: result.type,
+      }
+    });
   }
 
   async setSeoMeta(req: Request, res: Response) {

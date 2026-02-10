@@ -1,5 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { FollowTargetType } from '@prisma/client';
+import { serialize } from '../../shared/utils/serialize';
 
 export class FollowsService {
   async follow(userId: bigint, targetType: FollowTargetType, targetId: bigint) {
@@ -8,8 +9,8 @@ export class FollowsService {
         followerId_targetType_salonId_artistId: {
           followerId: userId,
           targetType,
-          salonId: targetType === 'SALON' ? targetId : null,
-          artistId: targetType === 'ARTIST' ? targetId : null,
+          salonId: (targetType === 'SALON' ? targetId : null) as any,
+          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
         },
       },
       create: {
@@ -28,8 +29,8 @@ export class FollowsService {
         followerId_targetType_salonId_artistId: {
           followerId: userId,
           targetType,
-          salonId: targetType === 'SALON' ? targetId : null,
-          artistId: targetType === 'ARTIST' ? targetId : null,
+          salonId: (targetType === 'SALON' ? targetId : null) as any,
+          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
         },
       },
     });
@@ -44,17 +45,6 @@ export class FollowsService {
         artist: { select: { id: true, fullName: true, slug: true } },
       },
     });
-    return this.serialize(follows);
-  }
-
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
+    return serialize(follows);
   }
 }

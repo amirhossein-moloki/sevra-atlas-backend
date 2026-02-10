@@ -1,6 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { VerificationStatus, EntityType } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { serialize } from '../../shared/utils/serialize';
 
 export class VerificationService {
   async requestVerification(userId: bigint, data: any) {
@@ -35,7 +36,7 @@ export class VerificationService {
         },
       });
 
-      return this.serialize(request);
+      return serialize(request);
     });
   }
 
@@ -59,7 +60,7 @@ export class VerificationService {
     ]);
 
     return {
-      data: data.map(r => this.serialize(r)),
+      data: serialize(data),
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -95,17 +96,6 @@ export class VerificationService {
       }
     }
 
-    return this.serialize(updatedRequest);
-  }
-
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
+    return serialize(updatedRequest);
   }
 }

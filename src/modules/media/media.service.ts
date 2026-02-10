@@ -1,5 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
+import { serialize } from '../../shared/utils/serialize';
 
 export class MediaService {
   async listMedia(query: any) {
@@ -17,7 +18,7 @@ export class MediaService {
     ]);
 
     return {
-      data: data.map(m => this.serialize(m)),
+      data: serialize(data),
       meta: { page: parseInt(page), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -41,7 +42,7 @@ export class MediaService {
         entityId: data.entityId ? BigInt(data.entityId) : undefined,
       },
     });
-    return this.serialize(media);
+    return serialize(media);
   }
 
   async getMedia(id: bigint) {
@@ -49,7 +50,7 @@ export class MediaService {
       where: { id },
     });
     if (!media) throw new ApiError(404, 'Media not found');
-    return this.serialize(media);
+    return serialize(media);
   }
 
   async deleteMedia(id: bigint, userId: bigint, isAdmin: boolean) {
@@ -65,16 +66,5 @@ export class MediaService {
 
     await prisma.media.delete({ where: { id } });
     return { ok: true };
-  }
-
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
   }
 }

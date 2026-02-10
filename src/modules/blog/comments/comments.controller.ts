@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { BlogCommentsService } from './comments.service';
 import { AuthRequest } from '../../../shared/middlewares/auth.middleware';
+import { UserRole } from '@prisma/client';
 
 const commentsService = new BlogCommentsService();
 

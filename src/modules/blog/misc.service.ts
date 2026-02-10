@@ -1,4 +1,6 @@
-import { prisma } from '../../../shared/db/prisma';
+import { prisma } from '../../shared/db/prisma';
+import { ApiError } from '../../shared/errors/ApiError';
+import { serialize } from '../../shared/utils/serialize';
 
 export class BlogMiscService {
   // Revisions
@@ -7,7 +9,7 @@ export class BlogMiscService {
       where: { postId: BigInt(postId) },
       orderBy: { createdAt: 'desc' }
     });
-    return this.serialize(revisions);
+    return serialize(revisions);
   }
 
   // Reactions
@@ -29,7 +31,7 @@ export class BlogMiscService {
       },
       update: {}
     });
-    return this.serialize(reaction);
+    return serialize(reaction);
   }
 
   // Pages
@@ -38,23 +40,23 @@ export class BlogMiscService {
       where: { status: 'published' },
       orderBy: { publishedAt: 'desc' }
     });
-    return this.serialize(pages);
+    return serialize(pages);
   }
 
   async getPage(slug: string) {
     const page = await prisma.page.findUnique({ where: { slug } });
     if (!page) throw new ApiError(404, 'Page not found');
-    return this.serialize(page);
+    return serialize(page);
   }
 
   async createPage(data: any) {
     const page = await prisma.page.create({ data });
-    return this.serialize(page);
+    return serialize(page);
   }
 
   async updatePage(id: bigint, data: any) {
     const page = await prisma.page.update({ where: { id }, data });
-    return this.serialize(page);
+    return serialize(page);
   }
 
   async deletePage(id: bigint) {
@@ -69,17 +71,17 @@ export class BlogMiscService {
       include: { items: { include: { children: true }, orderBy: { order: 'asc' } } }
     });
     if (!menu) throw new ApiError(404, 'Menu not found');
-    return this.serialize(menu);
+    return serialize(menu);
   }
 
   async createMenu(data: any) {
     const menu = await prisma.menu.create({ data });
-    return this.serialize(menu);
+    return serialize(menu);
   }
 
   async updateMenu(id: bigint, data: any) {
     const menu = await prisma.menu.update({ where: { id }, data });
-    return this.serialize(menu);
+    return serialize(menu);
   }
 
   async deleteMenu(id: bigint) {
@@ -97,7 +99,7 @@ export class BlogMiscService {
         parentId: parentId ? BigInt(parentId) : undefined
       }
     });
-    return this.serialize(menuItem);
+    return serialize(menuItem);
   }
 
   async updateMenuItem(id: bigint, data: any) {
@@ -110,23 +112,11 @@ export class BlogMiscService {
         parentId: parentId ? BigInt(parentId) : (parentId === null ? null : undefined)
       }
     });
-    return this.serialize(menuItem);
+    return serialize(menuItem);
   }
 
   async deleteMenuItem(id: bigint) {
     await prisma.menuItem.delete({ where: { id } });
     return { ok: true };
   }
-
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
-  }
 }
-import { ApiError } from '../../shared/errors/ApiError';

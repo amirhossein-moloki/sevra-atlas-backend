@@ -1,6 +1,7 @@
 import { prisma } from '../../../shared/db/prisma';
 import { CommentStatus, UserRole } from '@prisma/client';
 import { ApiError } from '../../../shared/errors/ApiError';
+import { serialize } from '../../../shared/utils/serialize';
 
 export class BlogCommentsService {
   async listPostComments(postSlug: string, query: any) {
@@ -25,7 +26,7 @@ export class BlogCommentsService {
     ]);
 
     return {
-      data: comments.map(c => this.serialize(c)),
+      data: serialize(comments),
       meta: { page, pageSize, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -45,7 +46,7 @@ export class BlogCommentsService {
     });
 
     // In a real app, trigger notification task here
-    return this.serialize(comment);
+    return serialize(comment);
   }
 
   async listGlobalComments(query: any, isAdmin: boolean) {
@@ -72,7 +73,7 @@ export class BlogCommentsService {
     ]);
 
     return {
-      data: comments.map(c => this.serialize(c)),
+      data: serialize(comments),
       meta: { page, pageSize, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -82,22 +83,11 @@ export class BlogCommentsService {
       where: { id },
       data: { status }
     });
-    return this.serialize(comment);
+    return serialize(comment);
   }
 
   async deleteComment(id: bigint) {
     await prisma.comment.delete({ where: { id } });
     return { ok: true };
-  }
-
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
   }
 }

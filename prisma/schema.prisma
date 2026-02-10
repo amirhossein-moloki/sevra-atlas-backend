@@ -205,6 +205,11 @@ model User {
   otpAttempts     OtpAttempt[]
   verificationReviewed VerificationRequest[] @relation("VerificationReviewedBy")
 
+  primarySalons   Salon[]        @relation("PrimarySalonOwner")
+  primaryArtists  Artist[]       @relation("PrimaryArtistOwner")
+  verifiedCertifications ArtistCertification[] @relation("CertVerifier")
+  verificationRequests VerificationRequest[] @relation("VerificationRequester")
+
   @@map("users_user")
   @@index([cityId])
   @@index([role, status])
@@ -256,6 +261,9 @@ model Media {
   postCovers     Post[]          @relation("PostCover")
   postOgImages   Post[]          @relation("PostOgImage")
   attachments    PostMedia[]
+
+  seoOgImages      SeoMeta[]     @relation("SeoOgImage")
+  seoTwitterImages SeoMeta[]     @relation("SeoTwitterImage")
 
   // Directory relations
   salonAvatars   Salon[]         @relation("SalonAvatar")
@@ -528,6 +536,15 @@ model SeoMeta {
   entityType      EntityType
   entityId        BigInt
 
+  // Relations (back-references)
+  category        Category[]
+  post            Post[]
+  page            Page[]
+  province        Province[]
+  city            City[]
+  salon           Salon[]
+  artist          Artist[]
+
   title           String?       @db.VarChar(255)
   description     String?       @db.Text
   canonicalMode   CanonicalMode @default(SELF)
@@ -537,12 +554,12 @@ model SeoMeta {
   ogTitle         String?       @db.VarChar(255)
   ogDescription   String?       @db.Text
   ogImageMediaId  BigInt?
-  ogImage         Media?        @relation(fields: [ogImageMediaId], references: [id], onDelete: SetNull)
+  ogImage         Media?        @relation("SeoOgImage", fields: [ogImageMediaId], references: [id], onDelete: SetNull)
 
   twitterTitle    String?       @db.VarChar(255)
   twitterDesc     String?       @db.Text
   twitterImageMediaId BigInt?
-  twitterImage    Media?        @relation(fields: [twitterImageMediaId], references: [id], onDelete: SetNull)
+  twitterImage    Media?        @relation("SeoTwitterImage", fields: [twitterImageMediaId], references: [id], onDelete: SetNull)
 
   h1              String?       @db.VarChar(255)
   breadcrumbLabel String?       @db.VarChar(255)
@@ -711,7 +728,7 @@ model Salon {
   // ownership
   owners        User[]  @relation("SalonOwners")
   primaryOwnerId BigInt?
-  primaryOwner   User?  @relation(fields: [primaryOwnerId], references: [id], onDelete: SetNull)
+  primaryOwner   User?  @relation("PrimarySalonOwner", fields: [primaryOwnerId], references: [id], onDelete: SetNull)
 
   // relations
   salonArtists    SalonArtist[]
@@ -719,7 +736,7 @@ model Salon {
   reviews         Review[] @relation("SalonReviews")
   saves           Save[]   @relation("SaveSalon")
   follows         Follow[] @relation("FollowSalon")
-  reports         Report[]
+  reports         Report[] @relation("SalonReports")
   verificationReq VerificationRequest?
 
   avgRating     Float @default(0)
@@ -773,14 +790,14 @@ model Artist {
 
   owners        User[]  @relation("ArtistOwners")
   primaryOwnerId BigInt?
-  primaryOwner   User?  @relation(fields: [primaryOwnerId], references: [id], onDelete: SetNull)
+  primaryOwner   User?  @relation("PrimaryArtistOwner", fields: [primaryOwnerId], references: [id], onDelete: SetNull)
 
   specialties     ArtistSpecialty[]
   salonArtists    SalonArtist[]
   reviews         Review[] @relation("ArtistReviews")
   saves           Save[]   @relation("SaveArtist")
   follows         Follow[] @relation("FollowArtist")
-  reports         Report[]
+  reports         Report[] @relation("ArtistReports")
   verificationReq VerificationRequest?
 
   // ✅ Certifications (NEW)
@@ -822,7 +839,7 @@ model ArtistCertification {
   isVerified    Boolean @default(false)
   verifiedAt    DateTime?
   verifiedById  BigInt?
-  verifiedBy    User?   @relation(fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedBy    User?   @relation("CertVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -981,6 +998,11 @@ model Report {
   targetType EntityType
   targetId   BigInt
 
+  salonId    BigInt?
+  salon      Salon?  @relation("SalonReports", fields: [salonId], references: [id], onDelete: SetNull)
+  artistId   BigInt?
+  artist     Artist? @relation("ArtistReports", fields: [artistId], references: [id], onDelete: SetNull)
+
   reviewId   BigInt?
   review     Review? @relation("ReviewReports", fields: [reviewId], references: [id], onDelete: SetNull)
 
@@ -1002,10 +1024,10 @@ model Report {
 model VerificationRequest {
   id            BigInt @id @default(autoincrement())
   requestedById BigInt
-  requestedBy   User   @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  requestedBy   User   @relation("VerificationRequester", fields: [requestedById], references: [id], onDelete: Cascade)
 
-  salonId       BigInt?
-  artistId      BigInt?
+  salonId       BigInt? @unique
+  artistId      BigInt? @unique
   salon         Salon?  @relation(fields: [salonId], references: [id], onDelete: Cascade)
   artist        Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
 

@@ -11,6 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "ts-node prisma/seed.ts",
+    "verify:prod": "ts-node scripts/verify-production-config.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "test:load": "node tests/load/runner.js"

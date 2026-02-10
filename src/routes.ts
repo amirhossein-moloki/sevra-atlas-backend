@@ -16,6 +16,7 @@ import saveRoutes from './modules/saves/saves.routes';
 import reportRoutes from './modules/reports/reports.routes';
 import verificationRoutes from './modules/verification/verification.routes';
 import adminRoutes from './modules/admin/admin.routes';
+import healthRoutes from './modules/health/health.routes';
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.use('/save', saveRoutes);
 router.use('/reports', reportRoutes);
 router.use('/verification', verificationRoutes);
 router.use('/admin', adminRoutes);
+router.use('/health', healthRoutes);
 
 import blogTaxonomyRoutes from './modules/blog/taxonomy.routes';
 import blogMiscRoutes from './modules/blog/misc.routes';

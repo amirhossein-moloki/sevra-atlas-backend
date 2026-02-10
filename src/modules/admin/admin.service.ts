@@ -3,10 +3,10 @@ import { prisma } from '../../shared/db/prisma';
 export class AdminService {
   async getDashboardSummary() {
     const [users, salons, artists, reviews, reports, verifications] = await Promise.all([
-      prisma.user.count(),
-      prisma.salon.count(),
-      prisma.artist.count(),
-      prisma.review.count(),
+      prisma.user.count({ where: { deletedAt: null } }),
+      prisma.salon.count({ where: { deletedAt: null } }),
+      prisma.artist.count({ where: { deletedAt: null } }),
+      prisma.review.count({ where: { deletedAt: null } }),
       prisma.report.count({ where: { status: 'OPEN' } }),
       prisma.verificationRequest.count({ where: { status: 'PENDING' } }),
     ]);

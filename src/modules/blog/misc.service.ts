@@ -39,14 +39,16 @@ export class BlogMiscService {
   // Pages
   async listPages() {
     const pages = await prisma.page.findMany({
-      where: { status: 'published' },
+      where: { status: 'published', deletedAt: null },
       orderBy: { publishedAt: 'desc' }
     });
     return serialize(pages);
   }
 
   async getPage(slug: string) {
-    const page = await prisma.page.findUnique({ where: { slug } });
+    const page = await prisma.page.findFirst({
+      where: { slug, deletedAt: null }
+    });
     if (!page) throw new ApiError(404, 'Page not found');
     return serialize(page);
   }
@@ -73,7 +75,13 @@ export class BlogMiscService {
 
   async deletePage(id: string | bigint) {
     const pageId = BigInt(id);
-    await prisma.page.delete({ where: { id: pageId } });
+    await prisma.page.update({
+      where: { id: pageId },
+      data: {
+        status: 'archived',
+        deletedAt: new Date()
+      }
+    });
     return { ok: true };
   }
 

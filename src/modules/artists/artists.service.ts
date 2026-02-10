@@ -12,6 +12,7 @@ export class ArtistsService {
 
     const where: any = {
       status: AccountStatus.ACTIVE,
+      deletedAt: null,
     };
 
     if (city) where.city = { slug: city };
@@ -43,8 +44,8 @@ export class ArtistsService {
   }
 
   async getArtistBySlug(slug: string) {
-    const artist = await prisma.artist.findUnique({
-      where: { slug },
+    const artist = await prisma.artist.findFirst({
+      where: { slug, deletedAt: null },
       include: {
         avatar: true,
         cover: true,
@@ -79,8 +80,8 @@ export class ArtistsService {
 
   async updateArtist(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
     return prisma.$transaction(async (tx) => {
-      const artist = await tx.artist.findUnique({
-        where: { id },
+      const artist = await tx.artist.findFirst({
+        where: { id, deletedAt: null },
         include: { owners: { select: { id: true } } },
       });
       if (!artist) throw new ApiError(404, 'Artist not found');
@@ -107,8 +108,8 @@ export class ArtistsService {
   }
 
   async deleteArtist(id: bigint, userId: bigint, isAdmin: boolean) {
-    const artist = await prisma.artist.findUnique({
-      where: { id },
+    const artist = await prisma.artist.findFirst({
+      where: { id, deletedAt: null },
       include: { owners: { select: { id: true } } },
     });
     if (!artist) throw new ApiError(404, 'Artist not found');
@@ -192,6 +193,9 @@ export class ArtistsService {
   }
 
   async deleteCertification(certId: bigint) {
+    // Standardizing to soft delete if needed, but ArtistCertification doesn't have deletedAt yet in my schema change.
+    // Wait, I didn't add it to ArtistCertification.
+    // Let's stick to what I added to the schema.
     await prisma.artistCertification.delete({ where: { id: certId } });
     return { ok: true };
   }
@@ -209,7 +213,10 @@ export class ArtistsService {
   }
 
   async listSpecialties() {
-    return prisma.specialty.findMany({ orderBy: { order: 'asc' } });
+    return prisma.specialty.findMany({
+      where: { deletedAt: null },
+      orderBy: { order: 'asc' }
+    });
   }
 
   async createSpecialty(data: any) {
@@ -226,7 +233,10 @@ export class ArtistsService {
   }
 
   async deleteSpecialty(id: bigint) {
-    await prisma.specialty.delete({ where: { id } });
+    await prisma.specialty.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
     return { ok: true };
   }
 

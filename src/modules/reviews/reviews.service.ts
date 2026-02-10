@@ -42,6 +42,7 @@ export class ReviewsService {
 
     const where: any = {
       status: status || ReviewStatus.PUBLISHED,
+      deletedAt: null,
       ...(targetType === 'SALON' ? { salon: { slug } } : { artist: { slug } }),
     };
 
@@ -107,6 +108,7 @@ export class ReviewsService {
   private async recomputeAggregates(targetType: 'SALON' | 'ARTIST', targetId: bigint) {
     const where = {
       status: ReviewStatus.PUBLISHED,
+      deletedAt: null,
       ...(targetType === 'SALON' ? { salonId: targetId } : { artistId: targetId }),
     };
 

@@ -8,7 +8,7 @@ export class ServicesService {
     const skip = (parseInt(page as string || '1') - 1) * (parseInt(pageSize as string) || 20);
     const limit = parseInt(pageSize as string) || 20;
 
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (q) {
       where.nameFa = { contains: q, mode: 'insensitive' };
     }
@@ -31,8 +31,8 @@ export class ServicesService {
   }
 
   async getServiceBySlug(slug: string) {
-    const service = await prisma.serviceDefinition.findUnique({
-      where: { slug },
+    const service = await prisma.serviceDefinition.findFirst({
+      where: { slug, deletedAt: null },
     });
     if (!service) throw new ApiError(404, 'Service not found');
     return serialize(service);
@@ -64,9 +64,26 @@ export class ServicesService {
     return serialize(service);
   }
 
-  async deleteService(id: string) {
-    await prisma.serviceDefinition.delete({
+  async updateCategory(id: string, data: any) {
+    const category = await prisma.serviceCategory.update({
       where: { id: BigInt(id) },
+      data,
+    });
+    return serialize(category);
+  }
+
+  async deleteCategory(id: string) {
+    await prisma.serviceCategory.update({
+      where: { id: BigInt(id) },
+      data: { deletedAt: new Date() },
+    });
+    return { ok: true };
+  }
+
+  async deleteService(id: string) {
+    await prisma.serviceDefinition.update({
+      where: { id: BigInt(id) },
+      data: { deletedAt: new Date() },
     });
     return { ok: true };
   }

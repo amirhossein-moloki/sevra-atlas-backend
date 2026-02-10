@@ -12,6 +12,7 @@ export class SalonsService {
 
     const where: any = {
       status: AccountStatus.ACTIVE,
+      deletedAt: null,
     };
 
     if (province) where.city = { province: { slug: province } };
@@ -45,8 +46,8 @@ export class SalonsService {
   }
 
   async getSalonBySlug(slug: string) {
-    const salon = await prisma.salon.findUnique({
-      where: { slug },
+    const salon = await prisma.salon.findFirst({
+      where: { slug, deletedAt: null },
       include: {
         avatar: true,
         cover: true,

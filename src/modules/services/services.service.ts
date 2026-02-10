@@ -1,10 +1,12 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
+import { serialize } from '../../shared/utils/serialize';
 
 export class ServicesService {
   async listServiceCategories(query: any) {
     const { include, q, page = 1, pageSize = 20 } = query;
-    const skip = (page - 1) * pageSize;
+    const skip = (parseInt(page as string || '1') - 1) * (parseInt(pageSize as string) || 20);
+    const limit = parseInt(pageSize as string) || 20;
 
     const where: any = {};
     if (q) {
@@ -14,17 +16,17 @@ export class ServicesService {
     const [categories, total] = await Promise.all([
       prisma.serviceCategory.findMany({
         where,
-        include: include === 'categories' ? { services: true } : false,
+        include: include === 'categories' ? { services: true } : undefined,
         skip,
-        take: pageSize,
+        take: limit,
         orderBy: { order: 'asc' },
       }),
       prisma.serviceCategory.count({ where }),
     ]);
 
     return {
-      data: categories.map(c => this.serialize(c)),
-      meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+      data: serialize(categories),
+      meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 
@@ -33,12 +35,12 @@ export class ServicesService {
       where: { slug },
     });
     if (!service) throw new ApiError(404, 'Service not found');
-    return this.serialize(service);
+    return serialize(service);
   }
 
   async createCategory(data: any) {
     const category = await prisma.serviceCategory.create({ data });
-    return this.serialize(category);
+    return serialize(category);
   }
 
   async createService(data: any) {
@@ -48,7 +50,7 @@ export class ServicesService {
         categoryId: BigInt(data.categoryId),
       },
     });
-    return this.serialize(service);
+    return serialize(service);
   }
 
   async updateService(id: string, data: any) {
@@ -59,7 +61,7 @@ export class ServicesService {
         categoryId: data.categoryId ? BigInt(data.categoryId) : undefined,
       },
     });
-    return this.serialize(service);
+    return serialize(service);
   }
 
   async deleteService(id: string) {
@@ -67,16 +69,5 @@ export class ServicesService {
       where: { id: BigInt(id) },
     });
     return { ok: true };
-  }
-
-  private serialize(obj: any) {
-    if (!obj) return null;
-    const res = { ...obj };
-    if (res.id) res.id = res.id.toString();
-    if (res.categoryId) res.categoryId = res.categoryId.toString();
-    if (res.services) {
-      res.services = res.services.map((s: any) => this.serialize(s));
-    }
-    return res;
   }
 }

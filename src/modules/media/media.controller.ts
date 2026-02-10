@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { MediaService } from './media.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 

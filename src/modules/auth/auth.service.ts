@@ -3,7 +3,7 @@ import { redis } from '../../shared/redis/redis';
 import { env } from '../../shared/config/env';
 import { smsProvider } from '../../shared/utils/sms';
 import { ApiError } from '../../shared/errors/ApiError';
-import { generateAccessToken, generateRefreshToken } from '../../shared/auth/jwt';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../shared/auth/jwt';
 import { UserRole } from '@prisma/client';
 
 export class AuthService {

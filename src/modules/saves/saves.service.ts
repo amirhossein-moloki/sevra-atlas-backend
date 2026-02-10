@@ -1,5 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { SaveTargetType } from '@prisma/client';
+import { serialize } from '../../shared/utils/serialize';
 
 export class SavesService {
   async save(userId: bigint, targetType: SaveTargetType, targetId: bigint) {
@@ -8,9 +9,9 @@ export class SavesService {
         userId_targetType_salonId_artistId_postId: {
           userId,
           targetType,
-          salonId: targetType === 'SALON' ? targetId : null,
-          artistId: targetType === 'ARTIST' ? targetId : null,
-          postId: targetType === 'BLOG_POST' ? targetId : null,
+          salonId: (targetType === 'SALON' ? targetId : null) as any,
+          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
+          postId: (targetType === 'BLOG_POST' ? targetId : null) as any,
         },
       },
       create: {
@@ -30,9 +31,9 @@ export class SavesService {
         userId_targetType_salonId_artistId_postId: {
           userId,
           targetType,
-          salonId: targetType === 'SALON' ? targetId : null,
-          artistId: targetType === 'ARTIST' ? targetId : null,
-          postId: targetType === 'BLOG_POST' ? targetId : null,
+          salonId: (targetType === 'SALON' ? targetId : null) as any,
+          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
+          postId: (targetType === 'BLOG_POST' ? targetId : null) as any,
         },
       },
     });
@@ -48,17 +49,6 @@ export class SavesService {
         post: { select: { id: true, title: true, slug: true } },
       },
     });
-    return this.serialize(saves);
-  }
-
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
+    return serialize(saves);
   }
 }

@@ -1,5 +1,5 @@
-import { prisma } from '../../../shared/db/prisma';
-import { ApiError } from '../../../shared/errors/ApiError';
+import { prisma } from '../../shared/db/prisma';
+import { ApiError } from '../../shared/errors/ApiError';
 
 export class BlogTaxonomyService {
   // Categories

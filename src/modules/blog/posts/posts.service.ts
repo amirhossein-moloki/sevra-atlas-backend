@@ -1,12 +1,13 @@
 import { prisma } from '../../../shared/db/prisma';
 import { ApiError } from '../../../shared/errors/ApiError';
 import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
+import { serialize } from '../../../shared/utils/serialize';
 
 export class PostsService {
   async listPosts(query: any, user?: any) {
     const {
-      page = 1, pageSize = 10, search, ordering,
-      published_after, published_before, category, tags,
+      page = 1, pageSize = 10, q, ordering,
+      published_after, published_before, category, tag,
       is_hot, series, visibility
     } = query;
     
@@ -30,20 +31,20 @@ export class PostsService {
       ];
     }
 
-    if (search) {
+    if (q) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { content: { contains: search, mode: 'insensitive' } },
-        { excerpt: { contains: search, mode: 'insensitive' } },
+        { title: { contains: q, mode: 'insensitive' } },
+        { content: { contains: q, mode: 'insensitive' } },
+        { excerpt: { contains: q, mode: 'insensitive' } },
       ];
     }
 
     if (published_after) where.publishedAt = { ...where.publishedAt, gte: new Date(published_after) };
     if (published_before) where.publishedAt = { ...where.publishedAt, lte: new Date(published_before) };
     if (category) where.category = { slug: category };
-    if (tags) {
-      const tagSlugs = Array.isArray(tags) ? tags : (tags as string).split(',');
-      where.tags = { every: { tag: { slug: { in: tagSlugs } } } };
+    if (tag) {
+      const tagSlugs = Array.isArray(tag) ? tag : (tag as string).split(',');
+      where.tags = { some: { tag: { slug: { in: tagSlugs } } } };
     }
     if (is_hot === 'true') where.isHot = true;
     if (series) where.series = { slug: series };
@@ -74,7 +75,7 @@ export class PostsService {
     ]);
 
     return {
-      data: posts.map(p => this.serializePost(p)),
+      data: serialize(posts),
       meta: { page: parseInt(page), pageSize: limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -107,7 +108,7 @@ export class PostsService {
       data: { viewsCount: { increment: 1 } }
     });
 
-    return this.serializePost(post);
+    return serialize(post);
   }
 
   async createPost(data: any, authorUserId: bigint) {
@@ -135,7 +136,7 @@ export class PostsService {
         }
       });
 
-      return this.serializePost(post);
+      return serialize(post);
     });
   }
 
@@ -167,7 +168,7 @@ export class PostsService {
         }
       });
 
-      return this.serializePost(updatedPost);
+      return serialize(updatedPost);
     });
   }
 
@@ -179,7 +180,10 @@ export class PostsService {
       throw new ApiError(403, 'Forbidden');
     }
 
-    await prisma.post.delete({ where: { id: post.id } });
+    await prisma.post.update({
+      where: { id: post.id },
+      data: { status: PostStatus.archived }
+    });
     return { ok: true };
   }
 
@@ -204,7 +208,7 @@ export class PostsService {
       }
     });
 
-    return { data: similar.map(p => this.serializePost(p)) };
+    return { data: serialize(similar) };
   }
 
   async getSameCategoryPosts(slug: string, query: any) {
@@ -239,7 +243,7 @@ export class PostsService {
     ]);
 
     return {
-      data: data.map(p => this.serializePost(p)),
+      data: serialize(data),
       meta: { page, pageSize: limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -279,7 +283,7 @@ export class PostsService {
       return bCommon - aCommon || (b.publishedAt?.getTime() || 0) - (a.publishedAt?.getTime() || 0);
     });
 
-    return { data: related.map(p => this.serializePost(p)).slice(0, 5) };
+    return { data: serialize(related.slice(0, 5)) };
   }
 
   async publishPost(slug: string, user: any) {
@@ -303,7 +307,7 @@ export class PostsService {
       }
     });
 
-    return this.serializePost(updated);
+    return serialize(updated);
   }
 
   private handlePublicationDate(status: PostStatus, publishAt?: string) {
@@ -319,34 +323,4 @@ export class PostsService {
     }
   }
 
-  private serializePost(post: any) {
-    if (!post) return null;
-    const res = { ...post };
-    if (res.id) res.id = res.id.toString();
-    if (res.authorId) res.authorId = res.authorId.toString();
-    if (res.categoryId) res.categoryId = res.categoryId.toString();
-    if (res.seriesId) res.seriesId = res.seriesId.toString();
-    if (res.coverMediaId) res.coverMediaId = res.coverMediaId.toString();
-    if (res.ogImageId) res.ogImageId = res.ogImageId.toString();
-
-    if (res.author && res.author.userId) {
-      res.author.userId = res.author.userId.toString();
-      if (res.author.avatarId) res.author.avatarId = res.author.avatarId.toString();
-    }
-
-    if (res.tags) {
-      res.tags = res.tags.map((t: any) => t.tag || t);
-    }
-
-    if (res.mediaAttachments) {
-      res.mediaAttachments = res.mediaAttachments.map((m: any) => ({
-        ...m,
-        id: m.id.toString(),
-        postId: m.postId.toString(),
-        mediaId: m.mediaId.toString(),
-      }));
-    }
-
-    return res;
-  }
 }

@@ -16,6 +16,21 @@ export class ArtistsController {
     res.json({ data: result });
   }
 
+  async createSpecialty(req: Request, res: Response) {
+    const result = await artistsService.createSpecialty(req.body);
+    res.status(201).json(result);
+  }
+
+  async updateSpecialty(req: Request, res: Response) {
+    const result = await artistsService.updateSpecialty(BigInt(req.params.id), req.body);
+    res.json(result);
+  }
+
+  async deleteSpecialty(req: Request, res: Response) {
+    const result = await artistsService.deleteSpecialty(BigInt(req.params.id));
+    res.json(result);
+  }
+
   async getArtist(req: Request, res: Response) {
     const result = await artistsService.getArtistBySlug(req.params.slug);
     res.json(result);

@@ -48,6 +48,48 @@ export class BlogCommentsService {
     return this.serialize(comment);
   }
 
+  async listGlobalComments(query: any, isAdmin: boolean) {
+    const { page = 1, pageSize = 20, status } = query;
+    const limit = parseInt(pageSize as string) || 20;
+    const skip = (parseInt(page as string || '1') - 1) * limit;
+
+    const where: any = {};
+    if (status) where.status = status;
+    else if (!isAdmin) where.status = CommentStatus.approved;
+
+    const [comments, total] = await Promise.all([
+      prisma.comment.findMany({
+        where,
+        include: {
+          user: { select: { username: true, profilePicture: true } },
+          post: { select: { title: true, slug: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.comment.count({ where })
+    ]);
+
+    return {
+      data: comments.map(c => this.serialize(c)),
+      meta: { page, pageSize, total, totalPages: Math.ceil(total / limit) }
+    };
+  }
+
+  async updateCommentStatus(id: bigint, status: CommentStatus) {
+    const comment = await prisma.comment.update({
+      where: { id },
+      data: { status }
+    });
+    return this.serialize(comment);
+  }
+
+  async deleteComment(id: bigint) {
+    await prisma.comment.delete({ where: { id } });
+    return { ok: true };
+  }
+
   private serialize(obj: any): any {
     if (!obj) return null;
     if (Array.isArray(obj)) return obj.map(o => this.serialize(o));

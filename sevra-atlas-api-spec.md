@@ -850,8 +850,6 @@ Body/Behavior similar to salon media (gallery via Media kind=GALLERY entityType=
 
 ## 8) Specialties (Artist taxonomy)
 
-*(If you decide to expose it — recommended for filters)*
-
 ### 8.1 List specialties
 `GET /specialties`
 
@@ -860,7 +858,7 @@ Body/Behavior similar to salon media (gallery via Media kind=GALLERY entityType=
 { "data": [{ "id": 5, "nameFa": "میکاپ", "slug": "makeup", "order": 1 }] }
 ```
 
-### 8.2 Admin CRUD (optional)
+### 8.2 Admin CRUD
 - `POST /specialties` (ADMIN)
 - `PATCH /specialties/:id` (ADMIN)
 - `DELETE /specialties/:id` (ADMIN)
@@ -1184,6 +1182,11 @@ Same as salon reviews.
 **Behavior**
 - Soft delete if desired; ensure it’s not referenced as avatar/cover/doc.
 - If referenced, respond `409 CONFLICT`.
+
+---
+
+### 14.4 Download media
+`GET /media/:id/download`
 
 ---
 

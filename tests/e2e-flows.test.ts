@@ -269,4 +269,112 @@ describe('Critical Business Flows E2E', () => {
       expect(resolveRes.body.redirect.type).toBe('PERMANENT_301');
     });
   });
+
+  describe('Resilience: Failure in the middle of a flow', () => {
+    it('should maintain state consistency when a multi-step flow fails', async () => {
+      const phoneNumber = '+989000000004';
+
+      // 1. Request OTP
+      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber });
+      let code: string | null = await redis.get(`otp:${phoneNumber}`);
+      if (!code) {
+        const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: phoneNumber } });
+        code = otpRecord?.code || null;
+      }
+
+      // 2. Fail verification with wrong code
+      const failRes = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber, code: '000000' });
+      expect(failRes.status).toBe(400);
+
+      // 3. Verify that no user was created yet
+      const user = await prisma.user.findUnique({ where: { phoneNumber } });
+      expect(user).toBeNull();
+
+      // 4. Verify that the OTP still exists and attempts increased
+      const redisAttempts = await redis.get(`otp:${phoneNumber}:attempts`);
+      if (redisAttempts) {
+          expect(parseInt(redisAttempts)).toBeGreaterThan(0);
+      } else {
+          const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: phoneNumber } });
+          expect(otpRecord?.attempts).toBeGreaterThan(0);
+      }
+
+      // 5. Cleanup
+      await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
+      await redis.del(`otp:${phoneNumber}`);
+      await redis.del(`otp:${phoneNumber}:attempts`);
+    });
+  });
+
+  describe('Flow 5: Verification Journey (Request → Admin Review → Verified)', () => {
+    let userToken: string;
+    let adminToken: string;
+    let salonId: string;
+    let requestId: string;
+
+    beforeAll(async () => {
+      // 1. Setup User & Salon
+      const userRes = await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000005' });
+      const userCode = (await redis.get('otp:+989000000005')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000005'}}))?.code;
+      const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000005', code: userCode });
+      userToken = userVerify.body.accessToken;
+
+      await prisma.user.update({ where: { id: BigInt(userVerify.body.user.id) }, data: { role: UserRole.SALON } });
+
+      const salon = await prisma.salon.create({
+          data: { name: 'Verify Me Salon', slug: 'verify-me', primaryOwnerId: BigInt(userVerify.body.user.id), owners: { connect: { id: BigInt(userVerify.body.user.id) } } }
+      });
+      salonId = salon.id.toString();
+
+      // 2. Setup Admin
+      await prisma.user.upsert({
+          where: { phoneNumber: '+989000000006' },
+          update: { role: UserRole.ADMIN },
+          create: { phoneNumber: '+989000000006', username: 'admin_verify', role: UserRole.ADMIN, isStaff: true, isActive: true, referralCode: 'VADM', firstName: '', lastName: '', email: '' } as any
+      });
+      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000006' });
+      const adminCode = (await redis.get('otp:+989000000006')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000006'}}))?.code;
+      const adminVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000006', code: adminCode });
+      adminToken = adminVerify.body.accessToken;
+    });
+
+    afterAll(async () => {
+        await prisma.verificationRequest.deleteMany({ where: { salonId: BigInt(salonId) } });
+        await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
+        await prisma.user.deleteMany({ where: { phoneNumber: { in: ['+989000000005', '+989000000006'] } } });
+    });
+
+    it('should complete the verification lifecycle', async () => {
+      // 1. User Requests Verification
+      const reqRes = await request(app)
+        .post('/api/v1/verification/request')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          targetType: 'SALON',
+          targetId: salonId,
+          notes: 'Please verify my business',
+          documents: [
+              { label: 'Business License', media: { url: 'http://docs.com/license.pdf', storageKey: 'key1', type: 'FILE', mime: 'application/pdf', sizeBytes: 1024 } }
+          ]
+        });
+
+      expect(reqRes.status).toBe(201);
+      requestId = reqRes.body.id;
+
+      // 2. Admin Reviews and Approves
+      const reviewRes = await request(app)
+        .patch(`/api/v1/verification/${requestId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          status: 'VERIFIED',
+          notes: 'Looks good'
+        });
+
+      expect(reviewRes.status).toBe(200);
+
+      // 3. Verify Salon Status updated
+      const salon = await prisma.salon.findUnique({ where: { id: BigInt(salonId) } });
+      expect(salon?.verification).toBe('VERIFIED');
+    });
+  });
 });

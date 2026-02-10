@@ -2,6 +2,7 @@ import { prisma } from '../../../shared/db/prisma';
 import { ApiError } from '../../../shared/errors/ApiError';
 import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
 import { serialize } from '../../../shared/utils/serialize';
+import { handleSlugChange } from '../../../shared/utils/seo';
 
 export class PostsService {
   async listPosts(query: any, user?: any) {
@@ -152,6 +153,10 @@ export class PostsService {
     const publication = this.handlePublicationDate(data.status || post.status, data.publish_at);
 
     return prisma.$transaction(async (tx) => {
+      if (data.slug && data.slug !== post.slug) {
+        await handleSlugChange(EntityType.BLOG_POST, post.id, post.slug, data.slug, '/blog/post', tx);
+      }
+
       const updatedPost = await tx.post.update({
         where: { id: post.id },
         data: {

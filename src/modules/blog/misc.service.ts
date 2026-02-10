@@ -1,6 +1,8 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { serialize } from '../../shared/utils/serialize';
+import { handleSlugChange } from '../../shared/utils/seo';
+import { EntityType } from '@prisma/client';
 
 export class BlogMiscService {
   // Revisions
@@ -54,13 +56,24 @@ export class BlogMiscService {
     return serialize(page);
   }
 
-  async updatePage(id: bigint, data: any) {
-    const page = await prisma.page.update({ where: { id }, data });
-    return serialize(page);
+  async updatePage(id: string | bigint, data: any) {
+    const pageId = BigInt(id);
+    return prisma.$transaction(async (tx) => {
+      const page = await tx.page.findUnique({ where: { id: pageId } });
+      if (!page) throw new ApiError(404, 'Page not found');
+
+      if (data.slug && data.slug !== page.slug) {
+        await handleSlugChange(EntityType.BLOG_PAGE, pageId, page.slug, data.slug, '/blog/page', tx);
+      }
+
+      const updatedPage = await tx.page.update({ where: { id: pageId }, data });
+      return serialize(updatedPage);
+    });
   }
 
-  async deletePage(id: bigint) {
-    await prisma.page.delete({ where: { id } });
+  async deletePage(id: string | bigint) {
+    const pageId = BigInt(id);
+    await prisma.page.delete({ where: { id: pageId } });
     return { ok: true };
   }
 
@@ -79,13 +92,15 @@ export class BlogMiscService {
     return serialize(menu);
   }
 
-  async updateMenu(id: bigint, data: any) {
-    const menu = await prisma.menu.update({ where: { id }, data });
+  async updateMenu(id: string | bigint, data: any) {
+    const menuId = BigInt(id);
+    const menu = await prisma.menu.update({ where: { id: menuId }, data });
     return serialize(menu);
   }
 
-  async deleteMenu(id: bigint) {
-    await prisma.menu.delete({ where: { id } });
+  async deleteMenu(id: string | bigint) {
+    const menuId = BigInt(id);
+    await prisma.menu.delete({ where: { id: menuId } });
     return { ok: true };
   }
 
@@ -102,10 +117,11 @@ export class BlogMiscService {
     return serialize(menuItem);
   }
 
-  async updateMenuItem(id: bigint, data: any) {
+  async updateMenuItem(id: string | bigint, data: any) {
+    const menuItemId = BigInt(id);
     const { menuId, parentId, ...rest } = data;
     const menuItem = await prisma.menuItem.update({
-      where: { id },
+      where: { id: menuItemId },
       data: {
         ...rest,
         menuId: menuId ? BigInt(menuId) : undefined,
@@ -115,8 +131,9 @@ export class BlogMiscService {
     return serialize(menuItem);
   }
 
-  async deleteMenuItem(id: bigint) {
-    await prisma.menuItem.delete({ where: { id } });
+  async deleteMenuItem(id: string | bigint) {
+    const menuItemId = BigInt(id);
+    await prisma.menuItem.delete({ where: { id: menuItemId } });
     return { ok: true };
   }
 }

@@ -1,91 +1,139 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
+import { handleSlugChange } from '../../shared/utils/seo';
+import { EntityType } from '@prisma/client';
+import { serialize } from '../../shared/utils/serialize';
 
 export class BlogTaxonomyService {
   // Categories
   async listCategories() {
-    return prisma.category.findMany({ include: { parent: true } });
+    const data = await prisma.category.findMany({ include: { parent: true } });
+    return serialize(data);
   }
 
   async createCategory(data: any) {
-    return prisma.category.create({
+    const result = await prisma.category.create({
       data: {
         ...data,
         parentId: data.parentId ? BigInt(data.parentId) : undefined
       }
     });
+    return serialize(result);
   }
 
-  async getCategory(id: bigint) {
+  async getCategory(id: string | bigint) {
+    const categoryId = BigInt(id);
     const category = await prisma.category.findUnique({
-      where: { id },
+      where: { id: categoryId },
       include: { parent: true }
     });
     if (!category) throw new ApiError(404, 'Category not found');
-    return category;
+    return serialize(category);
   }
 
-  async updateCategory(id: bigint, data: any) {
-    const { parentId, ...rest } = data;
-    return prisma.category.update({
-      where: { id },
-      data: {
-        ...rest,
-        parentId: parentId ? BigInt(parentId) : (parentId === null ? null : undefined)
+  async updateCategory(id: string | bigint, data: any) {
+    const categoryId = BigInt(id);
+    return prisma.$transaction(async (tx) => {
+      const category = await tx.category.findUnique({ where: { id: categoryId } });
+      if (!category) throw new ApiError(404, 'Category not found');
+
+      if (data.slug && data.slug !== category.slug) {
+        await handleSlugChange(EntityType.CATEGORY, categoryId, category.slug, data.slug, '/blog/category', tx);
       }
+
+      const { parentId, ...rest } = data;
+      const result = await tx.category.update({
+        where: { id: categoryId },
+        data: {
+          ...rest,
+          parentId: parentId ? BigInt(parentId) : (parentId === null ? null : undefined)
+        }
+      });
+      return serialize(result);
     });
   }
 
-  async deleteCategory(id: bigint) {
-    await prisma.category.delete({ where: { id } });
+  async deleteCategory(id: string | bigint) {
+    const categoryId = BigInt(id);
+    await prisma.category.delete({ where: { id: categoryId } });
     return { ok: true };
   }
 
   // Tags
   async listTags() {
-    return prisma.tag.findMany();
+    const data = await prisma.tag.findMany();
+    return serialize(data);
   }
 
   async createTag(data: any) {
-    return prisma.tag.create({ data });
+    const result = await prisma.tag.create({ data });
+    return serialize(result);
   }
 
-  async getTag(id: bigint) {
-    const tag = await prisma.tag.findUnique({ where: { id } });
+  async getTag(id: string | bigint) {
+    const tagId = BigInt(id);
+    const tag = await prisma.tag.findUnique({ where: { id: tagId } });
     if (!tag) throw new ApiError(404, 'Tag not found');
-    return tag;
+    return serialize(tag);
   }
 
-  async updateTag(id: bigint, data: any) {
-    return prisma.tag.update({ where: { id }, data });
+  async updateTag(id: string | bigint, data: any) {
+    const tagId = BigInt(id);
+    return prisma.$transaction(async (tx) => {
+      const tag = await tx.tag.findUnique({ where: { id: tagId } });
+      if (!tag) throw new ApiError(404, 'Tag not found');
+
+      if (data.slug && data.slug !== tag.slug) {
+        await handleSlugChange(EntityType.TAG, tagId, tag.slug, data.slug, '/blog/tag', tx);
+      }
+
+      const result = await tx.tag.update({ where: { id: tagId }, data });
+      return serialize(result);
+    });
   }
 
-  async deleteTag(id: bigint) {
-    await prisma.tag.delete({ where: { id } });
+  async deleteTag(id: string | bigint) {
+    const tagId = BigInt(id);
+    await prisma.tag.delete({ where: { id: tagId } });
     return { ok: true };
   }
 
   // Series
   async listSeries() {
-    return prisma.series.findMany();
+    const data = await prisma.series.findMany();
+    return serialize(data);
   }
 
   async createSeries(data: any) {
-    return prisma.series.create({ data });
+    const result = await prisma.series.create({ data });
+    return serialize(result);
   }
 
-  async getSeries(id: bigint) {
-    const series = await prisma.series.findUnique({ where: { id } });
+  async getSeries(id: string | bigint) {
+    const seriesId = BigInt(id);
+    const series = await prisma.series.findUnique({ where: { id: seriesId } });
     if (!series) throw new ApiError(404, 'Series not found');
-    return series;
+    return serialize(series);
   }
 
-  async updateSeries(id: bigint, data: any) {
-    return prisma.series.update({ where: { id }, data });
+  async updateSeries(id: string | bigint, data: any) {
+    const seriesId = BigInt(id);
+    return prisma.$transaction(async (tx) => {
+      const series = await tx.series.findUnique({ where: { id: seriesId } });
+      if (!series) throw new ApiError(404, 'Series not found');
+
+      if (data.slug && data.slug !== series.slug) {
+        await handleSlugChange(EntityType.SERIES, seriesId, series.slug, data.slug, '/blog/series', tx);
+      }
+
+      const result = await tx.series.update({ where: { id: seriesId }, data });
+      return serialize(result);
+    });
   }
 
-  async deleteSeries(id: bigint) {
-    await prisma.series.delete({ where: { id } });
+  async deleteSeries(id: string | bigint) {
+    const seriesId = BigInt(id);
+    await prisma.series.delete({ where: { id: seriesId } });
     return { ok: true };
   }
 }

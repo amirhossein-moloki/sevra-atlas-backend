@@ -111,6 +111,8 @@ enum EntityType {
   CITY
   PROVINCE
   CATEGORY
+  TAG
+  SERIES
 }
 
 enum RobotsIndex {

@@ -78,30 +78,32 @@ export class ArtistsService {
   }
 
   async updateArtist(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const artist = await prisma.artist.findUnique({
-      where: { id },
-      include: { owners: { select: { id: true } } },
+    return prisma.$transaction(async (tx) => {
+      const artist = await tx.artist.findUnique({
+        where: { id },
+        include: { owners: { select: { id: true } } },
+      });
+      if (!artist) throw new ApiError(404, 'Artist not found');
+
+      const isOwner = artist.owners.some(o => o.id === userId);
+      if (!isAdmin && !isOwner) {
+        throw new ApiError(403, 'Forbidden');
+      }
+
+      if (data.slug && data.slug !== artist.slug) {
+        await handleSlugChange(EntityType.ARTIST, id, artist.slug, data.slug, '/atlas/artist', tx);
+      }
+
+      const updatedArtist = await tx.artist.update({
+        where: { id },
+        data: {
+          ...data,
+          cityId: data.cityId ? BigInt(data.cityId) : undefined,
+          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+        },
+      });
+      return serialize(updatedArtist);
     });
-    if (!artist) throw new ApiError(404, 'Artist not found');
-
-    const isOwner = artist.owners.some(o => o.id === userId);
-    if (!isAdmin && !isOwner) {
-      throw new ApiError(403, 'Forbidden');
-    }
-
-    if (data.slug && data.slug !== artist.slug) {
-      await handleSlugChange(EntityType.ARTIST, id, artist.slug, data.slug, '/atlas/artist');
-    }
-
-    const updatedArtist = await prisma.artist.update({
-      where: { id },
-      data: {
-        ...data,
-        cityId: data.cityId ? BigInt(data.cityId) : undefined,
-        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-      },
-    });
-    return serialize(updatedArtist);
   }
 
   async deleteArtist(id: bigint, userId: bigint, isAdmin: boolean) {

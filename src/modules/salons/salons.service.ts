@@ -80,31 +80,33 @@ export class SalonsService {
   }
 
   async updateSalon(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const salon = await prisma.salon.findUnique({
-      where: { id },
-      include: { owners: { select: { id: true } } },
+    return prisma.$transaction(async (tx) => {
+      const salon = await tx.salon.findUnique({
+        where: { id },
+        include: { owners: { select: { id: true } } },
+      });
+      if (!salon) throw new ApiError(404, 'Salon not found');
+
+      const isOwner = salon.owners.some(o => o.id === userId);
+      if (!isAdmin && !isOwner) {
+        throw new ApiError(403, 'Forbidden');
+      }
+
+      if (data.slug && data.slug !== salon.slug) {
+        await handleSlugChange(EntityType.SALON, id, salon.slug, data.slug, '/atlas/salon', tx);
+      }
+
+      const updatedSalon = await tx.salon.update({
+        where: { id },
+        data: {
+          ...data,
+          cityId: data.cityId ? BigInt(data.cityId) : undefined,
+          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+          provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
+        },
+      });
+      return serialize(updatedSalon);
     });
-    if (!salon) throw new ApiError(404, 'Salon not found');
-
-    const isOwner = salon.owners.some(o => o.id === userId);
-    if (!isAdmin && !isOwner) {
-      throw new ApiError(403, 'Forbidden');
-    }
-
-    if (data.slug && data.slug !== salon.slug) {
-      await handleSlugChange(EntityType.SALON, id, salon.slug, data.slug, '/atlas/salon');
-    }
-
-    const updatedSalon = await prisma.salon.update({
-      where: { id },
-      data: {
-        ...data,
-        cityId: data.cityId ? BigInt(data.cityId) : undefined,
-        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-        provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
-      },
-    });
-    return serialize(updatedSalon);
   }
 
   async deleteSalon(id: bigint, userId: bigint, isAdmin: boolean) {

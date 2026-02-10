@@ -22,6 +22,12 @@ export class MediaController {
     res.json(result);
   }
 
+  async updateMedia(req: AuthRequest, res: Response) {
+    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const result = await mediaService.updateMedia(BigInt(req.params.id), req.body, req.user!.id, isAdmin);
+    res.json(result);
+  }
+
   async downloadMedia(req: Request, res: Response) {
     const media = await mediaService.getMedia(BigInt(req.params.id));
     // In a real app, you'd stream from storage. For now, redirect to URL.

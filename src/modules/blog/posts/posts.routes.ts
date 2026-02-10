@@ -4,6 +4,7 @@ import { BlogCommentsController } from '../comments/comments.controller';
 import { requireAuth } from '../../../shared/middlewares/auth.middleware';
 import { validate } from '../../../shared/middlewares/validate.middleware';
 import { createPostSchema, updatePostSchema } from './posts.validators';
+import { createCommentSchema } from '../comments/comments.validators';
 
 const router = Router();
 const controller = new PostsController();
@@ -18,7 +19,12 @@ router.get('/:slug/related', controller.getRelatedPosts);
 
 // Nested comments
 router.get('/:slug/comments', commentsController.listPostComments);
-router.post('/:slug/comments', requireAuth(), commentsController.createComment);
+router.post(
+  '/:slug/comments',
+  requireAuth(),
+  validate(createCommentSchema),
+  commentsController.createComment
+);
 
 router.post(
   '/',

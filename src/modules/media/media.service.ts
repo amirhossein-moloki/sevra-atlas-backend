@@ -53,6 +53,22 @@ export class MediaService {
     return serialize(media);
   }
 
+  async updateMedia(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
+    const media = await prisma.media.findUnique({ where: { id } });
+    if (!media) throw new ApiError(404, 'Media not found');
+
+    if (!isAdmin && media.uploadedBy !== userId) {
+      throw new ApiError(403, 'Forbidden');
+    }
+
+    const updated = await prisma.media.update({
+      where: { id },
+      data,
+    });
+
+    return serialize(updated);
+  }
+
   async deleteMedia(id: bigint, userId: bigint, isAdmin: boolean) {
     const media = await prisma.media.findUnique({ where: { id } });
     if (!media) throw new ApiError(404, 'Media not found');

@@ -30,4 +30,49 @@ export class BlogMiscController {
     const result = await blogMiscService.getMenu(req.params.location as MenuLocation);
     res.json(result);
   }
+
+  async createPage(req: Request, res: Response) {
+    const result = await blogMiscService.createPage(req.body);
+    res.status(201).json(result);
+  }
+
+  async updatePage(req: Request, res: Response) {
+    const result = await blogMiscService.updatePage(BigInt(req.params.id), req.body);
+    res.json(result);
+  }
+
+  async deletePage(req: Request, res: Response) {
+    const result = await blogMiscService.deletePage(BigInt(req.params.id));
+    res.json(result);
+  }
+
+  async createMenu(req: Request, res: Response) {
+    const result = await blogMiscService.createMenu(req.body);
+    res.status(201).json(result);
+  }
+
+  async updateMenu(req: Request, res: Response) {
+    const result = await blogMiscService.updateMenu(BigInt(req.params.id), req.body);
+    res.json(result);
+  }
+
+  async deleteMenu(req: Request, res: Response) {
+    const result = await blogMiscService.deleteMenu(BigInt(req.params.id));
+    res.json(result);
+  }
+
+  async createMenuItem(req: Request, res: Response) {
+    const result = await blogMiscService.createMenuItem(req.body);
+    res.status(201).json(result);
+  }
+
+  async updateMenuItem(req: Request, res: Response) {
+    const result = await blogMiscService.updateMenuItem(BigInt(req.params.id), req.body);
+    res.json(result);
+  }
+
+  async deleteMenuItem(req: Request, res: Response) {
+    const result = await blogMiscService.deleteMenuItem(BigInt(req.params.id));
+    res.json(result);
+  }
 }

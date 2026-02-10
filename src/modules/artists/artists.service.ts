@@ -210,6 +210,24 @@ export class ArtistsService {
     return prisma.specialty.findMany({ orderBy: { order: 'asc' } });
   }
 
+  async createSpecialty(data: any) {
+    const specialty = await prisma.specialty.create({ data });
+    return serialize(specialty);
+  }
+
+  async updateSpecialty(id: bigint, data: any) {
+    const specialty = await prisma.specialty.update({
+      where: { id },
+      data,
+    });
+    return serialize(specialty);
+  }
+
+  async deleteSpecialty(id: bigint) {
+    await prisma.specialty.delete({ where: { id } });
+    return { ok: true };
+  }
+
   async assignSpecialties(id: bigint, specialtyIds: number[], mode: 'replace' | 'append') {
     return prisma.$transaction(async (tx) => {
       if (mode === 'replace') {

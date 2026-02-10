@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { redis } from '../redis/redis';
 import { ApiError } from '../errors/ApiError';
-import { env } from '../config/env';
+import { logger } from '../logger/logger';
 
 export const rateLimit = (
   prefix: string,
@@ -13,13 +13,20 @@ export const rateLimit = (
     const key = keyGenerator ? keyGenerator(req) : req.ip;
     const redisKey = `ratelimit:${prefix}:${key}`;
 
-    const current = await redis.incr(redisKey);
-    if (current === 1) {
-      await redis.expire(redisKey, windowSeconds);
-    }
+    try {
+      const current = await redis.incr(redisKey);
+      if (current === 1) {
+        await redis.expire(redisKey, windowSeconds);
+      }
 
-    if (current > limit) {
-      throw new ApiError(429, 'Too many requests, please try again later');
+      if (current > limit) {
+        throw new ApiError(429, 'Too many requests, please try again later');
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return next(error);
+      }
+      logger.warn(`Rate limit check failed due to Redis error (fail-open):`, error);
     }
 
     next();

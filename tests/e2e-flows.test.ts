@@ -5,10 +5,17 @@ import { redis } from '../src/shared/redis/redis';
 import { UserRole, EntityType, AccountStatus } from '@prisma/client';
 
 /**
- * Real End-to-End (E2E) Flow Tests
+ * 🛡️ CRITICAL BUSINESS FLOWS - REAL E2E TESTS
+ * -------------------------------------------
+ * This suite is the "Safety Net" for the Sevra Atlas Backend.
  *
- * These tests are designed to run against a real PostgreSQL and Redis environment.
- * They cover critical business flows involving multiple modules and side-effects.
+ * TARGET RISKS ADDRESSED (from Technical Audit):
+ * 1. [Risk: Production-only bugs] -> Solved by using Real Prisma & Redis (No Mocks).
+ * 2. [Risk: Costly Rollbacks] -> Solved by verifying Side-Effects (SlugHistory, Redirects).
+ * 3. [Risk: Mid-flow Failure] -> Solved by Flow 4 (Resilience/Consistency checks).
+ * 4. [Risk: Atomic Integrity] -> Solved by Flow 5 (Complex Verification Journey).
+ *
+ * These tests are mandatory for CI/CD to ensure the system remains healthy.
  */
 
 describe('Critical Business Flows E2E', () => {

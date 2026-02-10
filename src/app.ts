@@ -5,8 +5,10 @@ import cors from 'cors';
 import compression from 'compression';
 import pinoHttp from 'pino-http';
 import { logger } from './shared/logger/logger';
-import { errorMiddleware } from './shared/middlewares/error.middleware';
+import { errorHandler } from './shared/middlewares/error.middleware';
 import { requestIdMiddleware } from './shared/middlewares/requestId.middleware';
+import { responseMiddleware } from './shared/middlewares/response.middleware';
+import './types/express';
 import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -19,6 +21,7 @@ app.use(compression());
 app.use(express.json());
 app.use(pinoHttp({ logger }));
 app.use(requestIdMiddleware);
+app.use(responseMiddleware);
 
 const swaggerOptions = {
   definition: {
@@ -48,6 +51,6 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/v1', routes);
 
-app.use(errorMiddleware);
+app.use(errorHandler);
 
 export default app;

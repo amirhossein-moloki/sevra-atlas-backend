@@ -11,7 +11,8 @@ export class BlogCommentsService {
 
     const where: any = {
       post: { slug: postSlug },
-      status: CommentStatus.approved
+      status: CommentStatus.approved,
+      deletedAt: null
     };
 
     const [comments, total] = await Promise.all([
@@ -54,7 +55,7 @@ export class BlogCommentsService {
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (status) where.status = status;
     else if (!isAdmin) where.status = CommentStatus.approved;
 
@@ -87,7 +88,13 @@ export class BlogCommentsService {
   }
 
   async deleteComment(id: bigint) {
-    await prisma.comment.delete({ where: { id } });
+    await prisma.comment.update({
+      where: { id },
+      data: {
+        status: CommentStatus.removed,
+        deletedAt: new Date()
+      }
+    });
     return { ok: true };
   }
 }

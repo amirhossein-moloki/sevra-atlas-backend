@@ -15,7 +15,7 @@ export class PostsService {
     const limit = Math.min(parseInt(pageSize as string) || 10, 100);
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = {};
+    const where: any = { deletedAt: null };
 
     // Permission-based queryset
     if (!user || user.role === UserRole.USER) {
@@ -82,8 +82,8 @@ export class PostsService {
   }
 
   async getPostBySlug(slug: string, user?: any) {
-    const post = await prisma.post.findUnique({
-      where: { slug },
+    const post = await prisma.post.findFirst({
+      where: { slug, deletedAt: null },
       include: {
         author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
         category: true,
@@ -187,13 +187,16 @@ export class PostsService {
 
     await prisma.post.update({
       where: { id: post.id },
-      data: { status: PostStatus.archived }
+      data: {
+        status: PostStatus.archived,
+        deletedAt: new Date()
+      }
     });
     return { ok: true };
   }
 
   async getSimilarPosts(slug: string) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [] };
 
@@ -202,7 +205,8 @@ export class PostsService {
         categoryId: post.categoryId,
         status: PostStatus.published,
         publishedAt: { lte: new Date() },
-        id: { not: post.id }
+        id: { not: post.id },
+        deletedAt: null
       },
       orderBy: { publishedAt: 'desc' },
       take: 5,
@@ -217,7 +221,7 @@ export class PostsService {
   }
 
   async getSameCategoryPosts(slug: string, query: any) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [], meta: { total: 0 } };
 
@@ -229,7 +233,8 @@ export class PostsService {
       categoryId: post.categoryId,
       status: PostStatus.published,
       publishedAt: { lte: new Date() },
-      id: { not: post.id }
+      id: { not: post.id },
+      deletedAt: null
     };
 
     const [data, total] = await Promise.all([
@@ -254,8 +259,8 @@ export class PostsService {
   }
 
   async getRelatedPosts(slug: string) {
-    const post = await prisma.post.findUnique({
-      where: { slug },
+    const post = await prisma.post.findFirst({
+      where: { slug, deletedAt: null },
       include: { tags: true }
     });
     if (!post) throw new ApiError(404, 'Post not found');
@@ -270,7 +275,8 @@ export class PostsService {
         status: PostStatus.published,
         publishedAt: { lte: new Date() },
         id: { not: post.id },
-        tags: { some: { tagId: { in: tagIds } } }
+        tags: { some: { tagId: { in: tagIds } } },
+        deletedAt: null
       },
       take: 10,
       include: {
@@ -292,7 +298,7 @@ export class PostsService {
   }
 
   async publishPost(slug: string, user: any) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (user.role !== UserRole.ADMIN && post.authorId !== user.id) {

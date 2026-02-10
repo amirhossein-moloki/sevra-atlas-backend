@@ -4,8 +4,8 @@ import { UserRole, AccountStatus } from '@prisma/client';
 
 export class UsersService {
   async getUserById(id: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: BigInt(id) },
+    const user = await prisma.user.findFirst({
+      where: { id: BigInt(id), deletedAt: null },
     });
     if (!user) throw new ApiError(404, 'User not found');
     return this.serializeUser(user);
@@ -29,7 +29,7 @@ export class UsersService {
     const { q, role, status, page = 1, pageSize = 20 } = query;
     const skip = (page - 1) * pageSize;
 
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (q) {
       where.OR = [
         { username: { contains: q, mode: 'insensitive' } },
@@ -72,6 +72,17 @@ export class UsersService {
     await prisma.user.update({
       where: { id: BigInt(id) },
       data: { status },
+    });
+    return { ok: true };
+  }
+
+  async deleteUser(id: string) {
+    await prisma.user.update({
+      where: { id: BigInt(id) },
+      data: {
+        status: AccountStatus.DELETED,
+        deletedAt: new Date(),
+      },
     });
     return { ok: true };
   }

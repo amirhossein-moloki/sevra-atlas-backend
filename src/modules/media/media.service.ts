@@ -10,11 +10,12 @@ export class MediaService {
 
     const [data, total] = await Promise.all([
       prisma.media.findMany({
+        where: { deletedAt: null },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
-      prisma.media.count(),
+      prisma.media.count({ where: { deletedAt: null } }),
     ]);
 
     return {
@@ -46,15 +47,17 @@ export class MediaService {
   }
 
   async getMedia(id: bigint) {
-    const media = await prisma.media.findUnique({
-      where: { id },
+    const media = await prisma.media.findFirst({
+      where: { id, deletedAt: null },
     });
     if (!media) throw new ApiError(404, 'Media not found');
     return serialize(media);
   }
 
   async updateMedia(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const media = await prisma.media.findUnique({ where: { id } });
+    const media = await prisma.media.findFirst({
+      where: { id, deletedAt: null }
+    });
     if (!media) throw new ApiError(404, 'Media not found');
 
     if (!isAdmin && media.uploadedBy !== userId) {
@@ -70,7 +73,9 @@ export class MediaService {
   }
 
   async deleteMedia(id: bigint, userId: bigint, isAdmin: boolean) {
-    const media = await prisma.media.findUnique({ where: { id } });
+    const media = await prisma.media.findFirst({
+      where: { id, deletedAt: null }
+    });
     if (!media) throw new ApiError(404, 'Media not found');
 
     if (!isAdmin && media.uploadedBy !== userId) {
@@ -80,7 +85,10 @@ export class MediaService {
     // Check if referenced
     // (Simplified check)
 
-    await prisma.media.delete({ where: { id } });
+    await prisma.media.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
     return { ok: true };
   }
 }

@@ -7,7 +7,10 @@ import { serialize } from '../../shared/utils/serialize';
 export class BlogTaxonomyService {
   // Categories
   async listCategories() {
-    const data = await prisma.category.findMany({ include: { parent: true } });
+    const data = await prisma.category.findMany({
+      where: { deletedAt: null },
+      include: { parent: true }
+    });
     return serialize(data);
   }
 
@@ -23,8 +26,8 @@ export class BlogTaxonomyService {
 
   async getCategory(id: string | bigint) {
     const categoryId = BigInt(id);
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, deletedAt: null },
       include: { parent: true }
     });
     if (!category) throw new ApiError(404, 'Category not found');
@@ -55,13 +58,18 @@ export class BlogTaxonomyService {
 
   async deleteCategory(id: string | bigint) {
     const categoryId = BigInt(id);
-    await prisma.category.delete({ where: { id: categoryId } });
+    await prisma.category.update({
+      where: { id: categoryId },
+      data: { deletedAt: new Date() }
+    });
     return { ok: true };
   }
 
   // Tags
   async listTags() {
-    const data = await prisma.tag.findMany();
+    const data = await prisma.tag.findMany({
+      where: { deletedAt: null }
+    });
     return serialize(data);
   }
 
@@ -72,7 +80,9 @@ export class BlogTaxonomyService {
 
   async getTag(id: string | bigint) {
     const tagId = BigInt(id);
-    const tag = await prisma.tag.findUnique({ where: { id: tagId } });
+    const tag = await prisma.tag.findFirst({
+      where: { id: tagId, deletedAt: null }
+    });
     if (!tag) throw new ApiError(404, 'Tag not found');
     return serialize(tag);
   }
@@ -94,13 +104,18 @@ export class BlogTaxonomyService {
 
   async deleteTag(id: string | bigint) {
     const tagId = BigInt(id);
-    await prisma.tag.delete({ where: { id: tagId } });
+    await prisma.tag.update({
+      where: { id: tagId },
+      data: { deletedAt: new Date() }
+    });
     return { ok: true };
   }
 
   // Series
   async listSeries() {
-    const data = await prisma.series.findMany();
+    const data = await prisma.series.findMany({
+      where: { deletedAt: null }
+    });
     return serialize(data);
   }
 
@@ -111,7 +126,9 @@ export class BlogTaxonomyService {
 
   async getSeries(id: string | bigint) {
     const seriesId = BigInt(id);
-    const series = await prisma.series.findUnique({ where: { id: seriesId } });
+    const series = await prisma.series.findFirst({
+      where: { id: seriesId, deletedAt: null }
+    });
     if (!series) throw new ApiError(404, 'Series not found');
     return serialize(series);
   }
@@ -133,7 +150,10 @@ export class BlogTaxonomyService {
 
   async deleteSeries(id: string | bigint) {
     const seriesId = BigInt(id);
-    await prisma.series.delete({ where: { id: seriesId } });
+    await prisma.series.update({
+      where: { id: seriesId },
+      data: { deletedAt: new Date() }
+    });
     return { ok: true };
   }
 }

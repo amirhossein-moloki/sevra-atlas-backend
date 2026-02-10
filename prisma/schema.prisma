@@ -252,6 +252,7 @@ model Media {
   title      String   @default("") @db.VarChar(255)
   uploadedBy BigInt?  @map("uploaded_by_id")
   createdAt  DateTime @default(now()) @map("created_at")
+  deletedAt  DateTime? @map("deleted_at")
 
   // Directory SEO helpers (optional)
   kind       MediaKind?   // AVATAR/COVER/CERTIFICATE/...
@@ -316,6 +317,10 @@ model Category {
   children Category[] @relation("CategoryHierarchy")
   posts    Post[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("blog_category")
   @@index([parentId])
   @@index([order])
@@ -330,6 +335,10 @@ model Tag {
 
   posts PostTag[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("blog_tag")
 }
 
@@ -341,6 +350,10 @@ model Series {
   orderStrategy OrderStrategy @default(manual) @map("order_strategy")
 
   posts Post[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("blog_series")
   @@index([orderStrategy])
@@ -384,6 +397,10 @@ model Post {
 
   // Directory signals
   saves            Save[]        @relation("SaveBlogPost")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("blog_post")
   @@index([publishedAt])
@@ -445,6 +462,8 @@ model Comment {
   parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies Comment[] @relation("CommentReplies")
 
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("blog_comment")
   @@index([postId, createdAt])
   @@index([status, createdAt])
@@ -481,6 +500,10 @@ model Page {
 
   seoMetaId      BigInt?
   seoMeta        SeoMeta?   @relation(fields: [seoMetaId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("blog_page")
   @@index([status, publishedAt])
@@ -884,6 +907,10 @@ model ServiceCategory {
 
   services ServiceDefinition[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
   @@index([order])
 }
 
@@ -897,6 +924,10 @@ model ServiceDefinition {
   description String? @db.Text
 
   salonLinks  SalonService[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@index([categoryId])
 }
@@ -924,6 +955,10 @@ model Specialty {
   order   Int    @default(0)
 
   artists ArtistSpecialty[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@index([order])
 }

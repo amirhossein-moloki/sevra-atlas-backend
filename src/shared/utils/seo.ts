@@ -6,12 +6,14 @@ export const handleSlugChange = async (
   entityId: bigint,
   oldSlug: string,
   newSlug: string,
-  basePath: string
+  basePath: string,
+  tx?: any
 ) => {
   if (oldSlug === newSlug) return;
+  const client = tx || prisma;
 
   // Insert into SlugHistory
-  await prisma.slugHistory.create({
+  await client.slugHistory.create({
     data: {
       entityType,
       entityId,
@@ -21,11 +23,22 @@ export const handleSlugChange = async (
   });
 
   // Create RedirectRule
-  await prisma.redirectRule.create({
+  await client.redirectRule.create({
     data: {
       fromPath: `${basePath}/${oldSlug}`,
       toPath: `${basePath}/${newSlug}`,
       type: RedirectType.PERMANENT_301,
+    },
+  });
+
+  // Update SitemapUrl if exists
+  await client.sitemapUrl.updateMany({
+    where: {
+      entityType,
+      entityId,
+    },
+    data: {
+      path: `${basePath}/${newSlug}`,
     },
   });
 };

@@ -72,7 +72,18 @@ export class SeoService {
 
       const entries: any[] = [];
 
-      // 2. Add Cities
+      // 2. Add Provinces
+      const provinces = await tx.province.findMany();
+      for (const province of provinces) {
+        entries.push({
+          path: `/atlas/province/${province.slug}`,
+          entityType: EntityType.PROVINCE,
+          entityId: province.id,
+          priority: 0.9,
+        });
+      }
+
+      // 3. Add Cities
       const cities = await tx.city.findMany({ where: { isLandingEnabled: true } });
       for (const city of cities) {
         entries.push({
@@ -83,7 +94,7 @@ export class SeoService {
         });
       }
 
-      // 3. Add Salons
+      // 4. Add Salons
       const salons = await tx.salon.findMany({ where: { status: AccountStatus.ACTIVE } });
       for (const salon of salons) {
         entries.push({
@@ -94,7 +105,7 @@ export class SeoService {
         });
       }
 
-      // 4. Add Artists
+      // 5. Add Artists
       const artists = await tx.artist.findMany({ where: { status: AccountStatus.ACTIVE } });
       for (const artist of artists) {
         entries.push({
@@ -105,7 +116,7 @@ export class SeoService {
         });
       }
 
-      // 5. Add Blog Posts
+      // 6. Add Blog Posts
       const posts = await tx.post.findMany({
         where: {
           status: 'published',
@@ -121,7 +132,51 @@ export class SeoService {
         });
       }
 
-      // 6. Bulk insert
+      // 7. Add Blog Pages
+      const pages = await tx.page.findMany({ where: { status: 'published' } });
+      for (const page of pages) {
+        entries.push({
+          path: `/blog/page/${page.slug}`,
+          entityType: EntityType.BLOG_PAGE,
+          entityId: page.id,
+          priority: 0.5,
+        });
+      }
+
+      // 8. Add Categories
+      const categories = await tx.category.findMany();
+      for (const category of categories) {
+        entries.push({
+          path: `/blog/category/${category.slug}`,
+          entityType: EntityType.CATEGORY,
+          entityId: category.id,
+          priority: 0.4,
+        });
+      }
+
+      // 9. Add Tags
+      const tags = await tx.tag.findMany();
+      for (const tag of tags) {
+        entries.push({
+          path: `/blog/tag/${tag.slug}`,
+          entityType: EntityType.TAG,
+          entityId: tag.id,
+          priority: 0.3,
+        });
+      }
+
+      // 10. Add Series
+      const series = await tx.series.findMany();
+      for (const s of series) {
+        entries.push({
+          path: `/blog/series/${s.slug}`,
+          entityType: EntityType.SERIES,
+          entityId: s.id,
+          priority: 0.3,
+        });
+      }
+
+      // 11. Bulk insert
       if (entries.length > 0) {
         await tx.sitemapUrl.createMany({
           data: entries,

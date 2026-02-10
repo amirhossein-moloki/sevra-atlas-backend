@@ -1,5 +1,8 @@
 import { prisma } from '../../shared/db/prisma';
 import { serialize } from '../../shared/utils/serialize';
+import { handleSlugChange } from '../../shared/utils/seo';
+import { EntityType } from '@prisma/client';
+import { ApiError } from '../../shared/errors/ApiError';
 
 export class GeoService {
   async getProvinces() {
@@ -59,11 +62,39 @@ export class GeoService {
   }
 
   async updateCity(id: string, data: any) {
-    const result = await prisma.city.update({
-      where: { id: BigInt(id) },
-      data: this.handleBigInts(data),
+    const cityId = BigInt(id);
+    return prisma.$transaction(async (tx) => {
+      const city = await tx.city.findUnique({ where: { id: cityId } });
+      if (!city) throw new ApiError(404, 'City not found');
+
+      if (data.slug && data.slug !== city.slug) {
+        await handleSlugChange(EntityType.CITY, cityId, city.slug, data.slug, '/atlas/city', tx);
+      }
+
+      const result = await tx.city.update({
+        where: { id: cityId },
+        data: this.handleBigInts(data),
+      });
+      return serialize(result);
     });
-    return serialize(result);
+  }
+
+  async updateProvince(id: string, data: any) {
+    const provinceId = BigInt(id);
+    return prisma.$transaction(async (tx) => {
+      const province = await tx.province.findUnique({ where: { id: provinceId } });
+      if (!province) throw new ApiError(404, 'Province not found');
+
+      if (data.slug && data.slug !== province.slug) {
+        await handleSlugChange(EntityType.PROVINCE, provinceId, province.slug, data.slug, '/atlas/province', tx);
+      }
+
+      const result = await tx.province.update({
+        where: { id: provinceId },
+        data: this.handleBigInts(data),
+      });
+      return serialize(result);
+    });
   }
 
   async updateNeighborhood(id: string, data: any) {

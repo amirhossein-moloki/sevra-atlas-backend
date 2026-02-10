@@ -164,6 +164,60 @@ describe('Critical Business Flows E2E', () => {
       });
       expect(salonInDb?.primaryOwnerId?.toString()).toBe(userId);
       expect(salonInDb?.owners.some(o => o.id.toString() === userId)).toBe(true);
+
+      // 5. Assign Services (NEW)
+      // First create a service category and definition
+      const serviceCat = await prisma.serviceCategory.create({
+          data: { nameFa: 'Test Category', slug: 'test-cat' }
+      });
+      const serviceDef = await prisma.serviceDefinition.create({
+          data: { categoryId: serviceCat.id, nameFa: 'Test Service', slug: 'test-service' }
+      });
+
+      const assignRes = await request(app)
+        .post(`/api/v1/salons/${salonRes.body.id}/services`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          services: [{ serviceId: Number(serviceDef.id), notes: 'Expert level' }],
+          mode: 'replace'
+        });
+
+      expect(assignRes.status).toBe(200);
+
+      // 6. Verify Services linked
+      const salonWithServices = await prisma.salon.findUnique({
+          where: { id: BigInt(salonRes.body.id) },
+          include: { services: true }
+      });
+      expect(salonWithServices?.services.length).toBe(1);
+      expect(salonWithServices?.services[0].serviceId.toString()).toBe(serviceDef.id.toString());
+
+      // 7. Attach Media (NEW)
+      const mediaRes = await request(app)
+        .post(`/api/v1/salons/${salonRes.body.id}/media`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          kind: 'AVATAR',
+          mediaData: {
+            storageKey: 'test-avatar-key',
+            url: 'https://cdn.example.com/avatar.jpg',
+            type: 'IMAGE',
+            mime: 'image/jpeg',
+            sizeBytes: 50000
+          }
+        });
+
+      expect(mediaRes.status).toBe(201);
+
+      const updatedSalon = await prisma.salon.findUnique({
+          where: { id: BigInt(salonRes.body.id) }
+      });
+      expect(updatedSalon?.avatarMediaId).toBeDefined();
+
+      // Cleanup newly created service data
+      await prisma.salonService.deleteMany({ where: { salonId: BigInt(salonRes.body.id) } });
+      await prisma.serviceDefinition.delete({ where: { id: serviceDef.id } });
+      await prisma.serviceCategory.delete({ where: { id: serviceCat.id } });
     });
   });
 
@@ -382,6 +436,68 @@ describe('Critical Business Flows E2E', () => {
       // 3. Verify Salon Status updated
       const salon = await prisma.salon.findUnique({ where: { id: BigInt(salonId) } });
       expect(salon?.verification).toBe('VERIFIED');
+    });
+  });
+
+  describe('Flow 6: Blog Content Lifecycle (Draft → Publish → SEO)', () => {
+    let authorToken: string;
+    let authorId: string;
+    let postId: string;
+    const postSlug = 'e2e-blog-post-' + Date.now();
+
+    beforeAll(async () => {
+        // Setup Author
+        const phone = '+989000000007';
+        await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: phone });
+        const code = (await redis.get(`otp:${phone}`)) || (await prisma.otp.findUnique({where:{phoneE164:phone}}))?.code;
+        const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: phone, code });
+        authorToken = res.body.accessToken;
+        authorId = res.body.user.id;
+
+        await prisma.user.update({ where: { id: BigInt(authorId) }, data: { role: UserRole.AUTHOR } });
+        await prisma.authorProfile.create({
+            data: { userId: BigInt(authorId), displayName: 'E2E Author', bio: 'Testing blog flows' }
+        });
+    });
+
+    afterAll(async () => {
+        await prisma.post.deleteMany({ where: { authorId: BigInt(authorId) } });
+        await prisma.authorProfile.delete({ where: { userId: BigInt(authorId) } });
+        await prisma.user.deleteMany({ where: { id: BigInt(authorId) } });
+    });
+
+    it('should handle full blog post lifecycle', async () => {
+      // 1. Create Draft
+      const createRes = await request(app)
+        .post('/api/v1/blog/posts')
+        .set('Authorization', `Bearer ${authorToken}`)
+        .send({
+          title: 'E2E Test Post',
+          slug: postSlug,
+          content: 'Initial content',
+          excerpt: 'Short excerpt',
+          status: 'draft'
+        });
+
+      expect(createRes.status).toBe(201);
+      postId = createRes.body.id;
+
+      // 2. Update to Published
+      const updateRes = await request(app)
+        .patch(`/api/v1/blog/posts/${postId}`)
+        .set('Authorization', `Bearer ${authorToken}`)
+        .send({
+          status: 'published',
+          publishedAt: new Date().toISOString()
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.status).toBe('published');
+
+      // 3. Verify public accessibility
+      const getRes = await request(app).get(`/api/v1/blog/posts/${postSlug}`);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.title).toBe('E2E Test Post');
     });
   });
 });

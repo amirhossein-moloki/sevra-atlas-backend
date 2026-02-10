@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { MediaController } from './media.controller';
 import { authMiddleware } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
-import { createMediaSchema } from './media.validators';
+import { createMediaSchema, updateMediaSchema } from './media.validators';
 
 const router = Router();
 const controller = new MediaController();
@@ -17,6 +17,14 @@ router.post(
 );
 
 router.get('/:id', controller.getMedia);
+
+router.patch(
+  '/:id',
+  authMiddleware,
+  validate(updateMediaSchema),
+  controller.updateMedia
+);
+
 router.get('/:id/download', controller.downloadMedia);
 
 router.delete('/:id', authMiddleware, controller.deleteMedia);

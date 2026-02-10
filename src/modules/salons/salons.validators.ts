@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from '../../shared/openapi/registry';
 
 export const createSalonSchema = z.object({
   body: z.object({
-    name: z.string(),
-    slug: z.string(),
+    name: z.string().openapi({ example: 'Beauty Palace' }),
+    slug: z.string().openapi({ example: 'beauty-palace' }),
     summary: z.string().optional(),
     description: z.string().optional(),
     phone: z.string().optional(),
@@ -11,7 +11,7 @@ export const createSalonSchema = z.object({
     neighborhoodId: z.string().optional(),
     addressLine: z.string().optional(),
   }),
-});
+}).openapi('CreateSalon');
 
 export const updateSalonSchema = z.object({
   body: z.object({
@@ -31,7 +31,7 @@ export const updateSalonSchema = z.object({
     isWomenOnly: z.boolean().optional(),
     priceTier: z.number().optional(),
   }),
-});
+}).openapi('UpdateSalon');
 
 export const assignServicesSchema = z.object({
   body: z.object({
@@ -40,7 +40,7 @@ export const assignServicesSchema = z.object({
       notes: z.string().optional(),
     })),
   }),
-});
+}).openapi('AssignServices');
 
 export const linkArtistSchema = z.object({
   body: z.object({
@@ -49,4 +49,4 @@ export const linkArtistSchema = z.object({
     isActive: z.boolean().optional(),
     startedAt: z.string().optional(),
   }),
-});
+}).openapi('LinkArtist');

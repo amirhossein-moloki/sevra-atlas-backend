@@ -11,7 +11,8 @@ import { responseMiddleware } from './shared/middlewares/response.middleware';
 import './types/express';
 import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
+import * as OpenApiValidator from 'express-openapi-validator';
+import { generateOpenApiSpec } from './shared/openapi/generator';
 
 const app = express();
 
@@ -28,31 +29,22 @@ app.use(
 );
 app.use(responseMiddleware);
 
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Sevra Atlas API',
-      version: '1.0.0',
-      description: 'API documentation for Sevra Atlas Directory + Blog',
-    },
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-    security: [{ bearerAuth: [] }],
-  },
-  apis: ['./src/modules/**/*.routes.ts'],
-};
+// Generate OpenAPI Spec dynamically
+const swaggerSpec = generateOpenApiSpec();
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
+// Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// OpenAPI Validation
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: swaggerSpec as any,
+    validateRequests: true,
+    validateResponses: true,
+    ignoreUndocumented: true, // Don't break existing routes that are not yet documented
+  })
+);
 
 app.use('/api/v1', routes);
 

@@ -12,6 +12,11 @@ export const setSeoMetaSchema = z.object({
     ogTitle: z.string().optional(),
     ogDescription: z.string().optional(),
     ogImageMediaId: z.string().optional(),
+    twitterTitle: z.string().optional(),
+    twitterDesc: z.string().optional(),
+    twitterImageMediaId: z.string().optional(),
+    h1: z.string().optional(),
+    breadcrumbLabel: z.string().optional(),
   }),
 });
 

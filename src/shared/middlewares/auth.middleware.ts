@@ -33,8 +33,12 @@ export const requireAuth = () => {
 
       req.user = user;
       next();
-    } catch (error) {
-      next(new ApiError(401, 'Unauthorized'));
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        return next(error);
+      }
+      const message = error.name === 'TokenExpiredError' ? 'Token expired' : 'Unauthorized';
+      next(new ApiError(401, message));
     }
   };
 };

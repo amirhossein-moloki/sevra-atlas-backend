@@ -127,12 +127,52 @@ export class MediaService {
     }
 
     // Check if referenced
-    // (Simplified check)
+    const isReferenced = await this.checkMediaReferences(id);
+    if (isReferenced) {
+      throw new ApiError(409, 'Media is in use and cannot be deleted');
+    }
 
     await prisma.media.update({
       where: { id },
       data: { deletedAt: new Date() }
     });
     return { ok: true };
+  }
+
+  private async checkMediaReferences(id: bigint) {
+    const [
+      salonAvatar, salonCover,
+      artistAvatar, artistCover,
+      postCover, postOg,
+      authorAvatar,
+      seoOg, seoTwitter,
+      verificationDoc,
+      artistCert,
+      postAttachment
+    ] = await Promise.all([
+      prisma.salon.findFirst({ where: { avatarMediaId: id } }),
+      prisma.salon.findFirst({ where: { coverMediaId: id } }),
+      prisma.artist.findFirst({ where: { avatarMediaId: id } }),
+      prisma.artist.findFirst({ where: { coverMediaId: id } }),
+      prisma.post.findFirst({ where: { coverMediaId: id } }),
+      prisma.post.findFirst({ where: { ogImageId: id } }),
+      prisma.authorProfile.findFirst({ where: { avatarId: id } }),
+      prisma.seoMeta.findFirst({ where: { ogImageMediaId: id } }),
+      prisma.seoMeta.findFirst({ where: { twitterImageMediaId: id } }),
+      prisma.verificationDocument.findFirst({ where: { mediaId: id } }),
+      prisma.artistCertification.findFirst({ where: { mediaId: id } }),
+      prisma.postMedia.findFirst({ where: { mediaId: id } }),
+    ]);
+
+    return !!(
+      salonAvatar || salonCover ||
+      artistAvatar || artistCover ||
+      postCover || postOg ||
+      authorAvatar ||
+      seoOg || seoTwitter ||
+      verificationDoc ||
+      artistCert ||
+      postAttachment
+    );
   }
 }

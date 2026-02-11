@@ -5,6 +5,7 @@ import { requireAuth, requireRole, requireStaff } from '../../shared/middlewares
 import { UserRole } from '@prisma/client';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createArtistSchema, updateArtistSchema, certificationSchema, assignSpecialtiesSchema } from './artists.validators';
+import { setMediaSchema } from '../salons/salons.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 import { ArtistSchema, SpecialtySchema, ReviewSchema, MediaSchema, ArtistCertificationSchema } from '../../shared/openapi/schemas';
 
@@ -160,6 +161,7 @@ registry.registerPath({
 router.post(
   '/:id/avatar',
   requireAuth(),
+  validate(setMediaSchema),
   controller.setAvatar
 );
 
@@ -171,7 +173,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
-    body: { content: { 'application/json': { schema: z.object({ mediaId: z.string() }) } } }
+    body: { content: { 'application/json': { schema: setMediaSchema.shape.body } } }
   },
   responses: {
     200: {
@@ -183,6 +185,7 @@ registry.registerPath({
 router.post(
   '/:id/cover',
   requireAuth(),
+  validate(setMediaSchema),
   controller.setCover
 );
 
@@ -194,7 +197,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
-    body: { content: { 'application/json': { schema: z.object({ mediaIds: z.array(z.string()) }) } } }
+    body: { content: { 'application/json': { schema: setMediaSchema.shape.body } } }
   },
   responses: {
     200: {
@@ -206,6 +209,7 @@ registry.registerPath({
 router.post(
   '/:id/gallery',
   requireAuth(),
+  validate(setMediaSchema),
   controller.addGallery
 );
 

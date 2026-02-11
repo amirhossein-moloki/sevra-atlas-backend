@@ -5,7 +5,7 @@ import { requestOtpSchema, verifyOtpSchema, refreshTokenSchema, authResponseSche
 import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { env } from '../../shared/config/env';
 import { requireAuth } from '../../shared/middlewares/auth.middleware';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new AuthController();
@@ -67,7 +67,7 @@ registry.registerPath({
       description: 'Login successful',
       content: {
         'application/json': {
-          schema: authResponseSchema,
+          schema: withApiSuccess(authResponseSchema),
         },
       },
     },
@@ -99,7 +99,7 @@ registry.registerPath({
       description: 'Tokens refreshed',
       content: {
         'application/json': {
-          schema: authResponseSchema,
+          schema: withApiSuccess(authResponseSchema),
         },
       },
     },

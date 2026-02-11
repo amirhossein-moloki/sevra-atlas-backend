@@ -3,7 +3,7 @@ import { ServicesController } from './services.controller';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { categorySchema, serviceSchema, createCategorySchema, createServiceSchema, updateServiceSchema } from './services.validators';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new ServicesController();
@@ -18,7 +18,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of service categories',
-      content: { 'application/json': { schema: z.array(categorySchema.extend({ services: z.array(serviceSchema) })) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(categorySchema.extend({ services: z.array(serviceSchema) }))) } },
     },
   },
 });
@@ -29,11 +29,11 @@ registry.registerPath({
   path: '/services/{slug}',
   summary: 'Get service details',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Service details',
-      content: { 'application/json': { schema: serviceSchema } },
+      content: { 'application/json': { schema: withApiSuccess(serviceSchema) } },
     },
   },
 });
@@ -53,7 +53,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Category created',
-      content: { 'application/json': { schema: categorySchema } },
+      content: { 'application/json': { schema: withApiSuccess(categorySchema) } },
     },
   },
 });
@@ -79,7 +79,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Service created',
-      content: { 'application/json': { schema: serviceSchema } },
+      content: { 'application/json': { schema: withApiSuccess(serviceSchema) } },
     },
   },
 });
@@ -97,7 +97,7 @@ registry.registerPath({
   summary: 'Update a service (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateServiceSchema.shape.body } },
@@ -106,7 +106,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Service updated',
-      content: { 'application/json': { schema: serviceSchema } },
+      content: { 'application/json': { schema: withApiSuccess(serviceSchema) } },
     },
   },
 });
@@ -124,11 +124,11 @@ registry.registerPath({
   summary: 'Delete a service (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Service deleted',
-      content: { 'application/json': { schema: z.object({ ok: z.boolean() }) } },
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
     },
   },
 });

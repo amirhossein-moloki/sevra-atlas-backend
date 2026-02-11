@@ -48,8 +48,8 @@ app.use(
   OpenApiValidator.middleware({
     apiSpec: swaggerSpec as any,
     validateRequests: true,
-    validateResponses: true,
-    ignoreUndocumented: false, // Enforce documentation for all routes to ensure API stability
+    validateResponses: true, // Fully enforced after envelope standardization
+    ignoreUndocumented: false, // Fully enforced after bulk documentation
   })
 );
 

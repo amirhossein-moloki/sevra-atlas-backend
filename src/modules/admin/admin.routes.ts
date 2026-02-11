@@ -3,7 +3,7 @@ import { AdminController } from './admin.controller';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { statsQuerySchema } from './admin.validators';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new AdminController();
@@ -21,7 +21,7 @@ registry.registerPath({
       description: 'Dashboard summary data',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             counts: z.object({
               users: z.object({ total: z.number(), growth: z.number() }),
               salons: z.object({ total: z.number(), growth: z.number() }),
@@ -36,7 +36,7 @@ registry.registerPath({
               postStatus: z.array(z.object({ status: z.string(), count: z.number() })),
             }),
             topCities: z.array(z.object({ name: z.string(), count: z.number() })),
-          }),
+          })),
         },
       },
     },
@@ -60,7 +60,7 @@ registry.registerPath({
       description: 'Time-series stats',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             series: z.object({
               newUsers: z.array(z.object({ date: z.string(), count: z.number() })),
               newSalons: z.array(z.object({ date: z.string(), count: z.number() })),
@@ -68,7 +68,7 @@ registry.registerPath({
               newReviews: z.array(z.object({ date: z.string(), count: z.number() })),
               newPosts: z.array(z.object({ date: z.string(), count: z.number() })),
             }),
-          }),
+          })),
         },
       },
     },

@@ -3,7 +3,7 @@ import { GeoController } from './geo.controller';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { provinceSchema, citySchema, neighborhoodSchema, createProvinceSchema, createCitySchema, createNeighborhoodSchema, updateCitySchema, updateNeighborhoodSchema } from './geo.validators';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new GeoController();
@@ -18,7 +18,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of provinces',
-      content: { 'application/json': { schema: z.array(provinceSchema) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(provinceSchema)) } },
     },
   },
 });
@@ -29,13 +29,13 @@ registry.registerPath({
   path: '/geo/provinces/{slug}/cities',
   summary: 'List cities of a province',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'List of cities',
       content: {
         'application/json': {
-          schema: z.object({ data: z.array(citySchema) }),
+          schema: withApiSuccess(z.object({ data: z.array(citySchema) })),
         },
       },
     },
@@ -48,11 +48,11 @@ registry.registerPath({
   path: '/geo/cities/{slug}',
   summary: 'Get city details',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'City details',
-      content: { 'application/json': { schema: citySchema } },
+      content: { 'application/json': { schema: withApiSuccess(citySchema) } },
     },
   },
 });
@@ -63,13 +63,13 @@ registry.registerPath({
   path: '/geo/cities/{slug}/neighborhoods',
   summary: 'List neighborhoods of a city',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'List of neighborhoods',
       content: {
         'application/json': {
-          schema: z.object({ data: z.array(neighborhoodSchema) }),
+          schema: withApiSuccess(z.object({ data: z.array(neighborhoodSchema) })),
         },
       },
     },
@@ -91,7 +91,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Province created',
-      content: { 'application/json': { schema: provinceSchema } },
+      content: { 'application/json': { schema: withApiSuccess(provinceSchema) } },
     },
   },
 });
@@ -117,7 +117,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'City created',
-      content: { 'application/json': { schema: citySchema } },
+      content: { 'application/json': { schema: withApiSuccess(citySchema) } },
     },
   },
 });
@@ -143,7 +143,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Neighborhood created',
-      content: { 'application/json': { schema: neighborhoodSchema } },
+      content: { 'application/json': { schema: withApiSuccess(neighborhoodSchema) } },
     },
   },
 });
@@ -161,7 +161,7 @@ registry.registerPath({
   summary: 'Update a city (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateCitySchema.shape.body } },
@@ -170,7 +170,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'City updated',
-      content: { 'application/json': { schema: citySchema } },
+      content: { 'application/json': { schema: withApiSuccess(citySchema) } },
     },
   },
 });
@@ -188,7 +188,7 @@ registry.registerPath({
   summary: 'Update a neighborhood (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateNeighborhoodSchema.shape.body } },
@@ -197,7 +197,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Neighborhood updated',
-      content: { 'application/json': { schema: neighborhoodSchema } },
+      content: { 'application/json': { schema: withApiSuccess(neighborhoodSchema) } },
     },
   },
 });

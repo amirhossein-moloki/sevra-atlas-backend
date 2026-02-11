@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { BlogCommentsService } from './comments.service';
 import { AuthRequest } from '../../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { isAdmin } from '../../../shared/auth/roles';
 
 const commentsService = new BlogCommentsService();
 
@@ -17,8 +17,8 @@ export class BlogCommentsController {
   }
 
   async listGlobalComments(req: AuthRequest, res: Response) {
-    const isAdmin = req.user?.role === UserRole.ADMIN;
-    const result = await commentsService.listGlobalComments(req.query, isAdmin);
+    const adminMode = isAdmin(req.user?.role);
+    const result = await commentsService.listGlobalComments(req.query, adminMode);
     res.json(result);
   }
 

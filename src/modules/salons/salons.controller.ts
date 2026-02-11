@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { SalonsService } from './salons.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { getPagination, formatPaginatedResponse } from '../../shared/utils/pagination';
-import { UserRole } from '@prisma/client';
+import { isAdmin } from '../../shared/auth/roles';
 
 const salonsService = new SalonsService();
 
@@ -23,22 +23,22 @@ export class SalonsController {
   }
 
   async updateSalon(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.updateSalon(
       BigInt(req.params.id),
       req.body,
       req.user!.id,
-      isAdmin
+      adminMode
     );
     res.json(result);
   }
 
   async deleteSalon(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.deleteSalon(
       BigInt(req.params.id),
       req.user!.id,
-      isAdmin
+      adminMode
     );
     res.json(result);
   }

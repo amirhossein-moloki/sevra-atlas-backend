@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { GeoController } from './geo.controller';
-import { requireAuth, requireRole } from '../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { provinceSchema, citySchema, neighborhoodSchema, createProvinceSchema, createCitySchema, createNeighborhoodSchema, updateCitySchema, updateNeighborhoodSchema } from './geo.validators';
 import { registry, z } from '../../shared/openapi/registry';
@@ -99,7 +98,7 @@ registry.registerPath({
 router.post(
   '/provinces',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createProvinceSchema),
   controller.createProvince
 );
@@ -125,7 +124,7 @@ registry.registerPath({
 router.post(
   '/cities',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createCitySchema),
   controller.createCity
 );
@@ -151,7 +150,7 @@ registry.registerPath({
 router.post(
   '/neighborhoods',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createNeighborhoodSchema),
   controller.createNeighborhood
 );
@@ -178,7 +177,7 @@ registry.registerPath({
 router.patch(
   '/cities/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(updateCitySchema),
   controller.updateCity
 );
@@ -205,7 +204,7 @@ registry.registerPath({
 router.patch(
   '/neighborhoods/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(updateNeighborhoodSchema),
   controller.updateNeighborhood
 );

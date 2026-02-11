@@ -1,6 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { ReviewStatus } from '@prisma/client';
+import { serialize } from '../../shared/utils/serialize';
 
 export class ReviewsService {
   async createReview(data: any, authorId: bigint) {
@@ -32,7 +33,7 @@ export class ReviewsService {
 
     await this.recomputeAggregates(targetType, id);
 
-    return this.serialize(review);
+    return serialize(review);
   }
 
   async getReviews(targetType: 'SALON' | 'ARTIST', slug: string, query: any) {
@@ -58,7 +59,7 @@ export class ReviewsService {
     ]);
 
     return {
-      data: data.map(r => this.serialize(r)),
+      data: data.map(r => serialize(r)),
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -134,14 +135,4 @@ export class ReviewsService {
     }
   }
 
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
-  }
 }

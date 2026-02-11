@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { ServicesController } from './services.controller';
-import { requireAuth, requireRole } from '../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { categorySchema, serviceSchema, createCategorySchema, createServiceSchema, updateServiceSchema } from './services.validators';
 import { registry, z } from '../../shared/openapi/registry';
@@ -61,7 +60,7 @@ registry.registerPath({
 router.post(
   '/categories',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createCategorySchema),
   controller.createCategory
 );
@@ -87,7 +86,7 @@ registry.registerPath({
 router.post(
   '/',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createServiceSchema),
   controller.createService
 );
@@ -114,7 +113,7 @@ registry.registerPath({
 router.patch(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(updateServiceSchema),
   controller.updateService
 );
@@ -136,7 +135,7 @@ registry.registerPath({
 router.delete(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.deleteService
 );
 

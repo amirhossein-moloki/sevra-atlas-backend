@@ -1,5 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { EntityType, ReportStatus } from '@prisma/client';
+import { serialize } from '../../shared/utils/serialize';
 
 export class ReportsService {
   async createReport(userId: bigint, data: any) {
@@ -14,7 +15,7 @@ export class ReportsService {
         reviewId: targetType === 'REVIEW' ? BigInt(targetId) : null,
       },
     });
-    return this.serialize(report);
+    return serialize(report);
   }
 
   async listReports(query: any) {
@@ -37,7 +38,7 @@ export class ReportsService {
     ]);
 
     return {
-      data: data.map(r => this.serialize(r)),
+      data: data.map(r => serialize(r)),
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -50,14 +51,4 @@ export class ReportsService {
     return { ok: true };
   }
 
-  private serialize(obj: any): any {
-    if (!obj) return null;
-    if (Array.isArray(obj)) return obj.map(o => this.serialize(o));
-    const res = { ...obj };
-    for (const key in res) {
-      if (typeof res[key] === 'bigint') res[key] = res[key].toString();
-      else if (typeof res[key] === 'object' && res[key] !== null && !(res[key] instanceof Date)) res[key] = this.serialize(res[key]);
-    }
-    return res;
-  }
 }

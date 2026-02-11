@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ArtistsService } from './artists.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { isAdmin } from '../../shared/auth/roles';
 
 const artistsService = new ArtistsService();
 
@@ -42,22 +42,22 @@ export class ArtistsController {
   }
 
   async updateArtist(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateArtist(
       BigInt(req.params.id),
       req.body,
       req.user!.id,
-      isAdmin
+      adminMode
     );
     res.json(result);
   }
 
   async deleteArtist(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteArtist(
       BigInt(req.params.id),
       req.user!.id,
-      isAdmin
+      adminMode
     );
     res.json(result);
   }

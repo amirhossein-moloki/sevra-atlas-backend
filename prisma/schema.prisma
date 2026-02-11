@@ -248,6 +248,7 @@ model Media {
   height     Int?
   duration   Int?
   sizeBytes  Int      @default(0) @map("size_bytes")
+  variants   Json?    @default("{}")
   altText    String   @default("") @map("alt_text") @db.VarChar(255)
   title      String   @default("") @db.VarChar(255)
   uploadedBy BigInt?  @map("uploaded_by_id")

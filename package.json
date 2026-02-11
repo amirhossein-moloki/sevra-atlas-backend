@@ -13,6 +13,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "openapi:generate": "ts-node src/scripts/generate-openapi.ts",
     "verify:prod": "ts-node scripts/verify-production-config.ts",
+    "test:contract": "npm run openapi:generate && ts-node scripts/audit-routes.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "test:load": "node tests/load/runner.js"
@@ -52,6 +53,7 @@
     "autocannon": "^8.0.0",
     "jest": "^29.7.0",
     "jest-mock-extended": "^4.0.0",
+    "jest-openapi": "^0.14.2",
     "nodemon": "^3.1.0",
     "pino-pretty": "^10.3.1",
     "prisma": "^5.10.2",

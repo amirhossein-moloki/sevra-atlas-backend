@@ -14,6 +14,7 @@ import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import { generateOpenApiSpec } from './shared/openapi/generator';
+import { env } from './shared/config/env';
 
 const app = express();
 
@@ -30,8 +31,10 @@ app.use(
 );
 app.use(responseMiddleware);
 
-// Serve uploads
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// Serve uploads if local storage is used
+if (env.STORAGE_PROVIDER === 'local') {
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+}
 
 // Generate OpenAPI Spec dynamically
 const swaggerSpec = generateOpenApiSpec();

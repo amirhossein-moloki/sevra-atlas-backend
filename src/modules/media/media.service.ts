@@ -2,10 +2,10 @@ import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { serialize } from '../../shared/utils/serialize';
 import { processImage } from '../../shared/utils/image';
-import { LocalStorageProvider } from '../../shared/storage/local.storage';
+import { getStorageProvider } from '../../shared/storage';
 
 export class MediaService {
-  private storage = new LocalStorageProvider();
+  private storage = getStorageProvider();
 
   async listMedia(query: any) {
     const { page = 1, pageSize = 20 } = query;

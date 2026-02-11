@@ -44,65 +44,83 @@ export class SalonsController {
   }
 
   async assignServices(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const mode = (req.query.mode as 'append' | 'replace') || 'append';
     const result = await salonsService.assignServices(
       BigInt(req.params.id),
       req.body.services,
-      mode
+      mode,
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async removeService(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.removeService(
       BigInt(req.params.id),
-      BigInt(req.params.serviceId)
+      BigInt(req.params.serviceId),
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async setAvatar(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       BigInt(req.params.id),
       req.body.media,
       'AVATAR',
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async setCover(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       BigInt(req.params.id),
       req.body.media,
       'COVER',
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async addGallery(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       BigInt(req.params.id),
       req.body.media,
       'GALLERY',
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async linkArtist(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.linkArtist(
       BigInt(req.params.id),
-      req.body
+      req.body,
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async unlinkArtist(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.unlinkArtist(
       BigInt(req.params.id),
-      BigInt(req.params.artistId)
+      BigInt(req.params.artistId),
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }

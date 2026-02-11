@@ -80,18 +80,23 @@ export class SalonsService {
     return serialize(salon);
   }
 
+  private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
+    const salon = await tx.salon.findUnique({
+      where: { id },
+      include: { owners: { select: { id: true } } },
+    });
+    if (!salon) throw new ApiError(404, 'Salon not found');
+
+    const isOwner = salon.owners.some((o: any) => o.id === userId);
+    if (!isAdmin && !isOwner) {
+      throw new ApiError(403, 'Forbidden');
+    }
+    return salon;
+  }
+
   async updateSalon(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
     return prisma.$transaction(async (tx) => {
-      const salon = await tx.salon.findUnique({
-        where: { id },
-        include: { owners: { select: { id: true } } },
-      });
-      if (!salon) throw new ApiError(404, 'Salon not found');
-
-      const isOwner = salon.owners.some(o => o.id === userId);
-      if (!isAdmin && !isOwner) {
-        throw new ApiError(403, 'Forbidden');
-      }
+      const salon = await this.checkOwnership(tx, id, userId, isAdmin);
 
       if (data.slug && data.slug !== salon.slug) {
         await handleSlugChange(EntityType.SALON, id, salon.slug, data.slug, '/atlas/salon', tx);
@@ -111,16 +116,7 @@ export class SalonsService {
   }
 
   async deleteSalon(id: bigint, userId: bigint, isAdmin: boolean) {
-    const salon = await prisma.salon.findUnique({
-      where: { id },
-      include: { owners: { select: { id: true } } },
-    });
-    if (!salon) throw new ApiError(404, 'Salon not found');
-
-    const isOwner = salon.owners.some(o => o.id === userId);
-    if (!isAdmin && !isOwner) {
-      throw new ApiError(403, 'Forbidden');
-    }
+    await this.checkOwnership(prisma, id, userId, isAdmin);
 
     await prisma.salon.update({
       where: { id },
@@ -129,8 +125,10 @@ export class SalonsService {
     return { ok: true };
   }
 
-  async assignServices(id: bigint, serviceData: { serviceId: number; notes?: string }[], mode: 'append' | 'replace') {
+  async assignServices(id: bigint, serviceData: { serviceId: number; notes?: string }[], mode: 'append' | 'replace', userId: bigint, isAdmin: boolean) {
     return prisma.$transaction(async (tx) => {
+      await this.checkOwnership(tx, id, userId, isAdmin);
+
       if (mode === 'replace') {
         await tx.salonService.deleteMany({ where: { salonId: id } });
       }
@@ -154,14 +152,18 @@ export class SalonsService {
     });
   }
 
-  async removeService(id: bigint, serviceId: bigint) {
+  async removeService(id: bigint, serviceId: bigint, userId: bigint, isAdmin: boolean) {
+    await this.checkOwnership(prisma, id, userId, isAdmin);
+
     await prisma.salonService.delete({
       where: { salonId_serviceId: { salonId: id, serviceId } },
     });
     return { ok: true };
   }
 
-  async attachMedia(id: bigint, mediaData: any, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint) {
+  async attachMedia(id: bigint, mediaData: any, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
+    await this.checkOwnership(prisma, id, userId, isAdmin);
+
     const media = await prisma.media.create({
       data: {
         ...mediaData,
@@ -181,7 +183,9 @@ export class SalonsService {
     return serialize(media);
   }
 
-  async linkArtist(salonId: bigint, data: any) {
+  async linkArtist(salonId: bigint, data: any, userId: bigint, isAdmin: boolean) {
+    await this.checkOwnership(prisma, salonId, userId, isAdmin);
+
     const salonArtist = await prisma.salonArtist.upsert({
       where: {
         salonId_artistId: { salonId, artistId: BigInt(data.artistId) },
@@ -202,7 +206,9 @@ export class SalonsService {
     return serialize(salonArtist);
   }
 
-  async unlinkArtist(salonId: bigint, artistId: bigint) {
+  async unlinkArtist(salonId: bigint, artistId: bigint, userId: bigint, isAdmin: boolean) {
+    await this.checkOwnership(prisma, salonId, userId, isAdmin);
+
     await prisma.salonArtist.delete({
       where: { salonId_artistId: { salonId, artistId } },
     });

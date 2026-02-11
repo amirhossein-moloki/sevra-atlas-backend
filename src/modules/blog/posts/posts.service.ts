@@ -146,7 +146,7 @@ export class PostsService {
     const post = await prisma.post.findUnique({ where: { slug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    if (!isAdmin(user.role) && post.authorId !== user.id) {
+    if (!isStaff(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 
@@ -182,7 +182,7 @@ export class PostsService {
     const post = await prisma.post.findUnique({ where: { slug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    if (!isAdmin(user.role) && post.authorId !== user.id) {
+    if (!isStaff(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 
@@ -302,7 +302,7 @@ export class PostsService {
     const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    if (!isAdmin(user.role) && post.authorId !== user.id) {
+    if (!isStaff(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 

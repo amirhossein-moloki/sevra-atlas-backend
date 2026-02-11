@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { PostsController } from './posts.controller';
 import { BlogCommentsController } from '../comments/comments.controller';
-import { requireAuth } from '../../../shared/middlewares/auth.middleware';
+import { requireAuth, requireRole } from '../../../shared/middlewares/auth.middleware';
+import { UserRole } from '@prisma/client';
 import { validate } from '../../../shared/middlewares/validate.middleware';
 import { createPostSchema, updatePostSchema } from './posts.validators';
 import { createCommentSchema } from '../comments/comments.validators';
@@ -154,7 +155,7 @@ router.post(
 registry.registerPath({
   method: 'post',
   path: '/blog/posts',
-  summary: 'Create a blog post',
+  summary: 'Create a blog post (Author/Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   request: {
@@ -170,6 +171,7 @@ registry.registerPath({
 router.post(
   '/',
   requireAuth(),
+  requireRole([UserRole.AUTHOR, UserRole.MODERATOR, UserRole.ADMIN]),
   validate(createPostSchema),
   controller.createPost
 );
@@ -177,7 +179,7 @@ router.post(
 registry.registerPath({
   method: 'patch',
   path: '/blog/posts/{slug}',
-  summary: 'Update a blog post',
+  summary: 'Update a blog post (Author/Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
@@ -194,6 +196,7 @@ registry.registerPath({
 router.patch(
   '/:slug',
   requireAuth(),
+  requireRole([UserRole.AUTHOR, UserRole.MODERATOR, UserRole.ADMIN]),
   validate(updatePostSchema),
   controller.updatePost
 );
@@ -201,7 +204,7 @@ router.patch(
 registry.registerPath({
   method: 'delete',
   path: '/blog/posts/{slug}',
-  summary: 'Delete a blog post',
+  summary: 'Delete a blog post (Author/Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
@@ -215,13 +218,14 @@ registry.registerPath({
 router.delete(
   '/:slug',
   requireAuth(),
+  requireRole([UserRole.AUTHOR, UserRole.MODERATOR, UserRole.ADMIN]),
   controller.deletePost
 );
 
 registry.registerPath({
   method: 'post',
   path: '/blog/posts/{slug}/publish',
-  summary: 'Publish a blog post',
+  summary: 'Publish a blog post (Author/Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
@@ -235,6 +239,7 @@ registry.registerPath({
 router.post(
   '/:slug/publish',
   requireAuth(),
+  requireRole([UserRole.AUTHOR, UserRole.MODERATOR, UserRole.ADMIN]),
   controller.publishPost
 );
 

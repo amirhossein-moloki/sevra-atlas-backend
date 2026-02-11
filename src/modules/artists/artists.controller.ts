@@ -63,55 +63,69 @@ export class ArtistsController {
   }
 
   async setAvatar(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
       req.body.media,
       'AVATAR',
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async setCover(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
       req.body.media,
       'COVER',
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async addGallery(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
       req.body.media,
       'GALLERY',
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async addCertification(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.addCertification(
       BigInt(req.params.id),
       req.body,
-      req.user!.id
+      req.user!.id,
+      adminMode
     );
     res.status(201).json(result);
   }
 
   async updateCertification(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateCertification(
       BigInt(req.params.certId),
-      req.body
+      req.body,
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
 
   async deleteCertification(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteCertification(
-      BigInt(req.params.certId)
+      BigInt(req.params.certId),
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }
@@ -126,11 +140,14 @@ export class ArtistsController {
   }
 
   async assignSpecialties(req: AuthRequest, res: Response) {
+    const adminMode = isAdmin(req.user?.role);
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
     const result = await artistsService.assignSpecialties(
       BigInt(req.params.id),
       req.body.specialtyIds,
-      mode
+      mode,
+      req.user!.id,
+      adminMode
     );
     res.json(result);
   }

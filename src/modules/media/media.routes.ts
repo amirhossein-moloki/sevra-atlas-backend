@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { MediaController } from './media.controller';
-import { authMiddleware } from '../../shared/middlewares/auth.middleware';
+import { authMiddleware, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { mediaSchema, createMediaSchema, updateMediaSchema } from './media.validators';
 import multer from 'multer';
@@ -15,7 +15,7 @@ const tag = 'Media';
 registry.registerPath({
   method: 'get',
   path: '/media',
-  summary: 'List all media (Admin)',
+  summary: 'List all media (Staff)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   responses: {
@@ -25,7 +25,7 @@ registry.registerPath({
     },
   },
 });
-router.get('/', authMiddleware, controller.listMedia);
+router.get('/', requireStaff(), controller.listMedia);
 
 registry.registerPath({
   method: 'post',

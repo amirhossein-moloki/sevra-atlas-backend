@@ -14,8 +14,11 @@ const envSchema = z.object({
   OTP_MAX_ATTEMPTS: z.coerce.number().default(3),
   OTP_RATE_LIMIT_PER_PHONE: z.coerce.number().default(3),
   OTP_RATE_LIMIT_PER_IP: z.coerce.number().default(10),
-  SMS_PROVIDER: z.enum(['mock', 'kavenegar']).default('mock'),
+  SMS_PROVIDER: z.enum(['mock', 'kavenegar', 'smsir']).default('mock'),
   SMS_API_KEY: z.string().optional(),
+  SMSIR_API_KEY: z.string().optional(),
+  SMSIR_LINE_NUMBER: z.coerce.number().optional(),
+  SMSIR_TEMPLATE_ID: z.coerce.number().optional(),
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });

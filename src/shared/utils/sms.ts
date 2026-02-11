@@ -1,3 +1,6 @@
+import { Smsir } from 'sms-typescript';
+import { env } from '../../shared/config/env';
+
 export interface ISmsProvider {
   sendOtp(phoneNumber: string, code: string): Promise<void>;
 }
@@ -42,8 +45,51 @@ export class KavenegarSmsProvider implements ISmsProvider {
   }
 }
 
-import { env } from '../../shared/config/env';
+export class SmsirProvider implements ISmsProvider {
+  private smsir: Smsir;
+  private templateId: number;
 
-export const smsProvider: ISmsProvider = env.SMS_PROVIDER === 'kavenegar' 
-  ? new KavenegarSmsProvider(env.SMS_API_KEY || '') 
-  : new MockSmsProvider();
+  constructor(apiKey: string, lineNumber: number, templateId: number) {
+    this.smsir = new Smsir(apiKey, lineNumber);
+    this.templateId = templateId;
+    if (!apiKey || !lineNumber || !templateId) {
+      console.warn('⚠️ SMS.ir configuration is incomplete. SMS delivery may fail.');
+    }
+  }
+
+  async sendOtp(phoneNumber: string, code: string): Promise<void> {
+    console.log(`[SMS.ir] Attempting to send OTP to ${phoneNumber}`);
+
+    try {
+      const result = await this.smsir.sendVerifyCode(phoneNumber, this.templateId, [
+        { name: 'Code', value: code },
+      ]);
+
+      if (result.status !== 1) {
+        throw new Error(`SMS.ir API error: ${result.message}`);
+      }
+
+      console.info(`[SMS.ir] Successfully sent OTP to ${phoneNumber}.`);
+    } catch (error) {
+      console.error(`[SMS.ir] CRITICAL: Failed to send OTP to ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+}
+
+const getSmsProvider = (): ISmsProvider => {
+  switch (env.SMS_PROVIDER) {
+    case 'kavenegar':
+      return new KavenegarSmsProvider(env.SMS_API_KEY || '');
+    case 'smsir':
+      return new SmsirProvider(
+        env.SMSIR_API_KEY || '',
+        env.SMSIR_LINE_NUMBER || 0,
+        env.SMSIR_TEMPLATE_ID || 0
+      );
+    default:
+      return new MockSmsProvider();
+  }
+};
+
+export const smsProvider: ISmsProvider = getSmsProvider();

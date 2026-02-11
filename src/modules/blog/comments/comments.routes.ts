@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { BlogCommentsController } from './comments.controller';
-import { requireAuth, requireRole } from '../../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { requireAuth, requireStaff, requireAdmin } from '../../../shared/middlewares/auth.middleware';
 import { validate } from '../../../shared/middlewares/validate.middleware';
 import { updateCommentStatusSchema } from './comments.validators';
 
@@ -13,7 +12,7 @@ router.get('/', controller.listGlobalComments);
 router.patch(
   '/:id/status',
   requireAuth(),
-  requireRole([UserRole.ADMIN, UserRole.MODERATOR]),
+  requireStaff(),
   validate(updateCommentStatusSchema),
   controller.updateCommentStatus
 );
@@ -21,7 +20,7 @@ router.patch(
 router.delete(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.deleteComment
 );
 

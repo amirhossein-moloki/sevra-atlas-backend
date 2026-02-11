@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
 import { MediaService } from './media.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
+import { isAdmin } from '../../shared/auth/roles';
 
 const mediaService = new MediaService();
-
-import { UserRole } from '@prisma/client';
 
 export class MediaController {
   async listMedia(req: AuthRequest, res: Response) {
@@ -31,8 +30,8 @@ export class MediaController {
   }
 
   async updateMedia(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
-    const result = await mediaService.updateMedia(BigInt(req.params.id), req.body, req.user!.id, isAdmin);
+    const adminMode = isAdmin(req.user?.role);
+    const result = await mediaService.updateMedia(BigInt(req.params.id), req.body, req.user!.id, adminMode);
     res.json(result);
   }
 
@@ -43,8 +42,8 @@ export class MediaController {
   }
 
   async deleteMedia(req: AuthRequest, res: Response) {
-    const isAdmin = req.user!.role === UserRole.ADMIN;
-    const result = await mediaService.deleteMedia(BigInt(req.params.id), req.user!.id, isAdmin);
+    const adminMode = isAdmin(req.user?.role);
+    const result = await mediaService.deleteMedia(BigInt(req.params.id), req.user!.id, adminMode);
     res.json(result);
   }
 }

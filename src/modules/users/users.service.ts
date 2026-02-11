@@ -1,6 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { UserRole, AccountStatus } from '@prisma/client';
+import { serialize } from '../../shared/utils/serialize';
 
 export class UsersService {
   async getUserById(id: string) {
@@ -8,7 +9,7 @@ export class UsersService {
       where: { id: BigInt(id), deletedAt: null },
     });
     if (!user) throw new ApiError(404, 'User not found');
-    return this.serializeUser(user);
+    return serialize(user);
   }
 
   async updateUser(id: string, data: any) {
@@ -22,7 +23,7 @@ export class UsersService {
         gender: data.gender,
       },
     });
-    return this.serializeUser(user);
+    return serialize(user);
   }
 
   async listUsers(query: any) {
@@ -50,7 +51,7 @@ export class UsersService {
     ]);
 
     return {
-      data: users.map(u => this.serializeUser(u)),
+      data: users.map(u => serialize(u)),
       meta: {
         page,
         pageSize,
@@ -87,11 +88,4 @@ export class UsersService {
     return { ok: true };
   }
 
-  private serializeUser(user: any) {
-    return {
-      ...user,
-      id: user.id.toString(),
-      cityId: user.cityId?.toString(),
-    };
-  }
 }

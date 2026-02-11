@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { ReviewsService } from './reviews.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
+import { isStaff } from '../../shared/auth/roles';
 
 const reviewsService = new ReviewsService();
 
@@ -30,8 +31,8 @@ export class ReviewsController {
   }
 
   async deleteReview(req: AuthRequest, res: Response) {
-    const isAdmin = (req as any).user.role === 'ADMIN' || (req as any).user.role === 'MODERATOR';
-    const result = await reviewsService.deleteReview(BigInt(req.params.id), req.user!.id, isAdmin);
+    const adminMode = isStaff(req.user?.role);
+    const result = await reviewsService.deleteReview(BigInt(req.params.id), req.user!.id, adminMode);
     res.json(result);
   }
 }

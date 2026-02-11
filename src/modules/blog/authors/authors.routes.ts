@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { BlogAuthorsController } from './authors.controller';
-import { requireAuth, requireRole } from '../../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { requireAuth, requireAdmin } from '../../../shared/middlewares/auth.middleware';
 import { validate } from '../../../shared/middlewares/validate.middleware';
 import { createAuthorSchema, updateAuthorSchema } from './authors.validators';
 
@@ -14,7 +13,7 @@ router.get('/:id', controller.getAuthor);
 router.post(
   '/',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createAuthorSchema),
   controller.createAuthor
 );
@@ -22,7 +21,7 @@ router.post(
 router.patch(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(updateAuthorSchema),
   controller.updateAuthor
 );
@@ -30,7 +29,7 @@ router.patch(
 router.delete(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.deleteAuthor
 );
 

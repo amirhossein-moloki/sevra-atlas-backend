@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { ArtistsController } from './artists.controller';
 import { ReviewsController } from '../reviews/reviews.controller';
-import { requireAuth, requireRole } from '../../shared/middlewares/auth.middleware';
+import { requireAuth, requireRole, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { UserRole } from '@prisma/client';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createArtistSchema, updateArtistSchema, certificationSchema, assignSpecialtiesSchema } from './artists.validators';
@@ -77,7 +77,7 @@ router.delete(
 router.patch(
   '/:id/certifications/:certId/verify',
   requireAuth(),
-  requireRole([UserRole.ADMIN, UserRole.MODERATOR]),
+  requireStaff(),
   controller.verifyCertification
 );
 

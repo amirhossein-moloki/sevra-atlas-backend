@@ -2,10 +2,9 @@ import { Router } from 'express';
 import { UsersController } from './users.controller';
 import { FollowsController } from '../follows/follows.controller';
 import { SavesController } from '../saves/saves.controller';
-import { requireAuth, requireRole } from '../../shared/middlewares/auth.middleware';
+import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { userSchema, updateMeSchema, updateRoleSchema, updateStatusSchema } from './users.validators';
-import { UserRole } from '@prisma/client';
 import { registry, z } from '../../shared/openapi/registry';
 
 const router = Router();
@@ -133,7 +132,7 @@ registry.registerPath({
     },
   },
 });
-router.get('/admin/users', requireAuth(), requireRole([UserRole.ADMIN]), controller.listUsers);
+router.get('/admin/users', requireAuth(), requireAdmin(), controller.listUsers);
 
 registry.registerPath({
   method: 'patch',
@@ -158,7 +157,7 @@ registry.registerPath({
     },
   },
 });
-router.patch('/admin/users/:id/role', requireAuth(), requireRole([UserRole.ADMIN]), validate(updateRoleSchema), controller.updateRole);
+router.patch('/admin/users/:id/role', requireAuth(), requireAdmin(), validate(updateRoleSchema), controller.updateRole);
 
 registry.registerPath({
   method: 'patch',
@@ -183,6 +182,6 @@ registry.registerPath({
     },
   },
 });
-router.patch('/admin/users/:id/status', requireAuth(), requireRole([UserRole.ADMIN]), validate(updateStatusSchema), controller.updateStatus);
+router.patch('/admin/users/:id/status', requireAuth(), requireAdmin(), validate(updateStatusSchema), controller.updateStatus);
 
 export default router;

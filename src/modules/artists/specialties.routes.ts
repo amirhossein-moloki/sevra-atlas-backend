@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { ArtistsController } from './artists.controller';
-import { requireAuth, requireRole } from '../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 
 const router = Router();
 const controller = new ArtistsController();
@@ -11,21 +10,21 @@ router.get('/', controller.listSpecialties);
 router.post(
   '/',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.createSpecialty
 );
 
 router.patch(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.updateSpecialty
 );
 
 router.delete(
   '/:id',
   requireAuth(),
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.deleteSpecialty
 );
 

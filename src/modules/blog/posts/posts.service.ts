@@ -3,6 +3,7 @@ import { ApiError } from '../../../shared/errors/ApiError';
 import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
 import { serialize } from '../../../shared/utils/serialize';
 import { handleSlugChange } from '../../../shared/utils/seo';
+import { isStaff, isAdmin } from '../../../shared/auth/roles';
 
 export class PostsService {
   async listPosts(query: any, user?: any) {
@@ -22,7 +23,7 @@ export class PostsService {
       // Anonymous or normal user: only published posts
       where.status = PostStatus.published;
       where.publishedAt = { lte: new Date() };
-    } else if (user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR) {
+    } else if (isStaff(user.role)) {
       // Staff: all posts
     } else if (user.role === UserRole.AUTHOR) {
       // Author: published or own posts
@@ -99,7 +100,7 @@ export class PostsService {
 
     // Visibility check
     if (post.status !== PostStatus.published || (post.publishedAt && post.publishedAt > new Date())) {
-      const canView = user && (user.role === UserRole.ADMIN || user.id === post.authorId);
+      const canView = user && (isAdmin(user.role) || user.id === post.authorId);
       if (!canView) throw new ApiError(404, 'Post not found');
     }
 
@@ -145,7 +146,7 @@ export class PostsService {
     const post = await prisma.post.findUnique({ where: { slug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    if (user.role !== UserRole.ADMIN && post.authorId !== user.id) {
+    if (!isAdmin(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 
@@ -181,7 +182,7 @@ export class PostsService {
     const post = await prisma.post.findUnique({ where: { slug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    if (user.role !== UserRole.ADMIN && post.authorId !== user.id) {
+    if (!isAdmin(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 
@@ -301,7 +302,7 @@ export class PostsService {
     const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    if (user.role !== UserRole.ADMIN && post.authorId !== user.id) {
+    if (!isAdmin(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 

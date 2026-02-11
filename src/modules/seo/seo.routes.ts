@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { SeoController } from './seo.controller';
-import { authMiddleware, requireRole } from '../../shared/middlewares/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { authMiddleware, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { setSeoMetaSchema, createRedirectSchema } from './seo.validators';
 
@@ -13,7 +12,7 @@ router.get('/redirects/resolve', controller.resolveRedirect);
 router.post(
   '/meta',
   authMiddleware,
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(setSeoMetaSchema),
   controller.setSeoMeta
 );
@@ -21,7 +20,7 @@ router.post(
 router.post(
   '/redirects',
   authMiddleware,
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   validate(createRedirectSchema),
   controller.createRedirect
 );
@@ -29,7 +28,7 @@ router.post(
 router.post(
   '/sitemap/rebuild',
   authMiddleware,
-  requireRole([UserRole.ADMIN]),
+  requireAdmin(),
   controller.rebuildSitemap
 );
 

@@ -3,6 +3,7 @@ import { verifyAccessToken } from '../auth/jwt';
 import { ApiError } from '../errors/ApiError';
 import { prisma } from '../db/prisma';
 import { UserRole } from '@prisma/client';
+import { STAFF_ROLES, ADMIN_ONLY } from '../auth/roles';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -53,3 +54,6 @@ export const requireRole = (allowedRoles: UserRole[]) => {
     next();
   };
 };
+
+export const requireStaff = () => requireRole(STAFF_ROLES);
+export const requireAdmin = () => requireRole(ADMIN_ONLY);

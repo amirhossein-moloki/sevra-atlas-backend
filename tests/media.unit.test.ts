@@ -8,8 +8,8 @@ jest.mock('../src/shared/db/prisma', () => ({
   prisma: prismaMock,
 }));
 
-jest.mock('../src/shared/storage/local.storage', () => ({
-  LocalStorageProvider: jest.fn().mockImplementation(() => storageMock),
+jest.mock('../src/shared/storage', () => ({
+  getStorageProvider: jest.fn().mockReturnValue(storageMock),
 }));
 
 import { MediaService } from '../src/modules/media/media.service';

@@ -65,6 +65,24 @@ async function verify() {
     console.log('ℹ️ Using Mock SMS Provider.');
   }
 
+  // 5. Check Storage Provider
+  console.log('\n5. Checking Storage Provider...');
+  console.log(`Current Provider: ${env.STORAGE_PROVIDER}`);
+  if (env.STORAGE_PROVIDER === 's3') {
+    const requiredS3 = ['S3_ACCESS_KEY', 'S3_SECRET_KEY', 'S3_BUCKET', 'S3_REGION'];
+    for (const key of requiredS3) {
+      if (!(env as any)[key]) {
+        console.error(`❌ S3 is enabled but ${key} is missing.`);
+        failed = true;
+      }
+    }
+    if (!failed) {
+      console.log('✅ S3 configuration is present.');
+    }
+  } else {
+    console.warn('⚠️ Using Local Storage Provider. Not recommended for production/stateless environments.');
+  }
+
   console.log('\n-----------------------------------------');
   if (failed) {
     console.error('❌ Production readiness check FAILED.');

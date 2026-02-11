@@ -15,7 +15,10 @@ export const createArtistSchema = z.object({
 });
 
 export const updateArtistSchema = z.object({
-  body: createArtistSchema.shape.body.partial(),
+  body: createArtistSchema.shape.body.partial().extend({
+    avatarMediaId: z.coerce.string().optional(),
+    coverMediaId: z.coerce.string().optional(),
+  }),
 });
 
 export const certificationSchema = z.object({
@@ -29,6 +32,7 @@ export const certificationSchema = z.object({
     expiresAt: z.string().optional(),
     credentialId: z.string().optional(),
     credentialUrl: z.string().optional(),
+    mediaId: z.string().optional(),
     media: z.object({
       storageKey: z.string(),
       url: z.string(),

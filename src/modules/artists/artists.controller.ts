@@ -66,7 +66,7 @@ export class ArtistsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
-      req.body.media,
+      { mediaId: req.body.mediaId, mediaData: req.body.media },
       'AVATAR',
       req.user!.id,
       adminMode
@@ -78,7 +78,7 @@ export class ArtistsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
-      req.body.media,
+      { mediaId: req.body.mediaId, mediaData: req.body.media },
       'COVER',
       req.user!.id,
       adminMode
@@ -90,7 +90,7 @@ export class ArtistsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
-      req.body.media,
+      { mediaIds: req.body.mediaIds, mediaData: req.body.media },
       'GALLERY',
       req.user!.id,
       adminMode

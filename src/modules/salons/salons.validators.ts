@@ -30,6 +30,8 @@ export const updateSalonSchema = z.object({
     lng: z.number().optional(),
     isWomenOnly: z.boolean().optional(),
     priceTier: z.number().optional(),
+    avatarMediaId: z.coerce.string().optional(),
+    coverMediaId: z.coerce.string().optional(),
   }),
 }).openapi('UpdateSalon');
 
@@ -50,3 +52,21 @@ export const linkArtistSchema = z.object({
     startedAt: z.string().optional(),
   }),
 }).openapi('LinkArtist');
+
+export const setMediaSchema = z.object({
+  body: z.object({
+    mediaId: z.string().optional(),
+    mediaIds: z.array(z.string()).optional(),
+    media: z.object({
+      storageKey: z.string(),
+      url: z.string(),
+      type: z.string(),
+      mime: z.string(),
+      width: z.number().optional(),
+      height: z.number().optional(),
+      sizeBytes: z.number().optional(),
+    }).optional(),
+  }).refine(data => data.mediaId || data.mediaIds || data.media, {
+    message: "Either mediaId, mediaIds or media object must be provided",
+  }),
+});

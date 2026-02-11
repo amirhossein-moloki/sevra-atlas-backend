@@ -109,6 +109,8 @@ export class SalonsService {
           cityId: data.cityId ? BigInt(data.cityId) : undefined,
           neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
           provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
+          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
+          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
       return serialize(updatedSalon);
@@ -161,26 +163,76 @@ export class SalonsService {
     return { ok: true };
   }
 
-  async attachMedia(id: bigint, mediaData: any, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
+  async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaData?: any; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
     await this.checkOwnership(prisma, id, userId, isAdmin);
 
-    const media = await prisma.media.create({
-      data: {
-        ...mediaData,
-        uploadedBy: userId,
-        kind,
-        entityType: EntityType.SALON,
-        entityId: id,
-      },
-    });
+    if (kind === 'GALLERY' && data.mediaIds) {
+      const results = [];
+      for (const mId of data.mediaIds) {
+        const mediaId = BigInt(mId);
+        const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+        if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
 
-    if (kind === 'AVATAR') {
-      await prisma.salon.update({ where: { id }, data: { avatarMediaId: media.id } });
-    } else if (kind === 'COVER') {
-      await prisma.salon.update({ where: { id }, data: { coverMediaId: media.id } });
+        if (!isAdmin && existingMedia.uploadedBy !== userId) {
+          throw new ApiError(403, `You do not have permission to use media ${mId}`);
+        }
+
+        const updated = await prisma.media.update({
+          where: { id: mediaId },
+          data: {
+            kind,
+            entityType: EntityType.SALON,
+            entityId: id,
+          },
+        });
+        results.push(updated);
+      }
+      return serialize(results);
     }
 
-    return serialize(media);
+    let mediaId: bigint;
+
+    if (data.mediaId) {
+      mediaId = BigInt(data.mediaId);
+      const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+      if (!existingMedia) throw new ApiError(404, 'Media not found');
+
+      if (!isAdmin && existingMedia.uploadedBy !== userId) {
+        throw new ApiError(403, 'You do not have permission to use this media');
+      }
+
+      // Update media metadata to link it to this salon
+      await prisma.media.update({
+        where: { id: mediaId },
+        data: {
+          kind,
+          entityType: EntityType.SALON,
+          entityId: id,
+        },
+      });
+    } else if (data.mediaData) {
+      const media = await prisma.media.create({
+        data: {
+          ...data.mediaData,
+          uploadedBy: userId,
+          kind,
+          entityType: EntityType.SALON,
+          entityId: id,
+        },
+      });
+      mediaId = media.id;
+    } else {
+      throw new ApiError(400, 'Either mediaId or mediaData is required');
+    }
+
+    if (kind === 'AVATAR') {
+      await prisma.salon.update({ where: { id }, data: { avatarMediaId: mediaId } });
+    } else if (kind === 'COVER') {
+      await prisma.salon.update({ where: { id }, data: { coverMediaId: mediaId } });
+    }
+
+    const finalMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    return serialize(finalMedia);
   }
 
   async linkArtist(salonId: bigint, data: any, userId: bigint, isAdmin: boolean) {

@@ -53,6 +53,7 @@ describe('Critical Business Flows E2E', () => {
         .send({ phoneNumber });
 
       expect(reqRes.status).toBe(200);
+      expect(reqRes).toSatisfyApiSpec();
       expect(reqRes.body.message).toBe('OTP sent successfully');
 
       // 2. Retrieve OTP from persistence (simulating the side-effect check)
@@ -69,6 +70,7 @@ describe('Critical Business Flows E2E', () => {
         .send({ phoneNumber, code: otpCode });
 
       expect(verifyRes.status).toBe(200);
+      expect(verifyRes).toSatisfyApiSpec();
       expect(verifyRes.body.accessToken).toBeDefined();
       expect(verifyRes.body.refreshToken).toBeDefined();
       expect(verifyRes.body.user.phoneNumber).toBe(phoneNumber);

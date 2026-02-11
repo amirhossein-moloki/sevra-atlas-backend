@@ -46,7 +46,7 @@ app.use(
     apiSpec: swaggerSpec as any,
     validateRequests: true,
     validateResponses: true,
-    ignoreUndocumented: true, // Don't break existing routes that are not yet documented
+    ignoreUndocumented: false, // Enforce documentation for all routes to ensure API stability
   })
 );
 

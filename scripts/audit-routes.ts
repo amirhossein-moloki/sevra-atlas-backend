@@ -115,15 +115,13 @@ async function audit() {
   }
 
   if (undocumented.length > 0) {
-    console.warn('\n⚠️ Undocumented endpoints (In Code but not in Spec):');
-    undocumented.forEach(e => console.warn(`  ${e.method} ${e.path}`));
-    // For now, we don't fail on undocumented to allow gradual adoption,
-    // but the user wants a "guard" so maybe we should have a flag to fail.
+    console.error('\n❌ Undocumented endpoints (In Code but not in Spec):');
+    undocumented.forEach(e => console.error(`  ${e.method} ${e.path}`));
   } else {
     console.log('\n✅ All implemented endpoints are documented.');
   }
 
-  if (missingImplementation.length > 0) {
+  if (missingImplementation.length > 0 || undocumented.length > 0) {
     process.exit(1);
   }
 

@@ -3177,7 +3177,7 @@
     },
     "/media": {
       "get": {
-        "summary": "List all media (Admin)",
+        "summary": "List all media (Staff)",
         "tags": [
           "Media"
         ],
@@ -4251,6 +4251,14 @@
                   },
                   "priceTier": {
                     "type": "number"
+                  },
+                  "avatarMediaId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "coverMediaId": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -4664,11 +4672,46 @@
                 "properties": {
                   "mediaId": {
                     "type": "string"
+                  },
+                  "mediaIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "media": {
+                    "type": "object",
+                    "properties": {
+                      "storageKey": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "mime": {
+                        "type": "string"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      },
+                      "sizeBytes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "storageKey",
+                      "url",
+                      "type",
+                      "mime"
+                    ]
                   }
-                },
-                "required": [
-                  "mediaId"
-                ]
+                }
               }
             }
           }
@@ -4788,16 +4831,48 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "mediaId": {
+                    "type": "string"
+                  },
                   "mediaIds": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "media": {
+                    "type": "object",
+                    "properties": {
+                      "storageKey": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "mime": {
+                        "type": "string"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      },
+                      "sizeBytes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "storageKey",
+                      "url",
+                      "type",
+                      "mime"
+                    ]
                   }
-                },
-                "required": [
-                  "mediaIds"
-                ]
+                }
               }
             }
           }
@@ -5373,6 +5448,14 @@
                   "neighborhoodId": {
                     "type": "number",
                     "nullable": true
+                  },
+                  "avatarMediaId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "coverMediaId": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -5625,11 +5708,46 @@
                 "properties": {
                   "mediaId": {
                     "type": "string"
+                  },
+                  "mediaIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "media": {
+                    "type": "object",
+                    "properties": {
+                      "storageKey": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "mime": {
+                        "type": "string"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      },
+                      "sizeBytes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "storageKey",
+                      "url",
+                      "type",
+                      "mime"
+                    ]
                   }
-                },
-                "required": [
-                  "mediaId"
-                ]
+                }
               }
             }
           }
@@ -5749,16 +5867,48 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "mediaId": {
+                    "type": "string"
+                  },
                   "mediaIds": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "media": {
+                    "type": "object",
+                    "properties": {
+                      "storageKey": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "mime": {
+                        "type": "string"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "height": {
+                        "type": "number"
+                      },
+                      "sizeBytes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "storageKey",
+                      "url",
+                      "type",
+                      "mime"
+                    ]
                   }
-                },
-                "required": [
-                  "mediaIds"
-                ]
+                }
               }
             }
           }
@@ -5905,6 +6055,9 @@
                   "credentialUrl": {
                     "type": "string"
                   },
+                  "mediaId": {
+                    "type": "string"
+                  },
                   "media": {
                     "type": "object",
                     "properties": {
@@ -6029,6 +6182,9 @@
                     "type": "string"
                   },
                   "credentialUrl": {
+                    "type": "string"
+                  },
+                  "mediaId": {
                     "type": "string"
                   },
                   "media": {
@@ -6635,7 +6791,7 @@
         }
       },
       "post": {
-        "summary": "Create a blog post",
+        "summary": "Create a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -6815,7 +6971,7 @@
         }
       },
       "patch": {
-        "summary": "Update a blog post",
+        "summary": "Update a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -6952,7 +7108,7 @@
         }
       },
       "delete": {
-        "summary": "Delete a blog post",
+        "summary": "Delete a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -7352,7 +7508,7 @@
     },
     "/blog/posts/{slug}/publish": {
       "post": {
-        "summary": "Publish a blog post",
+        "summary": "Publish a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],

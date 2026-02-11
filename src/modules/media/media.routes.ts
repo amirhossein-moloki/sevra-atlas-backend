@@ -4,7 +4,7 @@ import { authMiddleware } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { mediaSchema, createMediaSchema, updateMediaSchema } from './media.validators';
 import multer from 'multer';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new MediaController();
@@ -21,7 +21,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of media items',
-      content: { 'application/json': { schema: z.object({ data: z.array(mediaSchema) }) } },
+      content: { 'application/json': { schema: withApiSuccess(z.object({ data: z.array(mediaSchema) })) } },
     },
   },
 });
@@ -39,7 +39,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Media registered',
-      content: { 'application/json': { schema: mediaSchema } },
+      content: { 'application/json': { schema: withApiSuccess(mediaSchema) } },
     },
   },
 });
@@ -75,11 +75,11 @@ registry.registerPath({
       description: 'Image uploaded and optimized',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             id: z.string(),
             url: z.string(),
             variants: z.any(),
-          }),
+          })),
         },
       },
     },
@@ -98,11 +98,11 @@ registry.registerPath({
   path: '/media/{id}',
   summary: 'Get media details',
   tags: [tag],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Media details',
-      content: { 'application/json': { schema: mediaSchema } },
+      content: { 'application/json': { schema: withApiSuccess(mediaSchema) } },
     },
   },
 });
@@ -114,14 +114,14 @@ registry.registerPath({
   summary: 'Update media metadata',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: updateMediaSchema.shape.body } } },
   },
   responses: {
     200: {
       description: 'Media updated',
-      content: { 'application/json': { schema: mediaSchema } },
+      content: { 'application/json': { schema: withApiSuccess(mediaSchema) } },
     },
   },
 });
@@ -137,7 +137,7 @@ registry.registerPath({
   path: '/media/{id}/download',
   summary: 'Download media file',
   tags: [tag],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Media file',
@@ -152,11 +152,11 @@ registry.registerPath({
   summary: 'Delete media',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Media deleted',
-      content: { 'application/json': { schema: z.object({ ok: z.boolean() }) } },
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
     },
   },
 });

@@ -5,7 +5,7 @@ import { SavesController } from '../saves/saves.controller';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { userSchema, updateMeSchema, updateRoleSchema, updateStatusSchema } from './users.validators';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new UsersController();
@@ -24,7 +24,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Current user profile',
-      content: { 'application/json': { schema: userSchema } },
+      content: { 'application/json': { schema: withApiSuccess(userSchema) } },
     },
   },
 });
@@ -41,9 +41,9 @@ registry.registerPath({
       description: 'List of follows',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             data: z.array(z.any()), // Simplified for now
-          }),
+          })),
         },
       },
     },
@@ -62,9 +62,9 @@ registry.registerPath({
       description: 'List of saved items',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             data: z.array(z.any()), // Simplified for now
-          }),
+          })),
         },
       },
     },
@@ -88,10 +88,10 @@ registry.registerPath({
       description: 'Profile updated',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             ok: z.boolean(),
             user: userSchema,
-          }),
+          })),
         },
       },
     },
@@ -118,7 +118,7 @@ registry.registerPath({
       description: 'List of users',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             data: z.array(userSchema),
             meta: z.object({
               page: z.number(),
@@ -126,7 +126,7 @@ registry.registerPath({
               total: z.number(),
               totalPages: z.number(),
             }),
-          }),
+          })),
         },
       },
     },
@@ -140,7 +140,7 @@ registry.registerPath({
   summary: 'Update user role (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateRoleSchema.shape.body } },
@@ -151,7 +151,7 @@ registry.registerPath({
       description: 'Role updated',
       content: {
         'application/json': {
-          schema: z.object({ ok: z.boolean() }),
+          schema: withApiSuccess(z.object({ ok: z.boolean() })),
         },
       },
     },
@@ -165,7 +165,7 @@ registry.registerPath({
   summary: 'Update user status (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' } }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateStatusSchema.shape.body } },
@@ -176,7 +176,7 @@ registry.registerPath({
       description: 'Status updated',
       content: {
         'application/json': {
-          schema: z.object({ ok: z.boolean() }),
+          schema: withApiSuccess(z.object({ ok: z.boolean() })),
         },
       },
     },

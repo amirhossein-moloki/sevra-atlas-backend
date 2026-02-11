@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { HealthController } from './health.controller';
-import { registry, z } from '../../shared/openapi/registry';
+import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const healthController = new HealthController();
@@ -15,11 +15,11 @@ registry.registerPath({
       description: 'System is healthy',
       content: {
         'application/json': {
-          schema: z.object({
+          schema: withApiSuccess(z.object({
             status: z.string(),
             database: z.string(),
             redis: z.string(),
-          }),
+          })),
         },
       },
     },

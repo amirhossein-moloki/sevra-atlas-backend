@@ -78,18 +78,23 @@ export class ArtistsService {
     return serialize(artist);
   }
 
+  private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
+    const artist = await tx.artist.findFirst({
+      where: { id, deletedAt: null },
+      include: { owners: { select: { id: true } } },
+    });
+    if (!artist) throw new ApiError(404, 'Artist not found');
+
+    const isOwner = artist.owners.some((o: any) => o.id === userId);
+    if (!isAdmin && !isOwner) {
+      throw new ApiError(403, 'Forbidden');
+    }
+    return artist;
+  }
+
   async updateArtist(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
     return prisma.$transaction(async (tx) => {
-      const artist = await tx.artist.findFirst({
-        where: { id, deletedAt: null },
-        include: { owners: { select: { id: true } } },
-      });
-      if (!artist) throw new ApiError(404, 'Artist not found');
-
-      const isOwner = artist.owners.some(o => o.id === userId);
-      if (!isAdmin && !isOwner) {
-        throw new ApiError(403, 'Forbidden');
-      }
+      const artist = await this.checkOwnership(tx, id, userId, isAdmin);
 
       if (data.slug && data.slug !== artist.slug) {
         await handleSlugChange(EntityType.ARTIST, id, artist.slug, data.slug, '/atlas/artist', tx);
@@ -108,16 +113,7 @@ export class ArtistsService {
   }
 
   async deleteArtist(id: bigint, userId: bigint, isAdmin: boolean) {
-    const artist = await prisma.artist.findFirst({
-      where: { id, deletedAt: null },
-      include: { owners: { select: { id: true } } },
-    });
-    if (!artist) throw new ApiError(404, 'Artist not found');
-
-    const isOwner = artist.owners.some(o => o.id === userId);
-    if (!isAdmin && !isOwner) {
-      throw new ApiError(403, 'Forbidden');
-    }
+    await this.checkOwnership(prisma, id, userId, isAdmin);
 
     await prisma.artist.update({
       where: { id },
@@ -126,7 +122,9 @@ export class ArtistsService {
     return { ok: true };
   }
 
-  async attachMedia(id: bigint, mediaData: any, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint) {
+  async attachMedia(id: bigint, mediaData: any, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
+    await this.checkOwnership(prisma, id, userId, isAdmin);
+
     const media = await prisma.media.create({
       data: {
         ...mediaData,
@@ -146,7 +144,9 @@ export class ArtistsService {
     return serialize(media);
   }
 
-  async addCertification(id: bigint, data: any, userId: bigint) {
+  async addCertification(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
+    await this.checkOwnership(prisma, id, userId, isAdmin);
+
     let mediaId: bigint | undefined;
     if (data.media) {
       const media = await prisma.media.create({
@@ -180,8 +180,15 @@ export class ArtistsService {
     return serialize(cert);
   }
 
-  async updateCertification(certId: bigint, data: any) {
-    const cert = await prisma.artistCertification.update({
+  async updateCertification(certId: bigint, data: any, userId: bigint, isAdmin: boolean) {
+    const cert = await prisma.artistCertification.findUnique({
+      where: { id: certId },
+    });
+    if (!cert) throw new ApiError(404, 'Certification not found');
+
+    await this.checkOwnership(prisma, cert.artistId, userId, isAdmin);
+
+    const updated = await prisma.artistCertification.update({
       where: { id: certId },
       data: {
         ...data,
@@ -189,13 +196,17 @@ export class ArtistsService {
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
     });
-    return serialize(cert);
+    return serialize(updated);
   }
 
-  async deleteCertification(certId: bigint) {
-    // Standardizing to soft delete if needed, but ArtistCertification doesn't have deletedAt yet in my schema change.
-    // Wait, I didn't add it to ArtistCertification.
-    // Let's stick to what I added to the schema.
+  async deleteCertification(certId: bigint, userId: bigint, isAdmin: boolean) {
+    const cert = await prisma.artistCertification.findUnique({
+      where: { id: certId },
+    });
+    if (!cert) throw new ApiError(404, 'Certification not found');
+
+    await this.checkOwnership(prisma, cert.artistId, userId, isAdmin);
+
     await prisma.artistCertification.delete({ where: { id: certId } });
     return { ok: true };
   }
@@ -240,8 +251,10 @@ export class ArtistsService {
     return { ok: true };
   }
 
-  async assignSpecialties(id: bigint, specialtyIds: number[], mode: 'replace' | 'append') {
+  async assignSpecialties(id: bigint, specialtyIds: number[], mode: 'replace' | 'append', userId: bigint, isAdmin: boolean) {
     return prisma.$transaction(async (tx) => {
+      await this.checkOwnership(tx, id, userId, isAdmin);
+
       if (mode === 'replace') {
         await tx.artistSpecialty.deleteMany({ where: { artistId: id } });
       }

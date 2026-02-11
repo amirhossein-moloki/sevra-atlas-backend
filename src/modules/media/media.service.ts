@@ -1,8 +1,12 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { serialize } from '../../shared/utils/serialize';
+import { processImage } from '../../shared/utils/image';
+import { LocalStorageProvider } from '../../shared/storage/local.storage';
 
 export class MediaService {
+  private storage = new LocalStorageProvider();
+
   async listMedia(query: any) {
     const { page = 1, pageSize = 20 } = query;
     const limit = parseInt(pageSize as string) || 20;
@@ -25,7 +29,6 @@ export class MediaService {
   }
 
   async createMedia(data: any, uploadedBy: bigint) {
-    // In a real app, you'd handle AVIF conversion here
     const media = await prisma.media.create({
       data: {
         storageKey: data.storageKey,
@@ -35,6 +38,7 @@ export class MediaService {
         width: data.width,
         height: data.height,
         sizeBytes: data.sizeBytes || 0,
+        variants: data.variants || {},
         altText: data.altText || '',
         title: data.title || '',
         uploadedBy,
@@ -44,6 +48,46 @@ export class MediaService {
       },
     });
     return serialize(media);
+  }
+
+  async uploadAndOptimize(file: Express.Multer.File, uploadedBy: bigint) {
+    if (!file.mimetype.startsWith('image/')) {
+      throw new ApiError(400, 'Only image files are supported for optimization');
+    }
+
+    const { original, variants } = await processImage(file.buffer);
+
+    const timestamp = Date.now();
+    const baseStorageKey = `${timestamp}-${file.originalname}`;
+
+    // Save original
+    const originalUrl = await this.storage.save(baseStorageKey, file.buffer, file.mimetype);
+
+    const variantUrls: any = {};
+    await Promise.all(Object.entries(variants).map(async ([key, variant]) => {
+      const ext = variant.mime.split('/')[1];
+      const variantKey = `${baseStorageKey}_${key}.${ext}`;
+      const url = await this.storage.save(variantKey, variant.buffer, variant.mime);
+
+      variantUrls[key] = {
+        url,
+        mime: variant.mime,
+        width: variant.width,
+        height: variant.height,
+        sizeBytes: variant.sizeBytes,
+      };
+    }));
+
+    return this.createMedia({
+      storageKey: baseStorageKey,
+      url: originalUrl,
+      type: 'image',
+      mime: original.mime,
+      width: original.width,
+      height: original.height,
+      sizeBytes: original.sizeBytes,
+      variants: variantUrls,
+    }, uploadedBy);
   }
 
   async getMedia(id: bigint) {

@@ -3,6 +3,7 @@ import 'express-async-errors';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
+import path from 'path';
 import pinoHttp from 'pino-http';
 import { logger } from './shared/logger/logger';
 import { errorHandler } from './shared/middlewares/error.middleware';
@@ -28,6 +29,9 @@ app.use(
   })
 );
 app.use(responseMiddleware);
+
+// Serve uploads
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Generate OpenAPI Spec dynamically
 const swaggerSpec = generateOpenApiSpec();

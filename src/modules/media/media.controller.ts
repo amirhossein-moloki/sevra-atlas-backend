@@ -17,6 +17,14 @@ export class MediaController {
     res.status(201).json(result);
   }
 
+  async uploadAndOptimize(req: AuthRequest, res: Response) {
+    if (!req.file) {
+      throw new Error('No file uploaded');
+    }
+    const result = await mediaService.uploadAndOptimize(req.file, req.user!.id);
+    res.status(201).json(result);
+  }
+
   async getMedia(req: AuthRequest, res: Response) {
     const result = await mediaService.getMedia(BigInt(req.params.id));
     res.json(result);

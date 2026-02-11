@@ -4,6 +4,7 @@ import { authMiddleware } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createReviewSchema, voteReviewSchema } from './reviews.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { ReviewSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new ReviewsController();
@@ -22,7 +23,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Review created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ReviewSchema) } }
     }
   }
 });
@@ -46,7 +47,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Vote recorded',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
     }
   }
 });

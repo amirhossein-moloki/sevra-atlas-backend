@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { FollowsController } from './follows.controller';
 import { requireAuth } from '../../shared/middlewares/auth.middleware';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { FollowSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new FollowsController();
@@ -26,7 +27,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Followed successfully',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(FollowSchema) } }
     }
   }
 });
@@ -50,7 +51,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Unfollowed successfully',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
     }
   }
 });
@@ -65,7 +66,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of follows',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(FollowSchema)) } }
     }
   }
 });

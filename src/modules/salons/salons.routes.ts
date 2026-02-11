@@ -6,6 +6,7 @@ import { UserRole } from '@prisma/client';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createSalonSchema, updateSalonSchema, assignServicesSchema, linkArtistSchema } from './salons.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { SalonSchema, ReviewSchema, MediaSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new SalonsController();
@@ -21,7 +22,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of salons',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(SalonSchema)) } }
     }
   }
 });
@@ -36,7 +37,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Salon details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SalonSchema) } }
     }
   }
 });
@@ -51,7 +52,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of reviews',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(ReviewSchema)) } }
     }
   }
 });
@@ -69,7 +70,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Salon created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SalonSchema) } }
     }
   }
 });
@@ -97,7 +98,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Salon updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SalonSchema) } }
     }
   }
 });
@@ -141,7 +142,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Services assigned',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
     }
   }
 });
@@ -190,7 +191,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Avatar updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } }
     }
   }
 });
@@ -215,7 +216,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Cover updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } }
     }
   }
 });
@@ -240,7 +241,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Gallery updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } }
     }
   }
 });
@@ -263,7 +264,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Artist linked',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ id: z.string(), roleTitle: z.string().nullable() })) } }
     }
   }
 });

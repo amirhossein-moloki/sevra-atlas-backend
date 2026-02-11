@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { SavesController } from './saves.controller';
 import { requireAuth } from '../../shared/middlewares/auth.middleware';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { SaveSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new SavesController();
@@ -26,7 +27,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Saved successfully',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SaveSchema) } }
     }
   }
 });
@@ -50,7 +51,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Unsaved successfully',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
     }
   }
 });
@@ -65,7 +66,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of saved items',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(SaveSchema)) } }
     }
   }
 });

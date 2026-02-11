@@ -4,6 +4,7 @@ import { requireAuth, requireAdmin } from '../../../shared/middlewares/auth.midd
 import { validate } from '../../../shared/middlewares/validate.middleware';
 import { createAuthorSchema, updateAuthorSchema } from './authors.validators';
 import { registry, z, withApiSuccess } from '../../../shared/openapi/registry';
+import { AuthorSchema } from '../../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new BlogAuthorsController();
@@ -18,7 +19,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of authors',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(AuthorSchema)) } }
     }
   }
 });
@@ -33,7 +34,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Author details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(AuthorSchema) } }
     }
   }
 });
@@ -51,7 +52,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Author created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(AuthorSchema) } }
     }
   }
 });
@@ -76,7 +77,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Author updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(AuthorSchema) } }
     }
   }
 });

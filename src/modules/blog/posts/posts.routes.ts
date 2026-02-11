@@ -6,6 +6,7 @@ import { validate } from '../../../shared/middlewares/validate.middleware';
 import { createPostSchema, updatePostSchema } from './posts.validators';
 import { createCommentSchema } from '../comments/comments.validators';
 import { registry, z, withApiSuccess } from '../../../shared/openapi/registry';
+import { BlogPostSchema, CommentSchema } from '../../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new PostsController();
@@ -29,7 +30,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of blog posts',
-      content: { 'application/json': { schema: withApiSuccess(z.object({ data: z.array(z.any()), meta: z.any() })) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(BlogPostSchema)) } },
     },
   },
 });
@@ -44,7 +45,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Blog post details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } },
+      content: { 'application/json': { schema: withApiSuccess(BlogPostSchema) } },
     },
   },
 });
@@ -58,7 +59,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Blog post details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } },
+      content: { 'application/json': { schema: withApiSuccess(BlogPostSchema) } },
     },
   },
 });
@@ -74,7 +75,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of similar posts',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(BlogPostSchema)) } },
     },
   },
 });
@@ -89,7 +90,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of posts',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(BlogPostSchema)) } },
     },
   },
 });
@@ -104,7 +105,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of related posts',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(BlogPostSchema)) } },
     },
   },
 });
@@ -120,7 +121,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of comments',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(CommentSchema)) } },
     },
   },
 });
@@ -139,7 +140,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Comment created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } },
+      content: { 'application/json': { schema: withApiSuccess(CommentSchema) } },
     },
   },
 });
@@ -162,7 +163,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Post created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } },
+      content: { 'application/json': { schema: withApiSuccess(BlogPostSchema) } },
     },
   },
 });
@@ -186,7 +187,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Post updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } },
+      content: { 'application/json': { schema: withApiSuccess(BlogPostSchema) } },
     },
   },
 });
@@ -227,7 +228,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Post published',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } },
+      content: { 'application/json': { schema: withApiSuccess(BlogPostSchema) } },
     },
   },
 });

@@ -12,6 +12,7 @@ import {
   updateMenuItemSchema,
 } from './misc.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { RevisionSchema, ReactionSchema, PageSchema, MenuSchema, MenuItemSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new BlogMiscController();
@@ -28,7 +29,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of revisions',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(RevisionSchema)) } }
     }
   }
 });
@@ -46,7 +47,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Reaction added',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ReactionSchema) } }
     }
   }
 });
@@ -60,7 +61,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of pages',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(PageSchema)) } }
     }
   }
 });
@@ -75,7 +76,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Page details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(PageSchema) } }
     }
   }
 });
@@ -93,7 +94,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Page created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(PageSchema) } }
     }
   }
 });
@@ -118,7 +119,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Page updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(PageSchema) } }
     }
   }
 });
@@ -155,7 +156,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Menu details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MenuSchema) } }
     }
   }
 });
@@ -173,7 +174,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Menu created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MenuSchema) } }
     }
   }
 });
@@ -198,7 +199,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Menu updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MenuSchema) } }
     }
   }
 });
@@ -238,7 +239,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Menu item created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MenuItemSchema) } }
     }
   }
 });
@@ -263,7 +264,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Menu item updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MenuItemSchema) } }
     }
   }
 });

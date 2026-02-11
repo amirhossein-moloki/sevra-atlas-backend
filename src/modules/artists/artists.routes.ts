@@ -6,6 +6,7 @@ import { UserRole } from '@prisma/client';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createArtistSchema, updateArtistSchema, certificationSchema, assignSpecialtiesSchema } from './artists.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { ArtistSchema, SpecialtySchema, ReviewSchema, MediaSchema, ArtistCertificationSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new ArtistsController();
@@ -21,7 +22,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of artists',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(ArtistSchema)) } }
     }
   }
 });
@@ -35,7 +36,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of specialties',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(SpecialtySchema)) } }
     }
   }
 });
@@ -50,7 +51,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Artist details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ArtistSchema) } }
     }
   }
 });
@@ -65,7 +66,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of reviews',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(ReviewSchema)) } }
     }
   }
 });
@@ -83,7 +84,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Artist created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ArtistSchema) } }
     }
   }
 });
@@ -108,7 +109,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Artist updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ArtistSchema) } }
     }
   }
 });
@@ -152,7 +153,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Avatar updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } }
     }
   }
 });
@@ -175,7 +176,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Cover updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } }
     }
   }
 });
@@ -198,7 +199,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Gallery updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } }
     }
   }
 });
@@ -221,7 +222,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Certification added',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ArtistCertificationSchema) } }
     }
   }
 });
@@ -248,7 +249,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Certification updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ArtistCertificationSchema) } }
     }
   }
 });
@@ -319,7 +320,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Specialties assigned',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
     }
   }
 });

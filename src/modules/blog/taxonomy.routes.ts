@@ -11,6 +11,7 @@ import {
   updateSeriesSchema,
 } from './taxonomy.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { CategorySchema, TagSchema, SeriesSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new BlogTaxonomyController();
@@ -25,7 +26,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of categories',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(CategorySchema)) } }
     }
   }
 });
@@ -43,7 +44,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Category created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(CategorySchema) } }
     }
   }
 });
@@ -64,7 +65,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Category details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(CategorySchema) } }
     }
   }
 });
@@ -83,7 +84,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Category updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(CategorySchema) } }
     }
   }
 });
@@ -119,7 +120,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of tags',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(TagSchema)) } }
     }
   }
 });
@@ -137,7 +138,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Tag created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(TagSchema) } }
     }
   }
 });
@@ -158,7 +159,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Tag details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(TagSchema) } }
     }
   }
 });
@@ -177,7 +178,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Tag updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(TagSchema) } }
     }
   }
 });
@@ -213,7 +214,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of series',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(SeriesSchema)) } }
     }
   }
 });
@@ -231,7 +232,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Series created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SeriesSchema) } }
     }
   }
 });
@@ -252,7 +253,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Series details',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SeriesSchema) } }
     }
   }
 });
@@ -271,7 +272,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Series updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SeriesSchema) } }
     }
   }
 });

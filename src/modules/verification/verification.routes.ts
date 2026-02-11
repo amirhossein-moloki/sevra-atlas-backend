@@ -4,6 +4,7 @@ import { requireAuth, requireRole, requireStaff } from '../../shared/middlewares
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { requestVerificationSchema, reviewVerificationSchema } from './verification.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { VerificationRequestSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new VerificationController();
@@ -22,7 +23,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Request submitted',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(VerificationRequestSchema) } }
     }
   }
 });
@@ -42,7 +43,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of requests',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(VerificationRequestSchema)) } }
     }
   }
 });
@@ -66,7 +67,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Request reviewed',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(VerificationRequestSchema) } }
     }
   }
 });

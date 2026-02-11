@@ -63,6 +63,9 @@
           "pageSize": {
             "type": "number"
           },
+          "limit": {
+            "type": "number"
+          },
           "total": {
             "type": "number"
           },
@@ -74,10 +77,7 @@
           }
         },
         "required": [
-          "page",
-          "pageSize",
-          "totalItems",
-          "totalPages"
+          "page"
         ]
       },
       "ApiMeta": {
@@ -169,6 +169,64 @@
           "cityId",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "Follow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "followerId": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": "string"
+          },
+          "salonId": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "followerId",
+          "targetType"
+        ]
+      },
+      "Save": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": "string"
+          },
+          "salonId": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistId": {
+            "type": "string",
+            "nullable": true
+          },
+          "postId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "targetType"
         ]
       },
       "Province": {
@@ -365,6 +423,1124 @@
           "title",
           "kind",
           "createdAt"
+        ]
+      },
+      "SeoMeta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "ogTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "ogDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "twitterTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "twitterDesc": {
+            "type": "string",
+            "nullable": true
+          },
+          "h1": {
+            "type": "string",
+            "nullable": true
+          },
+          "breadcrumbLabel": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "canonicalUrl",
+          "ogTitle",
+          "ogDescription",
+          "twitterTitle",
+          "twitterDesc",
+          "h1",
+          "breadcrumbLabel"
+        ]
+      },
+      "Salon": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "instagram": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "avgRating": {
+            "type": "number"
+          },
+          "reviewCount": {
+            "type": "number"
+          },
+          "verification": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "avatar": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "storageKey": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "mime": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "height": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "sizeBytes": {
+                    "type": "number"
+                  },
+                  "altText": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "storageKey",
+                  "url",
+                  "type",
+                  "mime",
+                  "width",
+                  "height",
+                  "sizeBytes",
+                  "altText",
+                  "title",
+                  "createdAt"
+                ]
+              }
+            ]
+          },
+          "city": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/City"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "nameFa": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "nameFa",
+                  "nameEn",
+                  "slug"
+                ]
+              }
+            ]
+          },
+          "neighborhood": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Neighborhood"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "nameFa": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "nameFa",
+                  "slug"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "summary",
+          "description",
+          "phone",
+          "instagram",
+          "website",
+          "addressLine",
+          "avgRating",
+          "reviewCount",
+          "verification",
+          "status"
+        ]
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "author": {
+            "type": "object",
+            "properties": {
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "avatar": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "firstName",
+              "lastName"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "rating",
+          "title",
+          "body",
+          "status",
+          "createdAt"
+        ]
+      },
+      "Artist": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "avgRating": {
+            "type": "number"
+          },
+          "reviewCount": {
+            "type": "number"
+          },
+          "verification": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "avatar": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "storageKey": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "mime": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "height": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "sizeBytes": {
+                    "type": "number"
+                  },
+                  "altText": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "storageKey",
+                  "url",
+                  "type",
+                  "mime",
+                  "width",
+                  "height",
+                  "sizeBytes",
+                  "altText",
+                  "title",
+                  "createdAt"
+                ]
+              }
+            ]
+          },
+          "city": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/City"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "nameFa": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "nameFa",
+                  "nameEn",
+                  "slug"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "slug",
+          "summary",
+          "bio",
+          "avgRating",
+          "reviewCount",
+          "verification",
+          "status"
+        ]
+      },
+      "Specialty": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "nameFa",
+          "slug",
+          "order"
+        ]
+      },
+      "ArtistCertification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "media": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "storageKey": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "mime": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "height": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "sizeBytes": {
+                    "type": "number"
+                  },
+                  "altText": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "storageKey",
+                  "url",
+                  "type",
+                  "mime",
+                  "width",
+                  "height",
+                  "sizeBytes",
+                  "altText",
+                  "title",
+                  "createdAt"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "issuer",
+          "issuedAt",
+          "isVerified"
+        ]
+      },
+      "BlogPost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "author": {
+            "type": "object",
+            "properties": {
+              "displayName": {
+                "type": "string"
+              },
+              "avatar": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Media"
+                  },
+                  {
+                    "nullable": true,
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "storageKey": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "mime": {
+                        "type": "string"
+                      },
+                      "width": {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "height": {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "sizeBytes": {
+                        "type": "number"
+                      },
+                      "altText": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "storageKey",
+                      "url",
+                      "type",
+                      "mime",
+                      "width",
+                      "height",
+                      "sizeBytes",
+                      "altText",
+                      "title",
+                      "createdAt"
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "displayName"
+            ]
+          },
+          "category": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "slug"
+            ]
+          },
+          "coverMedia": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "storageKey": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "mime": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "height": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "sizeBytes": {
+                    "type": "number"
+                  },
+                  "altText": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "storageKey",
+                  "url",
+                  "type",
+                  "mime",
+                  "width",
+                  "height",
+                  "sizeBytes",
+                  "altText",
+                  "title",
+                  "createdAt"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "excerpt",
+          "content",
+          "publishedAt",
+          "status"
+        ]
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "username",
+              "firstName",
+              "lastName"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "content",
+          "createdAt",
+          "status",
+          "user"
+        ]
+      },
+      "Report": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reason",
+          "details",
+          "status"
+        ]
+      },
+      "VerificationRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "notes",
+          "createdAt"
+        ]
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "order"
+        ]
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description"
+        ]
+      },
+      "Series": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderStrategy": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "description",
+          "orderStrategy"
+        ]
+      },
+      "Revision": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "postId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "changeNote": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "title",
+          "content",
+          "changeNote",
+          "createdAt"
+        ]
+      },
+      "Reaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reaction": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reaction",
+          "userId",
+          "createdAt"
+        ]
+      },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "content",
+          "status",
+          "publishedAt"
+        ]
+      },
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "targetBlank": {
+            "type": "boolean"
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "url",
+          "order",
+          "targetBlank",
+          "parentId"
+        ]
+      },
+      "Menu": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuItem"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "location"
+        ]
+      },
+      "Author": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "avatar": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "storageKey": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "mime": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "height": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "sizeBytes": {
+                    "type": "number"
+                  },
+                  "altText": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "storageKey",
+                  "url",
+                  "type",
+                  "mime",
+                  "width",
+                  "height",
+                  "sizeBytes",
+                  "altText",
+                  "title",
+                  "createdAt"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "bio"
         ]
       }
     },
@@ -734,18 +1910,10 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "nullable": true
-                          }
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Follow"
+                      }
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -788,18 +1956,10 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "nullable": true
-                          }
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Save"
+                      }
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2041,18 +3201,10 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/components/schemas/Media"
-                          }
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Media"
+                      }
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2523,14 +3675,27 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "toPath": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "toPath",
+                        "type"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2644,14 +3809,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/SeoMeta"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2714,14 +3880,23 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2804,7 +3979,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Salon"
                       }
                     },
                     "meta": {
@@ -2887,14 +4062,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Salon"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2934,14 +4110,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Salon"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2983,7 +4160,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Review"
                       }
                     },
                     "meta": {
@@ -3095,14 +4272,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Salon"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3237,14 +4415,23 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3375,14 +4562,71 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Media"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "height": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "sizeBytes": {
+                              "type": "number"
+                            },
+                            "altText": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "storageKey",
+                            "url",
+                            "type",
+                            "mime",
+                            "width",
+                            "height",
+                            "sizeBytes",
+                            "altText",
+                            "title",
+                            "createdAt"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3444,14 +4688,71 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Media"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "height": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "sizeBytes": {
+                              "type": "number"
+                            },
+                            "altText": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "storageKey",
+                            "url",
+                            "type",
+                            "mime",
+                            "width",
+                            "height",
+                            "sizeBytes",
+                            "altText",
+                            "title",
+                            "createdAt"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3516,14 +4817,71 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Media"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "height": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "sizeBytes": {
+                              "type": "number"
+                            },
+                            "altText": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "storageKey",
+                            "url",
+                            "type",
+                            "mime",
+                            "width",
+                            "height",
+                            "sizeBytes",
+                            "altText",
+                            "title",
+                            "createdAt"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3595,14 +4953,28 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "roleTitle": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "roleTitle"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3703,7 +5075,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Artist"
                       }
                     },
                     "meta": {
@@ -3789,14 +5161,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Artist"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3828,7 +5201,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Specialty"
                       }
                     },
                     "meta": {
@@ -3877,14 +5250,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Artist"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -3926,7 +5300,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Review"
                       }
                     },
                     "meta": {
@@ -4020,14 +5394,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Artist"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4148,14 +5523,71 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Media"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "height": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "sizeBytes": {
+                              "type": "number"
+                            },
+                            "altText": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "storageKey",
+                            "url",
+                            "type",
+                            "mime",
+                            "width",
+                            "height",
+                            "sizeBytes",
+                            "altText",
+                            "title",
+                            "createdAt"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4217,14 +5649,71 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Media"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "height": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "sizeBytes": {
+                              "type": "number"
+                            },
+                            "altText": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "storageKey",
+                            "url",
+                            "type",
+                            "mime",
+                            "width",
+                            "height",
+                            "sizeBytes",
+                            "altText",
+                            "title",
+                            "createdAt"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4289,14 +5778,71 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Media"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "height": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "sizeBytes": {
+                              "type": "number"
+                            },
+                            "altText": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "storageKey",
+                            "url",
+                            "type",
+                            "mime",
+                            "width",
+                            "height",
+                            "sizeBytes",
+                            "altText",
+                            "title",
+                            "createdAt"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4406,14 +5952,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ArtistCertification"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4531,14 +6078,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/ArtistCertification"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4746,14 +6294,23 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4785,7 +6342,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Specialty"
                       }
                     },
                     "meta": {
@@ -4847,14 +6404,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Specialty"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -4916,14 +6474,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Specialty"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5056,21 +6615,10 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "nullable": true
-                          }
-                        },
-                        "meta": {
-                          "nullable": true
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BlogPost"
+                      }
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -5202,14 +6750,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/BlogPost"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5249,14 +6798,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/BlogPost"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5385,14 +6935,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/BlogPost"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5491,14 +7042,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/BlogPost"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5540,7 +7092,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/BlogPost"
                       }
                     },
                     "meta": {
@@ -5591,7 +7143,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/BlogPost"
                       }
                     },
                     "meta": {
@@ -5642,7 +7194,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/BlogPost"
                       }
                     },
                     "meta": {
@@ -5693,7 +7245,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Comment"
                       }
                     },
                     "meta": {
@@ -5781,14 +7333,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Comment"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5833,14 +7386,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/BlogPost"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5912,14 +7466,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Review"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -5981,14 +7536,23 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6105,14 +7669,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Follow"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6166,14 +7731,23 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6210,7 +7784,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Follow"
                       }
                     },
                     "meta": {
@@ -6275,14 +7849,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Save"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6336,14 +7911,23 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6380,7 +7964,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Save"
                       }
                     },
                     "meta": {
@@ -6465,14 +8049,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Report"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6507,7 +8092,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Report"
                       }
                     },
                     "meta": {
@@ -6584,14 +8169,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Report"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6694,14 +8280,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/VerificationRequest"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -6738,7 +8325,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/VerificationRequest"
                       }
                     },
                     "meta": {
@@ -6818,14 +8405,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/VerificationRequest"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7295,7 +8883,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Category"
                       }
                     },
                     "meta": {
@@ -7388,14 +8976,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Category"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7435,14 +9024,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Category"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7532,14 +9122,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Category"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7630,7 +9221,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Tag"
                       }
                     },
                     "meta": {
@@ -7702,14 +9293,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Tag"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7749,14 +9341,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Tag"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7825,14 +9418,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Tag"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -7923,7 +9517,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Series"
                       }
                     },
                     "meta": {
@@ -8003,14 +9597,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Series"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8050,14 +9645,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Series"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8134,14 +9730,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Series"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8247,7 +9844,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Revision"
                       }
                     },
                     "meta": {
@@ -8319,14 +9916,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Reaction"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8358,7 +9956,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Page"
                       }
                     },
                     "meta": {
@@ -8451,14 +10049,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Page"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8498,14 +10097,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Page"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8596,14 +10196,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Page"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8702,14 +10303,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Menu"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8772,14 +10374,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Menu"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -8848,14 +10451,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Menu"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -9014,14 +10618,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/MenuItem"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -9112,14 +10717,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/MenuItem"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -9210,7 +10816,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Author"
                       }
                     },
                     "meta": {
@@ -9306,14 +10912,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Author"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -9353,14 +10960,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Author"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -9438,14 +11046,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Author"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -9536,7 +11145,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "nullable": true
+                        "$ref": "#/components/schemas/Comment"
                       }
                     },
                     "meta": {
@@ -9613,14 +11222,15 @@
                       ]
                     },
                     "data": {
-                      "nullable": true
+                      "$ref": "#/components/schemas/Comment"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }

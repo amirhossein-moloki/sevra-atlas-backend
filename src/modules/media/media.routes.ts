@@ -21,7 +21,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of media items',
-      content: { 'application/json': { schema: withApiSuccess(z.object({ data: z.array(mediaSchema) })) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(mediaSchema)) } },
     },
   },
 });
@@ -78,7 +78,7 @@ registry.registerPath({
           schema: withApiSuccess(z.object({
             id: z.string(),
             url: z.string(),
-            variants: z.any(),
+            variants: z.unknown(),
           })),
         },
       },

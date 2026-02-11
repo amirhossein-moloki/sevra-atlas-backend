@@ -4,6 +4,7 @@ import { requireAuth, requireStaff, requireAdmin } from '../../../shared/middlew
 import { validate } from '../../../shared/middlewares/validate.middleware';
 import { updateCommentStatusSchema } from './comments.validators';
 import { registry, z, withApiSuccess } from '../../../shared/openapi/registry';
+import { CommentSchema } from '../../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new BlogCommentsController();
@@ -18,7 +19,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of comments',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(CommentSchema)) } }
     }
   }
 });
@@ -37,7 +38,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Status updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(CommentSchema) } }
     }
   }
 });

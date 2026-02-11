@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ArtistsController } from './artists.controller';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { SpecialtySchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new ArtistsController();
@@ -16,7 +17,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of specialties',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(SpecialtySchema)) } }
     }
   }
 });
@@ -36,7 +37,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Specialty created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SpecialtySchema) } }
     }
   }
 });
@@ -62,7 +63,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Specialty updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SpecialtySchema) } }
     }
   }
 });

@@ -12,10 +12,11 @@ export const registry = new OpenAPIRegistry();
 
 export const PaginationMetaSchema = z.object({
   page: z.number(),
-  pageSize: z.number(),
+  pageSize: z.number().optional(),
+  limit: z.number().optional(),
   total: z.number().optional(),
-  totalItems: z.number(),
-  totalPages: z.number(),
+  totalItems: z.number().optional(),
+  totalPages: z.number().optional(),
 }).openapi('PaginationMeta');
 
 export const ApiMetaSchema = z.object({

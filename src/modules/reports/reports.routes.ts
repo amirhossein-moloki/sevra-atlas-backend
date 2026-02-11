@@ -4,6 +4,7 @@ import { requireAuth, requireStaff } from '../../shared/middlewares/auth.middlew
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createReportSchema, updateReportStatusSchema } from './reports.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { ReportSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new ReportsController();
@@ -22,7 +23,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Report created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ReportSchema) } }
     }
   }
 });
@@ -37,7 +38,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of reports',
-      content: { 'application/json': { schema: withApiSuccess(z.array(z.any())) } }
+      content: { 'application/json': { schema: withApiSuccess(z.array(ReportSchema)) } }
     }
   }
 });
@@ -56,7 +57,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Status updated',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(ReportSchema) } }
     }
   }
 });

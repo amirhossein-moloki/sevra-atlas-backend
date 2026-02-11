@@ -4,6 +4,7 @@ import { authMiddleware, requireAdmin } from '../../shared/middlewares/auth.midd
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { setSeoMetaSchema, createRedirectSchema } from './seo.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { SeoMetaSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new SeoController();
@@ -19,7 +20,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Redirect resolved',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ toPath: z.string(), type: z.number() })) } }
     }
   }
 });
@@ -37,7 +38,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Meta set successfully',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(SeoMetaSchema) } }
     }
   }
 });
@@ -61,7 +62,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Redirect created',
-      content: { 'application/json': { schema: withApiSuccess(z.any()) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ id: z.string() })) } }
     }
   }
 });

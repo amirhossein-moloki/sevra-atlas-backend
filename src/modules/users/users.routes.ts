@@ -6,6 +6,7 @@ import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middlew
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { userSchema, updateMeSchema, updateRoleSchema, updateStatusSchema } from './users.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { FollowSchema, SaveSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new UsersController();
@@ -41,9 +42,7 @@ registry.registerPath({
       description: 'List of follows',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({
-            data: z.array(z.any()), // Simplified for now
-          })),
+          schema: withApiSuccess(z.array(FollowSchema)),
         },
       },
     },
@@ -62,9 +61,7 @@ registry.registerPath({
       description: 'List of saved items',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({
-            data: z.array(z.any()), // Simplified for now
-          })),
+          schema: withApiSuccess(z.array(SaveSchema)),
         },
       },
     },

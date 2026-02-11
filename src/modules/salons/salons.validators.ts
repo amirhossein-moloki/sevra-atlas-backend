@@ -57,16 +57,7 @@ export const setMediaSchema = z.object({
   body: z.object({
     mediaId: z.string().optional(),
     mediaIds: z.array(z.string()).optional(),
-    media: z.object({
-      storageKey: z.string(),
-      url: z.string(),
-      type: z.string(),
-      mime: z.string(),
-      width: z.number().optional(),
-      height: z.number().optional(),
-      sizeBytes: z.number().optional(),
-    }).optional(),
-  }).refine(data => data.mediaId || data.mediaIds || data.media, {
-    message: "Either mediaId, mediaIds or media object must be provided",
+  }).refine(data => data.mediaId || data.mediaIds, {
+    message: "Either mediaId or mediaIds must be provided",
   }),
 });

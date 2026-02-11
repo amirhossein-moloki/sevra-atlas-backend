@@ -1,7 +1,6 @@
 import { prisma } from '../../../shared/db/prisma';
 import { CommentStatus, UserRole } from '@prisma/client';
 import { ApiError } from '../../../shared/errors/ApiError';
-import { serialize } from '../../../shared/utils/serialize';
 
 export class BlogCommentsService {
   async listPostComments(postSlug: string, query: any) {
@@ -27,7 +26,7 @@ export class BlogCommentsService {
     ]);
 
     return {
-      data: serialize(comments),
+      data: comments,
       meta: { page, pageSize, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -47,7 +46,7 @@ export class BlogCommentsService {
     });
 
     // In a real app, trigger notification task here
-    return serialize(comment);
+    return comment;
   }
 
   async listGlobalComments(query: any, isAdmin: boolean) {
@@ -74,7 +73,7 @@ export class BlogCommentsService {
     ]);
 
     return {
-      data: serialize(comments),
+      data: comments,
       meta: { page, pageSize, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -84,7 +83,7 @@ export class BlogCommentsService {
       where: { id },
       data: { status }
     });
-    return serialize(comment);
+    return comment;
   }
 
   async deleteComment(id: bigint) {

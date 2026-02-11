@@ -680,6 +680,7 @@ model City {
   seoMeta   SeoMeta? @relation(fields: [seoMetaId], references: [id], onDelete: SetNull)
 
   neighborhoods Neighborhood[]
+  cityStats CityStats?
   users     User[]
   salons    Salon[]
   artists   Artist[]
@@ -705,6 +706,19 @@ model Neighborhood {
 
   @@unique([cityId, slug])
   @@index([cityId])
+}
+
+model CityStats {
+  cityId      BigInt @id
+  city        City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  salonCount  Int    @default(0)
+  artistCount Int    @default(0)
+  avgRating   Float  @default(0)
+
+  updatedAt   DateTime @updatedAt
+
+  @@map("geo_citystats")
 }
 
 ////////////////////////////////////

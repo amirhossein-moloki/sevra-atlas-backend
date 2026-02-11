@@ -1,7 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { VerificationStatus, EntityType, MediaKind } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
-import { serialize } from '../../shared/utils/serialize';
 
 export class VerificationService {
   async requestVerification(userId: bigint, data: any) {
@@ -36,15 +35,20 @@ export class VerificationService {
 
       const docData = [];
       for (const doc of documents) {
-        const media = await tx.media.create({
+        const mediaId = BigInt(doc.mediaId);
+        const media = await tx.media.findUnique({ where: { id: mediaId } });
+        if (!media) throw new ApiError(404, `Media ${doc.mediaId} not found`);
+        if (media.uploadedBy !== userId) throw new ApiError(403, `You do not own media ${doc.mediaId}`);
+
+        await tx.media.update({
+          where: { id: mediaId },
           data: {
-            ...doc.media,
-            uploadedBy: userId,
             kind: doc.label === 'Business License' ? MediaKind.LICENSE : MediaKind.CERTIFICATE,
           }
         });
+
         docData.push({
-          mediaId: media.id,
+          mediaId,
           label: doc.label,
         });
       }
@@ -62,7 +66,7 @@ export class VerificationService {
         },
       });
 
-      return serialize(request);
+      return request;
     });
   }
 
@@ -86,7 +90,7 @@ export class VerificationService {
     ]);
 
     return {
-      data: serialize(data),
+      data: data,
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -123,7 +127,7 @@ export class VerificationService {
         }
       }
 
-      return serialize(updatedRequest);
+      return updatedRequest;
     });
   }
 }

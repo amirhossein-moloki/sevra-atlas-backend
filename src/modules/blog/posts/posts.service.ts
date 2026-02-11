@@ -1,8 +1,7 @@
 import { prisma } from '../../../shared/db/prisma';
 import { ApiError } from '../../../shared/errors/ApiError';
 import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
-import { serialize } from '../../../shared/utils/serialize';
-import { handleSlugChange } from '../../../shared/utils/seo';
+import { handleSlugChange, initSeoMeta } from '../../../shared/utils/seo';
 import { isStaff, isAdmin } from '../../../shared/auth/roles';
 
 export class PostsService {
@@ -77,7 +76,7 @@ export class PostsService {
     ]);
 
     return {
-      data: serialize(posts),
+      data: posts,
       meta: { page: parseInt(page), pageSize: limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -110,7 +109,7 @@ export class PostsService {
       data: { viewsCount: { increment: 1 } }
     });
 
-    return serialize(post);
+    return post;
   }
 
   async createPost(data: any, authorUserId: bigint) {
@@ -138,7 +137,9 @@ export class PostsService {
         }
       });
 
-      return serialize(post);
+      await initSeoMeta(EntityType.BLOG_POST, post.id, post.title, tx);
+
+      return post;
     });
   }
 
@@ -174,7 +175,7 @@ export class PostsService {
         }
       });
 
-      return serialize(updatedPost);
+      return updatedPost;
     });
   }
 
@@ -218,7 +219,7 @@ export class PostsService {
       }
     });
 
-    return { data: serialize(similar) };
+    return { data: similar };
   }
 
   async getSameCategoryPosts(slug: string, query: any) {
@@ -254,7 +255,7 @@ export class PostsService {
     ]);
 
     return {
-      data: serialize(data),
+      data: data,
       meta: { page, pageSize: limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
@@ -295,7 +296,7 @@ export class PostsService {
       return bCommon - aCommon || (b.publishedAt?.getTime() || 0) - (a.publishedAt?.getTime() || 0);
     });
 
-    return { data: serialize(related.slice(0, 5)) };
+    return { data: related.slice(0, 5) };
   }
 
   async publishPost(slug: string, user: any) {
@@ -319,7 +320,7 @@ export class PostsService {
       }
     });
 
-    return serialize(updated);
+    return updated;
   }
 
   private handlePublicationDate(status: PostStatus, publishAt?: string) {

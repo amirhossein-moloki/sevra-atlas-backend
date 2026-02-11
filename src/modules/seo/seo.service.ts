@@ -41,6 +41,8 @@ export class SeoService {
         CITY: tx.city,
         PROVINCE: tx.province,
         CATEGORY: tx.category,
+        TAG: tx.tag,
+        SERIES: tx.series,
       };
 
       const targetModel = entityModels[entityType];
@@ -51,10 +53,13 @@ export class SeoService {
           throw new ApiError(404, `${entityType} with ID ${id} not found`);
         }
 
-        await targetModel.update({
-          where: { id },
-          data: { seoMetaId: seoMeta.id },
-        });
+        // Only update if the model has seoMetaId (check Tag/Series which don't)
+        if (['SALON', 'ARTIST', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY'].includes(entityType)) {
+          await targetModel.update({
+            where: { id },
+            data: { seoMetaId: seoMeta.id },
+          });
+        }
       }
 
       return seoMeta;

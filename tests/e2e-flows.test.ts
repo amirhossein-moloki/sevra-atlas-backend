@@ -195,26 +195,31 @@ describe('Critical Business Flows E2E', () => {
       expect(salonWithServices?.services[0].serviceId.toString()).toBe(serviceDef.id.toString());
 
       // 7. Attach Media (NEW)
+      // First create a media item
+      const mediaItem = await prisma.media.create({
+        data: {
+          storageKey: 'test-avatar-key',
+          url: 'https://cdn.example.com/avatar.jpg',
+          type: 'IMAGE',
+          mime: 'image/jpeg',
+          sizeBytes: 50000,
+          uploadedBy: BigInt(userId)
+        }
+      });
+
       const mediaRes = await request(app)
-        .post(`/api/v1/salons/${salonRes.body.id}/media`)
+        .post(`/api/v1/salons/${salonRes.body.id}/avatar`)
         .set('Authorization', `Bearer ${token}`)
         .send({
-          kind: 'AVATAR',
-          mediaData: {
-            storageKey: 'test-avatar-key',
-            url: 'https://cdn.example.com/avatar.jpg',
-            type: 'IMAGE',
-            mime: 'image/jpeg',
-            sizeBytes: 50000
-          }
+          mediaId: mediaItem.id.toString()
         });
 
-      expect(mediaRes.status).toBe(201);
+      expect(mediaRes.status).toBe(200);
 
       const updatedSalon = await prisma.salon.findUnique({
           where: { id: BigInt(salonRes.body.id) }
       });
-      expect(updatedSalon?.avatarMediaId).toBeDefined();
+      expect(updatedSalon?.avatarMediaId?.toString()).toBe(mediaItem.id.toString());
 
       // Cleanup newly created service data
       await prisma.salonService.deleteMany({ where: { salonId: BigInt(salonRes.body.id) } });
@@ -371,6 +376,7 @@ describe('Critical Business Flows E2E', () => {
 
   describe('Flow 5: Verification Journey (Request → Admin Review → Verified)', () => {
     let userToken: string;
+    let userId5: string;
     let adminToken: string;
     let salonId: string;
     let requestId: string;
@@ -381,6 +387,7 @@ describe('Critical Business Flows E2E', () => {
       const userCode = (await redis.get('otp:+989000000005')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000005'}}))?.code;
       const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000005', code: userCode });
       userToken = userVerify.body.accessToken;
+      userId5 = userVerify.body.user.id;
 
       await prisma.user.update({ where: { id: BigInt(userVerify.body.user.id) }, data: { role: UserRole.SALON } });
 
@@ -408,6 +415,18 @@ describe('Critical Business Flows E2E', () => {
     });
 
     it('should complete the verification lifecycle', async () => {
+      // 1. Create Media for Doc
+      const media = await prisma.media.create({
+        data: {
+          storageKey: 'key1',
+          url: 'http://docs.com/license.pdf',
+          type: 'FILE',
+          mime: 'application/pdf',
+          sizeBytes: 1024,
+          uploadedBy: BigInt(userId5)
+        }
+      });
+
       // 1. User Requests Verification
       const reqRes = await request(app)
         .post('/api/v1/verification/request')
@@ -417,7 +436,7 @@ describe('Critical Business Flows E2E', () => {
           targetId: salonId,
           notes: 'Please verify my business',
           documents: [
-              { label: 'Business License', media: { url: 'http://docs.com/license.pdf', storageKey: 'key1', type: 'FILE', mime: 'application/pdf', sizeBytes: 1024 } }
+              { label: 'Business License', mediaId: media.id.toString() }
           ]
         });
 

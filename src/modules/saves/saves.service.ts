@@ -1,6 +1,5 @@
 import { prisma } from '../../shared/db/prisma';
 import { SaveTargetType } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class SavesService {
   async save(userId: bigint, targetType: SaveTargetType, targetId: bigint) {
@@ -49,6 +48,6 @@ export class SavesService {
         post: { select: { id: true, title: true, slug: true } },
       },
     });
-    return serialize(saves);
+    return saves;
   }
 }

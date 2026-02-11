@@ -1,6 +1,5 @@
 import { prisma } from '../../../shared/db/prisma';
 import { ApiError } from '../../../shared/errors/ApiError';
-import { serialize } from '../../../shared/utils/serialize';
 
 export class BlogAuthorsService {
   async listAuthors() {
@@ -18,7 +17,7 @@ export class BlogAuthorsService {
         avatar: true
       }
     });
-    return serialize(authors);
+    return authors;
   }
 
   async getAuthor(userId: bigint) {
@@ -38,7 +37,7 @@ export class BlogAuthorsService {
       }
     });
     if (!author) throw new ApiError(404, 'Author not found');
-    return serialize(author);
+    return author;
   }
 
   async createAuthor(data: any) {
@@ -50,7 +49,7 @@ export class BlogAuthorsService {
         avatarId: data.avatarId ? BigInt(data.avatarId) : undefined
       }
     });
-    return serialize(author);
+    return author;
   }
 
   async updateAuthor(userId: bigint, data: any) {
@@ -62,7 +61,7 @@ export class BlogAuthorsService {
         avatarId: avatarId ? BigInt(avatarId) : (avatarId === null ? null : undefined)
       }
     });
-    return serialize(author);
+    return author;
   }
 
   async deleteAuthor(userId: bigint) {

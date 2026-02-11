@@ -1,6 +1,5 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { serialize } from '../../shared/utils/serialize';
 import { processImage } from '../../shared/utils/image';
 import { getStorageProvider } from '../../shared/storage';
 
@@ -23,7 +22,7 @@ export class MediaService {
     ]);
 
     return {
-      data: serialize(data),
+      data: data,
       meta: { page: parseInt(page), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -47,7 +46,7 @@ export class MediaService {
         entityId: data.entityId ? BigInt(data.entityId) : undefined,
       },
     });
-    return serialize(media);
+    return media;
   }
 
   async uploadAndOptimize(file: Express.Multer.File, uploadedBy: bigint) {
@@ -95,7 +94,7 @@ export class MediaService {
       where: { id, deletedAt: null },
     });
     if (!media) throw new ApiError(404, 'Media not found');
-    return serialize(media);
+    return media;
   }
 
   async updateMedia(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
@@ -113,7 +112,7 @@ export class MediaService {
       data,
     });
 
-    return serialize(updated);
+    return updated;
   }
 
   async deleteMedia(id: bigint, userId: bigint, isAdmin: boolean) {

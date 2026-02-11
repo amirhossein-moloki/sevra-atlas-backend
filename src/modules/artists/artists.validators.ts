@@ -33,12 +33,6 @@ export const certificationSchema = z.object({
     credentialId: z.string().optional(),
     credentialUrl: z.string().optional(),
     mediaId: z.string().optional(),
-    media: z.object({
-      storageKey: z.string(),
-      url: z.string(),
-      type: z.string(),
-      mime: z.string(),
-    }).optional(),
   }),
 });
 

@@ -1,6 +1,5 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { serialize } from '../../shared/utils/serialize';
 
 export class ServicesService {
   async listServiceCategories(query: any) {
@@ -25,7 +24,7 @@ export class ServicesService {
     ]);
 
     return {
-      data: serialize(categories),
+      data: categories,
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -35,12 +34,12 @@ export class ServicesService {
       where: { slug, deletedAt: null },
     });
     if (!service) throw new ApiError(404, 'Service not found');
-    return serialize(service);
+    return service;
   }
 
   async createCategory(data: any) {
     const category = await prisma.serviceCategory.create({ data });
-    return serialize(category);
+    return category;
   }
 
   async createService(data: any) {
@@ -50,7 +49,7 @@ export class ServicesService {
         categoryId: BigInt(data.categoryId),
       },
     });
-    return serialize(service);
+    return service;
   }
 
   async updateService(id: string, data: any) {
@@ -61,7 +60,7 @@ export class ServicesService {
         categoryId: data.categoryId ? BigInt(data.categoryId) : undefined,
       },
     });
-    return serialize(service);
+    return service;
   }
 
   async updateCategory(id: string, data: any) {
@@ -69,7 +68,7 @@ export class ServicesService {
       where: { id: BigInt(id) },
       data,
     });
-    return serialize(category);
+    return category;
   }
 
   async deleteCategory(id: string) {
@@ -86,5 +85,14 @@ export class ServicesService {
       data: { deletedAt: new Date() },
     });
     return { ok: true };
+  }
+
+  async reorderCategories(items: { id: string | bigint, order: number }[]) {
+    return prisma.$transaction(
+      items.map(item => prisma.serviceCategory.update({
+        where: { id: BigInt(item.id) },
+        data: { order: item.order }
+      }))
+    );
   }
 }

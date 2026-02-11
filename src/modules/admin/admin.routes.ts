@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AdminController } from './admin.controller';
+import { AdminTaxonomyController } from './taxonomy.controller';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { statsQuerySchema } from './admin.validators';
@@ -7,6 +8,7 @@ import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
 const router = Router();
 const controller = new AdminController();
+const taxonomyController = new AdminTaxonomyController();
 
 const tag = 'Admin';
 
@@ -76,5 +78,135 @@ registry.registerPath({
 });
 
 router.get('/stats', requireAuth(), requireAdmin(), validate(statsQuerySchema), controller.getStats);
+
+// Taxonomy management
+registry.registerPath({
+  method: 'post',
+  path: '/admin/taxonomy/blog/categories/reorder',
+  summary: 'Reorder blog categories (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            items: z.array(z.object({ id: z.string(), order: z.number() })),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Categories reordered',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
+    },
+  },
+});
+router.post('/taxonomy/blog/categories/reorder', requireAuth(), requireAdmin(), taxonomyController.reorderBlogCategories);
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/taxonomy/services/categories/reorder',
+  summary: 'Reorder service categories (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            items: z.array(z.object({ id: z.string(), order: z.number() })),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Categories reordered',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
+    },
+  },
+});
+router.post('/taxonomy/services/categories/reorder', requireAuth(), requireAdmin(), taxonomyController.reorderServiceCategories);
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/taxonomy/artists/specialties/reorder',
+  summary: 'Reorder specialties (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            items: z.array(z.object({ id: z.string(), order: z.number() })),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Specialties reordered',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
+    },
+  },
+});
+router.post('/taxonomy/artists/specialties/reorder', requireAuth(), requireAdmin(), taxonomyController.reorderSpecialties);
+
+// Entity management
+registry.registerPath({
+  method: 'patch',
+  path: '/admin/salons/{id}/status',
+  summary: 'Update salon status (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({ status: z.string() }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Status updated',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
+    },
+  },
+});
+router.patch('/salons/:id/status', requireAuth(), requireAdmin(), controller.updateSalonStatus);
+
+registry.registerPath({
+  method: 'patch',
+  path: '/admin/artists/{id}/status',
+  summary: 'Update artist status (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({ status: z.string() }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Status updated',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } },
+    },
+  },
+});
+router.patch('/artists/:id/status', requireAuth(), requireAdmin(), controller.updateArtistStatus);
 
 export default router;

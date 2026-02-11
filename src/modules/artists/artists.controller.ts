@@ -13,7 +13,7 @@ export class ArtistsController {
 
   async listSpecialties(req: Request, res: Response) {
     const result = await artistsService.listSpecialties();
-    res.json({ data: result });
+    res.json(result);
   }
 
   async createSpecialty(req: Request, res: Response) {
@@ -66,7 +66,7 @@ export class ArtistsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
-      { mediaId: req.body.mediaId, mediaData: req.body.media },
+      { mediaId: req.body.mediaId },
       'AVATAR',
       req.user!.id,
       adminMode
@@ -78,7 +78,7 @@ export class ArtistsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
-      { mediaId: req.body.mediaId, mediaData: req.body.media },
+      { mediaId: req.body.mediaId },
       'COVER',
       req.user!.id,
       adminMode
@@ -90,7 +90,7 @@ export class ArtistsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
-      { mediaIds: req.body.mediaIds, mediaData: req.body.media },
+      { mediaIds: req.body.mediaIds },
       'GALLERY',
       req.user!.id,
       adminMode

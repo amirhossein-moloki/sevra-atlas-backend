@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as responseUtils from '../utils/response';
+import { serialize } from '../utils/serialize';
 
 export function responseMiddleware(req: Request, res: Response, next: NextFunction) {
   const originalJson = res.json;
@@ -10,13 +11,25 @@ export function responseMiddleware(req: Request, res: Response, next: NextFuncti
     const isAlreadyWrapped = body && typeof body === 'object' && 'success' in body;
 
     if (isSuccess && !isAlreadyWrapped && body !== undefined) {
+      let data = body;
+      let meta: any = { requestId: (req as any).requestId };
+
+      // Flatten paginated responses
+      if (body && typeof body === 'object' && 'data' in body && 'meta' in body) {
+        data = body.data;
+        meta = { pagination: body.meta, ...meta };
+      }
+
       return originalJson.call(this, {
         success: true,
-        data: body,
-        meta: { requestId: (req as any).requestId },
+        data: serialize(data),
+        meta,
       });
     }
-    return originalJson.call(this, body);
+
+    // Even if already wrapped or not success, ensure BigInt/Date are serialized
+    const serializedBody = serialize(body);
+    return originalJson.call(this, serializedBody);
   };
 
   res.ok = function <T>(data: T, meta?: Omit<responseUtils.ApiMeta, 'requestId'>) {

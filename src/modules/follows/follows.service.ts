@@ -1,6 +1,5 @@
 import { prisma } from '../../shared/db/prisma';
 import { FollowTargetType } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class FollowsService {
   async follow(userId: bigint, targetType: FollowTargetType, targetId: bigint) {
@@ -45,6 +44,6 @@ export class FollowsService {
         artist: { select: { id: true, fullName: true, slug: true } },
       },
     });
-    return serialize(follows);
+    return follows;
   }
 }

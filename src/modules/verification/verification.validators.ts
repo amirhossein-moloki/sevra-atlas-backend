@@ -8,12 +8,7 @@ export const requestVerificationSchema = z.object({
     notes: z.string().optional(),
     documents: z.array(z.object({
       label: z.string(),
-      media: z.object({
-        storageKey: z.string(),
-        url: z.string(),
-        type: z.string(),
-        mime: z.string(),
-      }),
+      mediaId: z.string(),
     })),
   }),
 });

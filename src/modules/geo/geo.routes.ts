@@ -35,7 +35,7 @@ registry.registerPath({
       description: 'List of cities',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({ data: z.array(citySchema) })),
+          schema: withApiSuccess(z.array(citySchema)),
         },
       },
     },
@@ -69,7 +69,7 @@ registry.registerPath({
       description: 'List of neighborhoods',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({ data: z.array(neighborhoodSchema) })),
+          schema: withApiSuccess(z.array(neighborhoodSchema)),
         },
       },
     },

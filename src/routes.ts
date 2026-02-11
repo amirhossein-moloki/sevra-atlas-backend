@@ -9,6 +9,7 @@ import salonRoutes from './modules/salons/salons.routes';
 import artistRoutes from './modules/artists/artists.routes';
 import specialtyRoutes from './modules/artists/specialties.routes';
 import { ArtistsController } from './modules/artists/artists.controller';
+import { SearchController } from './modules/services/search.controller';
 import blogPostRoutes from './modules/blog/posts/posts.routes';
 import reviewRoutes from './modules/reviews/reviews.routes';
 import followRoutes from './modules/follows/follows.routes';
@@ -21,7 +22,9 @@ import healthRoutes from './modules/health/health.routes';
 const router = Router();
 
 const artistsController = new ArtistsController();
+const searchController = new SearchController();
 
+router.get('/search', searchController.search);
 router.use('/auth', authRoutes);
 router.use('/', usersRoutes);
 router.use('/geo', geoRoutes);

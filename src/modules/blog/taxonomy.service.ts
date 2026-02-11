@@ -1,8 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { handleSlugChange } from '../../shared/utils/seo';
+import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class BlogTaxonomyService {
   // Categories
@@ -11,17 +10,20 @@ export class BlogTaxonomyService {
       where: { deletedAt: null },
       include: { parent: true }
     });
-    return serialize(data);
+    return data;
   }
 
   async createCategory(data: any) {
-    const result = await prisma.category.create({
-      data: {
-        ...data,
-        parentId: data.parentId ? BigInt(data.parentId) : undefined
-      }
+    return prisma.$transaction(async (tx) => {
+      const result = await tx.category.create({
+        data: {
+          ...data,
+          parentId: data.parentId ? BigInt(data.parentId) : undefined
+        }
+      });
+      await initSeoMeta(EntityType.CATEGORY, result.id, result.name, tx);
+      return result;
     });
-    return serialize(result);
   }
 
   async getCategory(id: string | bigint) {
@@ -31,7 +33,7 @@ export class BlogTaxonomyService {
       include: { parent: true }
     });
     if (!category) throw new ApiError(404, 'Category not found');
-    return serialize(category);
+    return category;
   }
 
   async updateCategory(id: string | bigint, data: any) {
@@ -52,7 +54,7 @@ export class BlogTaxonomyService {
           parentId: parentId ? BigInt(parentId) : (parentId === null ? null : undefined)
         }
       });
-      return serialize(result);
+      return result;
     });
   }
 
@@ -70,12 +72,15 @@ export class BlogTaxonomyService {
     const data = await prisma.tag.findMany({
       where: { deletedAt: null }
     });
-    return serialize(data);
+    return data;
   }
 
   async createTag(data: any) {
-    const result = await prisma.tag.create({ data });
-    return serialize(result);
+    return prisma.$transaction(async (tx) => {
+      const result = await tx.tag.create({ data });
+      await initSeoMeta(EntityType.TAG, result.id, result.name, tx);
+      return result;
+    });
   }
 
   async getTag(id: string | bigint) {
@@ -84,7 +89,7 @@ export class BlogTaxonomyService {
       where: { id: tagId, deletedAt: null }
     });
     if (!tag) throw new ApiError(404, 'Tag not found');
-    return serialize(tag);
+    return tag;
   }
 
   async updateTag(id: string | bigint, data: any) {
@@ -98,7 +103,7 @@ export class BlogTaxonomyService {
       }
 
       const result = await tx.tag.update({ where: { id: tagId }, data });
-      return serialize(result);
+      return result;
     });
   }
 
@@ -116,12 +121,15 @@ export class BlogTaxonomyService {
     const data = await prisma.series.findMany({
       where: { deletedAt: null }
     });
-    return serialize(data);
+    return data;
   }
 
   async createSeries(data: any) {
-    const result = await prisma.series.create({ data });
-    return serialize(result);
+    return prisma.$transaction(async (tx) => {
+      const result = await tx.series.create({ data });
+      await initSeoMeta(EntityType.SERIES, result.id, result.title, tx);
+      return result;
+    });
   }
 
   async getSeries(id: string | bigint) {
@@ -130,7 +138,7 @@ export class BlogTaxonomyService {
       where: { id: seriesId, deletedAt: null }
     });
     if (!series) throw new ApiError(404, 'Series not found');
-    return serialize(series);
+    return series;
   }
 
   async updateSeries(id: string | bigint, data: any) {
@@ -144,7 +152,7 @@ export class BlogTaxonomyService {
       }
 
       const result = await tx.series.update({ where: { id: seriesId }, data });
-      return serialize(result);
+      return result;
     });
   }
 
@@ -155,5 +163,14 @@ export class BlogTaxonomyService {
       data: { deletedAt: new Date() }
     });
     return { ok: true };
+  }
+
+  async reorderCategories(items: { id: string | bigint, order: number }[]) {
+    return prisma.$transaction(
+      items.map(item => prisma.category.update({
+        where: { id: BigInt(item.id) },
+        data: { order: item.order }
+      }))
+    );
   }
 }

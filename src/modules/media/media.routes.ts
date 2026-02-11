@@ -2,9 +2,10 @@ import { Router } from 'express';
 import { MediaController } from './media.controller';
 import { authMiddleware, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
-import { mediaSchema, createMediaSchema, updateMediaSchema } from './media.validators';
+import { createMediaSchema, updateMediaSchema } from './media.validators';
 import multer from 'multer';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
+import { MediaSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new MediaController();
@@ -21,7 +22,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'List of media items',
-      content: { 'application/json': { schema: withApiSuccess(z.array(mediaSchema)) } },
+      content: { 'application/json': { schema: withApiSuccess(z.array(MediaSchema)) } },
     },
   },
 });
@@ -39,7 +40,7 @@ registry.registerPath({
   responses: {
     201: {
       description: 'Media registered',
-      content: { 'application/json': { schema: withApiSuccess(mediaSchema) } },
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } },
     },
   },
 });
@@ -75,11 +76,7 @@ registry.registerPath({
       description: 'Image uploaded and optimized',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({
-            id: z.string(),
-            url: z.string(),
-            variants: z.unknown(),
-          })),
+          schema: withApiSuccess(MediaSchema),
         },
       },
     },
@@ -102,7 +99,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Media details',
-      content: { 'application/json': { schema: withApiSuccess(mediaSchema) } },
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } },
     },
   },
 });
@@ -121,7 +118,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Media updated',
-      content: { 'application/json': { schema: withApiSuccess(mediaSchema) } },
+      content: { 'application/json': { schema: withApiSuccess(MediaSchema) } },
     },
   },
 });

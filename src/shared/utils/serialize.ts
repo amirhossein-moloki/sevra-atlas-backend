@@ -7,7 +7,7 @@ export const serialize = (obj: any): any => {
     if (typeof res[key] === 'bigint') {
       res[key] = res[key].toString();
     } else if (res[key] instanceof Date) {
-      // res[key] = res[key].toISOString();
+      res[key] = res[key].toISOString();
     } else if (typeof res[key] === 'object' && res[key] !== null) {
       res[key] = serialize(res[key]);
     }

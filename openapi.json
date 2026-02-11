@@ -403,7 +403,35 @@
             "nullable": true
           },
           "variants": {
-            "nullable": true
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                },
+                "mime": {
+                  "type": "string"
+                },
+                "width": {
+                  "type": "number"
+                },
+                "height": {
+                  "type": "number"
+                },
+                "sizeBytes": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "url",
+                "mime",
+                "width",
+                "height",
+                "sizeBytes"
+              ]
+            }
           },
           "createdAt": {
             "type": "string"
@@ -422,6 +450,7 @@
           "altText",
           "title",
           "kind",
+          "variants",
           "createdAt"
         ]
       },
@@ -535,57 +564,7 @@
                 "$ref": "#/components/schemas/Media"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "storageKey": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "mime": {
-                    "type": "string"
-                  },
-                  "width": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "height": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "sizeBytes": {
-                    "type": "number"
-                  },
-                  "altText": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "createdAt": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "storageKey",
-                  "url",
-                  "type",
-                  "mime",
-                  "width",
-                  "height",
-                  "sizeBytes",
-                  "altText",
-                  "title",
-                  "createdAt"
-                ]
+                "nullable": true
               }
             ]
           },
@@ -753,57 +732,7 @@
                 "$ref": "#/components/schemas/Media"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "storageKey": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "mime": {
-                    "type": "string"
-                  },
-                  "width": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "height": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "sizeBytes": {
-                    "type": "number"
-                  },
-                  "altText": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "createdAt": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "storageKey",
-                  "url",
-                  "type",
-                  "mime",
-                  "width",
-                  "height",
-                  "sizeBytes",
-                  "altText",
-                  "title",
-                  "createdAt"
-                ]
+                "nullable": true
               }
             ]
           },
@@ -899,57 +828,7 @@
                 "$ref": "#/components/schemas/Media"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "storageKey": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "mime": {
-                    "type": "string"
-                  },
-                  "width": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "height": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "sizeBytes": {
-                    "type": "number"
-                  },
-                  "altText": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "createdAt": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "storageKey",
-                  "url",
-                  "type",
-                  "mime",
-                  "width",
-                  "height",
-                  "sizeBytes",
-                  "altText",
-                  "title",
-                  "createdAt"
-                ]
+                "nullable": true
               }
             ]
           }
@@ -999,57 +878,7 @@
                     "$ref": "#/components/schemas/Media"
                   },
                   {
-                    "nullable": true,
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "storageKey": {
-                        "type": "string"
-                      },
-                      "url": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string"
-                      },
-                      "mime": {
-                        "type": "string"
-                      },
-                      "width": {
-                        "type": "number",
-                        "nullable": true
-                      },
-                      "height": {
-                        "type": "number",
-                        "nullable": true
-                      },
-                      "sizeBytes": {
-                        "type": "number"
-                      },
-                      "altText": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "storageKey",
-                      "url",
-                      "type",
-                      "mime",
-                      "width",
-                      "height",
-                      "sizeBytes",
-                      "altText",
-                      "title",
-                      "createdAt"
-                    ]
+                    "nullable": true
                   }
                 ]
               }
@@ -1084,57 +913,7 @@
                 "$ref": "#/components/schemas/Media"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "storageKey": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "mime": {
-                    "type": "string"
-                  },
-                  "width": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "height": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "sizeBytes": {
-                    "type": "number"
-                  },
-                  "altText": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "createdAt": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "storageKey",
-                  "url",
-                  "type",
-                  "mime",
-                  "width",
-                  "height",
-                  "sizeBytes",
-                  "altText",
-                  "title",
-                  "createdAt"
-                ]
+                "nullable": true
               }
             ]
           }
@@ -1482,57 +1261,7 @@
                 "$ref": "#/components/schemas/Media"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "storageKey": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "mime": {
-                    "type": "string"
-                  },
-                  "width": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "height": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "sizeBytes": {
-                    "type": "number"
-                  },
-                  "altText": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "createdAt": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "storageKey",
-                  "url",
-                  "type",
-                  "mime",
-                  "width",
-                  "height",
-                  "sizeBytes",
-                  "altText",
-                  "title",
-                  "createdAt"
-                ]
+                "nullable": true
               }
             ]
           }
@@ -2397,18 +2126,10 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/components/schemas/City"
-                          }
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/City"
+                      }
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2504,18 +2225,10 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/components/schemas/Neighborhood"
-                          }
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Neighborhood"
+                      }
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -3177,7 +2890,7 @@
     },
     "/media": {
       "get": {
-        "summary": "List all media (Admin)",
+        "summary": "List all media (Staff)",
         "tags": [
           "Media"
         ],
@@ -3400,22 +3113,7 @@
                       ]
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "url": {
-                          "type": "string"
-                        },
-                        "variants": {
-                          "nullable": true
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "url"
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -4251,6 +3949,14 @@
                   },
                   "priceTier": {
                     "type": "number"
+                  },
+                  "avatarMediaId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "coverMediaId": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -4562,63 +4268,7 @@
                       ]
                     },
                     "data": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/Media"
-                        },
-                        {
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "width": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "height": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "sizeBytes": {
-                              "type": "number"
-                            },
-                            "altText": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime",
-                            "width",
-                            "height",
-                            "sizeBytes",
-                            "altText",
-                            "title",
-                            "createdAt"
-                          ]
-                        }
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -4664,11 +4314,14 @@
                 "properties": {
                   "mediaId": {
                     "type": "string"
+                  },
+                  "mediaIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
-                },
-                "required": [
-                  "mediaId"
-                ]
+                }
               }
             }
           }
@@ -4688,63 +4341,7 @@
                       ]
                     },
                     "data": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/Media"
-                        },
-                        {
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "width": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "height": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "sizeBytes": {
-                              "type": "number"
-                            },
-                            "altText": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime",
-                            "width",
-                            "height",
-                            "sizeBytes",
-                            "altText",
-                            "title",
-                            "createdAt"
-                          ]
-                        }
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -4788,16 +4385,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "mediaId": {
+                    "type": "string"
+                  },
                   "mediaIds": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
                   }
-                },
-                "required": [
-                  "mediaIds"
-                ]
+                }
               }
             }
           }
@@ -4817,63 +4414,7 @@
                       ]
                     },
                     "data": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/Media"
-                        },
-                        {
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "width": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "height": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "sizeBytes": {
-                              "type": "number"
-                            },
-                            "altText": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime",
-                            "width",
-                            "height",
-                            "sizeBytes",
-                            "altText",
-                            "title",
-                            "createdAt"
-                          ]
-                        }
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -5373,6 +4914,14 @@
                   "neighborhoodId": {
                     "type": "number",
                     "nullable": true
+                  },
+                  "avatarMediaId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "coverMediaId": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -5523,63 +5072,7 @@
                       ]
                     },
                     "data": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/Media"
-                        },
-                        {
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "width": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "height": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "sizeBytes": {
-                              "type": "number"
-                            },
-                            "altText": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime",
-                            "width",
-                            "height",
-                            "sizeBytes",
-                            "altText",
-                            "title",
-                            "createdAt"
-                          ]
-                        }
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -5625,11 +5118,14 @@
                 "properties": {
                   "mediaId": {
                     "type": "string"
+                  },
+                  "mediaIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
-                },
-                "required": [
-                  "mediaId"
-                ]
+                }
               }
             }
           }
@@ -5649,63 +5145,7 @@
                       ]
                     },
                     "data": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/Media"
-                        },
-                        {
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "width": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "height": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "sizeBytes": {
-                              "type": "number"
-                            },
-                            "altText": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime",
-                            "width",
-                            "height",
-                            "sizeBytes",
-                            "altText",
-                            "title",
-                            "createdAt"
-                          ]
-                        }
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -5749,16 +5189,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "mediaId": {
+                    "type": "string"
+                  },
                   "mediaIds": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
                   }
-                },
-                "required": [
-                  "mediaIds"
-                ]
+                }
               }
             }
           }
@@ -5778,63 +5218,7 @@
                       ]
                     },
                     "data": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/Media"
-                        },
-                        {
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            },
-                            "width": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "height": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "sizeBytes": {
-                              "type": "number"
-                            },
-                            "altText": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime",
-                            "width",
-                            "height",
-                            "sizeBytes",
-                            "altText",
-                            "title",
-                            "createdAt"
-                          ]
-                        }
-                      ]
+                      "$ref": "#/components/schemas/Media"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -5905,28 +5289,8 @@
                   "credentialUrl": {
                     "type": "string"
                   },
-                  "media": {
-                    "type": "object",
-                    "properties": {
-                      "storageKey": {
-                        "type": "string"
-                      },
-                      "url": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string"
-                      },
-                      "mime": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "storageKey",
-                      "url",
-                      "type",
-                      "mime"
-                    ]
+                  "mediaId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -6031,28 +5395,8 @@
                   "credentialUrl": {
                     "type": "string"
                   },
-                  "media": {
-                    "type": "object",
-                    "properties": {
-                      "storageKey": {
-                        "type": "string"
-                      },
-                      "url": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string"
-                      },
-                      "mime": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "storageKey",
-                      "url",
-                      "type",
-                      "mime"
-                    ]
+                  "mediaId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -6635,7 +5979,7 @@
         }
       },
       "post": {
-        "summary": "Create a blog post",
+        "summary": "Create a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -6815,7 +6159,7 @@
         }
       },
       "patch": {
-        "summary": "Update a blog post",
+        "summary": "Update a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -6952,7 +6296,7 @@
         }
       },
       "delete": {
-        "summary": "Delete a blog post",
+        "summary": "Delete a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -7352,7 +6696,7 @@
     },
     "/blog/posts/{slug}/publish": {
       "post": {
-        "summary": "Publish a blog post",
+        "summary": "Publish a blog post (Author/Admin)",
         "tags": [
           "Blog Posts"
         ],
@@ -8225,33 +7569,13 @@
                         "label": {
                           "type": "string"
                         },
-                        "media": {
-                          "type": "object",
-                          "properties": {
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            },
-                            "type": {
-                              "type": "string"
-                            },
-                            "mime": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "storageKey",
-                            "url",
-                            "type",
-                            "mime"
-                          ]
+                        "mediaId": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "label",
-                        "media"
+                        "mediaId"
                       ]
                     }
                   }
@@ -8786,6 +8110,411 @@
                       },
                       "required": [
                         "series"
+                      ]
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/taxonomy/blog/categories/reorder": {
+      "post": {
+        "summary": "Reorder blog categories (Admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "order": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "order"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Categories reordered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/taxonomy/services/categories/reorder": {
+      "post": {
+        "summary": "Reorder service categories (Admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "order": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "order"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Categories reordered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/taxonomy/artists/specialties/reorder": {
+      "post": {
+        "summary": "Reorder specialties (Admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "order": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "order"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Specialties reordered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/salons/{id}/status": {
+      "patch": {
+        "summary": "Update salon status (Admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
+                      ]
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/artists/{id}/status": {
+      "patch": {
+        "summary": "Update artist status (Admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok"
                       ]
                     },
                     "meta": {

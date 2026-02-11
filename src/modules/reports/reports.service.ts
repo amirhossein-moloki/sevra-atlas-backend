@@ -1,6 +1,5 @@
 import { prisma } from '../../shared/db/prisma';
 import { EntityType, ReportStatus } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class ReportsService {
   async createReport(userId: bigint, data: any) {
@@ -15,7 +14,7 @@ export class ReportsService {
         reviewId: targetType === 'REVIEW' ? BigInt(targetId) : null,
       },
     });
-    return serialize(report);
+    return report;
   }
 
   async listReports(query: any) {
@@ -38,7 +37,7 @@ export class ReportsService {
     ]);
 
     return {
-      data: data.map(r => serialize(r)),
+      data: data.map(r => r),
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }

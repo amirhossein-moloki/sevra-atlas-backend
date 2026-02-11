@@ -1,5 +1,4 @@
 import { prisma } from '../../shared/db/prisma';
-import { serialize } from '../../shared/utils/serialize';
 import { handleSlugChange } from '../../shared/utils/seo';
 import { EntityType } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
@@ -9,7 +8,7 @@ export class GeoService {
     const provinces = await prisma.province.findMany({
       orderBy: { nameFa: 'asc' },
     });
-    return serialize(provinces);
+    return provinces;
   }
 
   async getProvinceCities(slug: string) {
@@ -17,15 +16,41 @@ export class GeoService {
       where: { province: { slug } },
       orderBy: { nameFa: 'asc' },
     });
-    return serialize(cities);
+    return cities;
   }
 
   async getCityBySlug(slug: string) {
     const city = await prisma.city.findFirst({
       where: { slug },
-      include: { neighborhoods: true },
+      include: { neighborhoods: true, cityStats: true },
     });
-    return serialize(city);
+    return city;
+  }
+
+  async refreshCityStats(cityId: bigint) {
+    const [salonCount, artistCount, aggregation] = await Promise.all([
+      prisma.salon.count({ where: { cityId, status: 'ACTIVE' } }),
+      prisma.artist.count({ where: { cityId, status: 'ACTIVE' } }),
+      prisma.salon.aggregate({
+        where: { cityId, status: 'ACTIVE' },
+        _avg: { avgRating: true }
+      })
+    ]);
+
+    await prisma.cityStats.upsert({
+      where: { cityId },
+      update: {
+        salonCount,
+        artistCount,
+        avgRating: aggregation._avg.avgRating || 0,
+      },
+      create: {
+        cityId,
+        salonCount,
+        artistCount,
+        avgRating: aggregation._avg.avgRating || 0,
+      }
+    });
   }
 
   async getCityNeighborhoods(slug: string) {
@@ -33,12 +58,12 @@ export class GeoService {
       where: { city: { slug } },
       orderBy: { nameFa: 'asc' },
     });
-    return serialize(neighborhoods);
+    return neighborhoods;
   }
 
   async createProvince(data: any) {
     const result = await prisma.province.create({ data: this.handleBigInts(data) });
-    return serialize(result);
+    return result;
   }
 
   async createCity(data: any) {
@@ -48,7 +73,7 @@ export class GeoService {
         provinceId: BigInt(data.provinceId),
       },
     });
-    return serialize(result);
+    return result;
   }
 
   async createNeighborhood(data: any) {
@@ -58,7 +83,7 @@ export class GeoService {
         cityId: BigInt(data.cityId),
       },
     });
-    return serialize(result);
+    return result;
   }
 
   async updateCity(id: string, data: any) {
@@ -75,7 +100,7 @@ export class GeoService {
         where: { id: cityId },
         data: this.handleBigInts(data),
       });
-      return serialize(result);
+      return result;
     });
   }
 
@@ -93,7 +118,7 @@ export class GeoService {
         where: { id: provinceId },
         data: this.handleBigInts(data),
       });
-      return serialize(result);
+      return result;
     });
   }
 
@@ -102,7 +127,7 @@ export class GeoService {
       where: { id: BigInt(id) },
       data: this.handleBigInts(data),
     });
-    return serialize(result);
+    return result;
   }
 
   private handleBigInts(data: any) {

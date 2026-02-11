@@ -1,7 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { ReviewStatus } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class ReviewsService {
   async createReview(data: any, authorId: bigint) {
@@ -33,7 +32,7 @@ export class ReviewsService {
 
     await this.recomputeAggregates(targetType, id);
 
-    return serialize(review);
+    return review;
   }
 
   async getReviews(targetType: 'SALON' | 'ARTIST', slug: string, query: any) {
@@ -59,7 +58,7 @@ export class ReviewsService {
     ]);
 
     return {
-      data: data.map(r => serialize(r)),
+      data: data.map(r => r),
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }

@@ -71,7 +71,7 @@ export class SalonsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       BigInt(req.params.id),
-      { mediaId: req.body.mediaId, mediaData: req.body.media },
+      { mediaId: req.body.mediaId },
       'AVATAR',
       req.user!.id,
       adminMode
@@ -83,7 +83,7 @@ export class SalonsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       BigInt(req.params.id),
-      { mediaId: req.body.mediaId, mediaData: req.body.media },
+      { mediaId: req.body.mediaId },
       'COVER',
       req.user!.id,
       adminMode
@@ -95,7 +95,7 @@ export class SalonsController {
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       BigInt(req.params.id),
-      { mediaIds: req.body.mediaIds, mediaData: req.body.media },
+      { mediaIds: req.body.mediaIds },
       'GALLERY',
       req.user!.id,
       adminMode

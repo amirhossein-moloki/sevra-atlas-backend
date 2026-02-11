@@ -1,21 +1,5 @@
 import { z } from 'zod';
 
-export const mediaSchema = z.object({
-  id: z.string(),
-  url: z.string(),
-  storageKey: z.string(),
-  type: z.string(),
-  mime: z.string(),
-  sizeBytes: z.number(),
-  width: z.number().nullable(),
-  height: z.number().nullable(),
-  duration: z.number().nullable(),
-  altText: z.string().nullable(),
-  title: z.string().nullable(),
-  kind: z.string().nullable(),
-  variants: z.any().nullable(),
-  createdAt: z.date(),
-}).openapi('Media');
 
 export const createMediaSchema = z.object({
   body: z.object({

@@ -74,8 +74,6 @@ registry.registerPath({
     }
   }
 });
-router.get('/:slug', controller.getSalon);
-router.get('/:slug/reviews', reviewsController.getSalonReviews);
 
 router.post(
   '/',

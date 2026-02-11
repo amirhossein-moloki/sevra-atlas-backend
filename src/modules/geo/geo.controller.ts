@@ -11,7 +11,7 @@ export class GeoController {
 
   async getProvinceCities(req: Request, res: Response) {
     const result = await geoService.getProvinceCities(req.params.slug);
-    res.json({ data: result });
+    res.json(result);
   }
 
   async getCity(req: Request, res: Response) {
@@ -21,7 +21,7 @@ export class GeoController {
 
   async getCityNeighborhoods(req: Request, res: Response) {
     const result = await geoService.getCityNeighborhoods(req.params.slug);
-    res.json({ data: result });
+    res.json(result);
   }
 
   async createProvince(req: Request, res: Response) {

@@ -2,15 +2,24 @@ import { z } from './registry';
 
 export const MediaSchema = z.object({
   id: z.string(),
-  storageKey: z.string(),
   url: z.string(),
+  storageKey: z.string(),
   type: z.string(),
   mime: z.string(),
+  sizeBytes: z.number(),
   width: z.number().nullable(),
   height: z.number().nullable(),
-  sizeBytes: z.number(),
-  altText: z.string(),
-  title: z.string(),
+  duration: z.number().nullable(),
+  altText: z.string().nullable(),
+  title: z.string().nullable(),
+  kind: z.string().nullable(),
+  variants: z.record(z.object({
+    url: z.string(),
+    mime: z.string(),
+    width: z.number(),
+    height: z.number(),
+    sizeBytes: z.number(),
+  })).nullable(),
   createdAt: z.string(),
 }).openapi('Media');
 

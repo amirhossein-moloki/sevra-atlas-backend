@@ -1,8 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { handleSlugChange } from '../../shared/utils/seo';
+import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class ArtistsService {
   async getArtists(filters: any) {
@@ -38,7 +37,7 @@ export class ArtistsService {
     ]);
 
     return {
-      data: serialize(data),
+      data: data,
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -62,20 +61,23 @@ export class ArtistsService {
       throw new ApiError(404, 'Artist not found');
     }
 
-    return serialize(artist);
+    return artist;
   }
 
   async createArtist(data: any, userId: bigint) {
-    const artist = await prisma.artist.create({
-      data: {
-        ...data,
-        primaryOwnerId: userId,
-        owners: { connect: { id: userId } },
-        cityId: data.cityId ? BigInt(data.cityId) : undefined,
-        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-      },
+    return prisma.$transaction(async (tx) => {
+      const artist = await tx.artist.create({
+        data: {
+          ...data,
+          primaryOwnerId: userId,
+          owners: { connect: { id: userId } },
+          cityId: data.cityId ? BigInt(data.cityId) : undefined,
+          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+        },
+      });
+      await initSeoMeta(EntityType.ARTIST, artist.id, artist.fullName, tx);
+      return artist;
     });
-    return serialize(artist);
   }
 
   private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
@@ -110,7 +112,7 @@ export class ArtistsService {
           coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
-      return serialize(updatedArtist);
+      return updatedArtist;
     });
   }
 
@@ -124,7 +126,7 @@ export class ArtistsService {
     return { ok: true };
   }
 
-  async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaData?: any; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
+  async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
     await this.checkOwnership(prisma, id, userId, isAdmin);
 
     if (kind === 'GALLERY' && data.mediaIds) {
@@ -148,43 +150,30 @@ export class ArtistsService {
         });
         results.push(updated);
       }
-      return serialize(results);
+      return results;
     }
 
-    let mediaId: bigint;
-
-    if (data.mediaId) {
-      mediaId = BigInt(data.mediaId);
-      const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
-      if (!existingMedia) throw new ApiError(404, 'Media not found');
-
-      if (!isAdmin && existingMedia.uploadedBy !== userId) {
-        throw new ApiError(403, 'You do not have permission to use this media');
-      }
-
-      // Update media metadata to link it to this artist
-      await prisma.media.update({
-        where: { id: mediaId },
-        data: {
-          kind,
-          entityType: EntityType.ARTIST,
-          entityId: id,
-        },
-      });
-    } else if (data.mediaData) {
-      const media = await prisma.media.create({
-        data: {
-          ...data.mediaData,
-          uploadedBy: userId,
-          kind,
-          entityType: EntityType.ARTIST,
-          entityId: id,
-        },
-      });
-      mediaId = media.id;
-    } else {
-      throw new ApiError(400, 'Either mediaId or mediaData is required');
+    if (!data.mediaId) {
+      throw new ApiError(400, 'mediaId is required');
     }
+
+    const mediaId = BigInt(data.mediaId);
+    const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    if (!existingMedia) throw new ApiError(404, 'Media not found');
+
+    if (!isAdmin && existingMedia.uploadedBy !== userId) {
+      throw new ApiError(403, 'You do not have permission to use this media');
+    }
+
+    // Update media metadata to link it to this artist
+    await prisma.media.update({
+      where: { id: mediaId },
+      data: {
+        kind,
+        entityType: EntityType.ARTIST,
+        entityId: id,
+      },
+    });
 
     if (kind === 'AVATAR') {
       await prisma.artist.update({ where: { id }, data: { avatarMediaId: mediaId } });
@@ -193,7 +182,7 @@ export class ArtistsService {
     }
 
     const finalMedia = await prisma.media.findUnique({ where: { id: mediaId } });
-    return serialize(finalMedia);
+    return finalMedia;
   }
 
   async addCertification(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
@@ -217,17 +206,6 @@ export class ArtistsService {
           entityId: id,
         }
       });
-    } else if (data.media) {
-      const media = await prisma.media.create({
-        data: {
-          ...data.media,
-          uploadedBy: userId,
-          kind: 'CERTIFICATE',
-          entityType: EntityType.ARTIST,
-          entityId: id,
-        },
-      });
-      mediaId = media.id;
     }
 
     const cert = await prisma.artistCertification.create({
@@ -246,7 +224,7 @@ export class ArtistsService {
       },
     });
 
-    return serialize(cert);
+    return cert;
   }
 
   async updateCertification(certId: bigint, data: any, userId: bigint, isAdmin: boolean) {
@@ -265,7 +243,7 @@ export class ArtistsService {
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
     });
-    return serialize(updated);
+    return updated;
   }
 
   async deleteCertification(certId: bigint, userId: bigint, isAdmin: boolean) {
@@ -301,7 +279,7 @@ export class ArtistsService {
 
   async createSpecialty(data: any) {
     const specialty = await prisma.specialty.create({ data });
-    return serialize(specialty);
+    return specialty;
   }
 
   async updateSpecialty(id: bigint, data: any) {
@@ -309,7 +287,7 @@ export class ArtistsService {
       where: { id },
       data,
     });
-    return serialize(specialty);
+    return specialty;
   }
 
   async deleteSpecialty(id: bigint) {
@@ -318,6 +296,15 @@ export class ArtistsService {
       data: { deletedAt: new Date() }
     });
     return { ok: true };
+  }
+
+  async reorderSpecialties(items: { id: string | bigint, order: number }[]) {
+    return prisma.$transaction(
+      items.map(item => prisma.specialty.update({
+        where: { id: BigInt(item.id) },
+        data: { order: item.order }
+      }))
+    );
   }
 
   async assignSpecialties(id: bigint, specialtyIds: number[], mode: 'replace' | 'append', userId: bigint, isAdmin: boolean) {

@@ -1,5 +1,4 @@
 import { prisma } from '../../shared/db/prisma';
-import { serialize } from '../../shared/utils/serialize';
 
 export class AdminService {
   async getDashboardSummary() {
@@ -69,7 +68,7 @@ export class AdminService {
       return Math.round(((current - previous) / previous) * 100);
     };
 
-    return serialize({
+    return {
       counts: {
         users: { total: totalUsers, growth: calculateGrowth(usersLast30, usersPrev30) },
         salons: { total: totalSalons, growth: calculateGrowth(salonsLast30, salonsPrev30) },
@@ -84,7 +83,7 @@ export class AdminService {
         postStatus: postStatusDist.map(d => ({ status: d.status, count: d._count.id })),
       },
       topCities: topCitiesWithNames,
-    });
+    };
   }
 
   async getStats(from: string, to: string) {

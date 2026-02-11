@@ -1,8 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { handleSlugChange } from '../../shared/utils/seo';
+import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
-import { serialize } from '../../shared/utils/serialize';
 
 export class SalonsService {
   async getSalons(filters: any) {
@@ -40,7 +39,7 @@ export class SalonsService {
     ]);
 
     return {
-      data: serialize(data),
+      data: data,
       meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -63,21 +62,24 @@ export class SalonsService {
       throw new ApiError(404, 'Salon not found');
     }
 
-    return serialize(salon);
+    return salon;
   }
 
   async createSalon(data: any, userId: bigint) {
-    const salon = await prisma.salon.create({
-      data: {
-        ...data,
-        primaryOwnerId: userId,
-        owners: { connect: { id: userId } },
-        cityId: data.cityId ? BigInt(data.cityId) : undefined,
-        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-        provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
-      },
+    return prisma.$transaction(async (tx) => {
+      const salon = await tx.salon.create({
+        data: {
+          ...data,
+          primaryOwnerId: userId,
+          owners: { connect: { id: userId } },
+          cityId: data.cityId ? BigInt(data.cityId) : undefined,
+          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+          provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
+        },
+      });
+      await initSeoMeta(EntityType.SALON, salon.id, salon.name, tx);
+      return salon;
     });
-    return serialize(salon);
   }
 
   private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
@@ -113,7 +115,7 @@ export class SalonsService {
           coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
-      return serialize(updatedSalon);
+      return updatedSalon;
     });
   }
 
@@ -163,7 +165,7 @@ export class SalonsService {
     return { ok: true };
   }
 
-  async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaData?: any; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
+  async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
     await this.checkOwnership(prisma, id, userId, isAdmin);
 
     if (kind === 'GALLERY' && data.mediaIds) {
@@ -187,43 +189,30 @@ export class SalonsService {
         });
         results.push(updated);
       }
-      return serialize(results);
+      return results;
     }
 
-    let mediaId: bigint;
-
-    if (data.mediaId) {
-      mediaId = BigInt(data.mediaId);
-      const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
-      if (!existingMedia) throw new ApiError(404, 'Media not found');
-
-      if (!isAdmin && existingMedia.uploadedBy !== userId) {
-        throw new ApiError(403, 'You do not have permission to use this media');
-      }
-
-      // Update media metadata to link it to this salon
-      await prisma.media.update({
-        where: { id: mediaId },
-        data: {
-          kind,
-          entityType: EntityType.SALON,
-          entityId: id,
-        },
-      });
-    } else if (data.mediaData) {
-      const media = await prisma.media.create({
-        data: {
-          ...data.mediaData,
-          uploadedBy: userId,
-          kind,
-          entityType: EntityType.SALON,
-          entityId: id,
-        },
-      });
-      mediaId = media.id;
-    } else {
-      throw new ApiError(400, 'Either mediaId or mediaData is required');
+    if (!data.mediaId) {
+      throw new ApiError(400, 'mediaId is required');
     }
+
+    const mediaId = BigInt(data.mediaId);
+    const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    if (!existingMedia) throw new ApiError(404, 'Media not found');
+
+    if (!isAdmin && existingMedia.uploadedBy !== userId) {
+      throw new ApiError(403, 'You do not have permission to use this media');
+    }
+
+    // Update media metadata to link it to this salon
+    await prisma.media.update({
+      where: { id: mediaId },
+      data: {
+        kind,
+        entityType: EntityType.SALON,
+        entityId: id,
+      },
+    });
 
     if (kind === 'AVATAR') {
       await prisma.salon.update({ where: { id }, data: { avatarMediaId: mediaId } });
@@ -232,7 +221,7 @@ export class SalonsService {
     }
 
     const finalMedia = await prisma.media.findUnique({ where: { id: mediaId } });
-    return serialize(finalMedia);
+    return finalMedia;
   }
 
   async linkArtist(salonId: bigint, data: any, userId: bigint, isAdmin: boolean) {
@@ -255,7 +244,7 @@ export class SalonsService {
         startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
       },
     });
-    return serialize(salonArtist);
+    return salonArtist;
   }
 
   async unlinkArtist(salonId: bigint, artistId: bigint, userId: bigint, isAdmin: boolean) {

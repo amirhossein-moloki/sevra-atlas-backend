@@ -18,10 +18,23 @@ import { env } from './shared/config/env';
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://cdn.jsdelivr.net"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+    },
+  },
+}));
 app.use(cors());
 app.use(compression());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(requestIdMiddleware);
 app.use(
   pinoHttp({
@@ -48,8 +61,9 @@ app.use(
   OpenApiValidator.middleware({
     apiSpec: swaggerSpec as any,
     validateRequests: true,
-    validateResponses: true, // Fully enforced after envelope standardization
-    ignoreUndocumented: false, // Fully enforced after bulk documentation
+    validateResponses: true,
+    ignoreUndocumented: false,
+    ignorePaths: /^\/backoffice/, // Ignore AdminJS routes from OpenAPI validation
   })
 );
 

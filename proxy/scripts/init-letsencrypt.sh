@@ -5,6 +5,11 @@ if ! [ -x "$(command -v docker)" ]; then
   exit 1
 fi
 
+# Load environment variables from .env file
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
 domains=($DOMAIN)
 rsa_key_size=4096
 data_path="./proxy/certbot"

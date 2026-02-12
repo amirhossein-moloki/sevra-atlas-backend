@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-sevra_atlas}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sevra-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-jules} -d $${POSTGRES_DB:-sevra_atlas}"]
       interval: 10s
@@ -25,6 +27,8 @@ services:
       --maxmemory-policy allkeys-lru
     volumes:
       - redis_cache_data:/data
+    networks:
+      - sevra-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -42,6 +46,8 @@ services:
       --maxmemory-policy noeviction
     volumes:
       - redis_queue_data:/data
+    networks:
+      - sevra-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -57,6 +63,8 @@ services:
       postgres:
         condition: service_healthy
     command: npx prisma migrate deploy
+    networks:
+      - sevra-network
 
   api:
     build:
@@ -66,6 +74,9 @@ services:
     env_file: .env
     environment:
       - IS_WORKER=false
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-jules}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-sevra_atlas}?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+      - REDIS_QUEUE_URL=redis://redis_queue:6379
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,7 +88,9 @@ services:
         condition: service_completed_successfully
     volumes:
       - uploads_data:/app/uploads
-    # Port 3000 is exposed for Nginx, but can also be mapped if needed for direct access
+    networks:
+      - sevra-network
+    # Port 3000 is exposed for Nginx
     ports:
       - "3000:3000"
 
@@ -90,6 +103,9 @@ services:
     environment:
       - IS_WORKER=true
       - PORT=3001
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-jules}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-sevra_atlas}?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+      - REDIS_QUEUE_URL=redis://redis_queue:6379
     depends_on:
       postgres:
         condition: service_healthy
@@ -101,6 +117,8 @@ services:
         condition: service_completed_successfully
     volumes:
       - uploads_data:/app/uploads
+    networks:
+      - sevra-network
 
   nginx:
     image: nginx:1.25-alpine
@@ -118,6 +136,8 @@ services:
       - DOMAIN=${DOMAIN}
     depends_on:
       - api
+    networks:
+      - sevra-network
     command: >
       /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
 
@@ -126,7 +146,13 @@ services:
     volumes:
       - ./proxy/certbot/conf:/etc/letsencrypt
       - ./proxy/certbot/www:/var/www/certbot
+    networks:
+      - sevra-network
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
+
+networks:
+  sevra-network:
+    driver: bridge
 
 volumes:
   postgres_data:

@@ -18,31 +18,47 @@ The project follows a modular, feature-based architecture:
 - `src/shared`: Contains common utilities, middlewares, and configurations.
 - `prisma`: Database schema and seed scripts.
 
-## Setup
+## 🚀 Production Deployment (Docker)
+
+The project is fully containerized for production-grade deployment on a VPS.
+
+1. **Prepare Environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with production secrets, DOMAIN, and EMAIL
+   ```
+
+2. **Bootstrap SSL (First time only):**
+   ```bash
+   ./proxy/scripts/init-letsencrypt.sh
+   ```
+
+3. **Launch Services:**
+   ```bash
+   docker compose up -d
+   ```
+
+For detailed operations, migrations, and troubleshooting, see the [Production Operations Runbook](DOCS/PRODUCTION_RUNBOOK.md).
+
+## 🛠 Local Development
 
 1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-2. **Environment Variables:**
-   Copy `.env.example` to `.env` and fill in the values.
+2. **Setup DB & Infrastructure:**
+   Ensure you have a local PostgreSQL and Redis running, or use:
    ```bash
-   cp .env.example .env
+   docker compose up -d postgres redis_cache redis_queue
    ```
 
-3. **Start Infrastructure (Docker):**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Database Migrations & Seed:**
+3. **Database Migrations:**
    ```bash
    npx prisma migrate dev
-   npm run prisma:seed
    ```
 
-5. **Run Development Server:**
+4. **Run Server:**
    ```bash
    npm run dev
    ```

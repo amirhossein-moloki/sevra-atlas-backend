@@ -17,8 +17,13 @@ registry.registerPath({
         'application/json': {
           schema: withApiSuccess(z.object({
             status: z.string(),
-            database: z.string(),
-            redis: z.string(),
+            timestamp: z.string(),
+            environment: z.string(),
+            services: z.object({
+              database: z.string(),
+              redis_cache: z.string(),
+              redis_queue: z.string(),
+            }),
           })),
         },
       },
@@ -29,5 +34,21 @@ registry.registerPath({
   },
 });
 router.get('/', healthController.check);
+
+registry.registerPath({
+  method: 'get',
+  path: '/health/ready',
+  summary: 'Check if system is ready to handle requests',
+  tags: ['Health'],
+  responses: {
+    200: {
+      description: 'System is ready',
+    },
+    503: {
+      description: 'System is not ready',
+    },
+  },
+});
+router.get('/ready', healthController.ready);
 
 export default router;

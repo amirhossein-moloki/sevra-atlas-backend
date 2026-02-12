@@ -1,7 +1,11 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { processImage } from '../../shared/utils/image';
 import { getStorageProvider } from '../../shared/storage';
+import { mediaQueue, MEDIA_JOBS } from '../../shared/queues/media.queue';
+import { MediaStatus } from '@prisma/client';
+import sharp from 'sharp';
+import { env } from '../../shared/config/env';
+import { processImage } from '../../shared/utils/image';
 
 export class MediaService {
   private storage = getStorageProvider();
@@ -40,6 +44,7 @@ export class MediaService {
         variants: data.variants || {},
         altText: data.altText || '',
         title: data.title || '',
+        status: data.status || MediaStatus.COMPLETED,
         uploadedBy,
         kind: data.kind,
         entityType: data.entityType,
@@ -54,39 +59,62 @@ export class MediaService {
       throw new ApiError(400, 'Only image files are supported for optimization');
     }
 
-    const { original, variants } = await processImage(file.buffer);
-
     const timestamp = Date.now();
     const baseStorageKey = `${timestamp}-${file.originalname}`;
 
-    // Save original
+    if (!env.ENABLE_ASYNC_WORKERS) {
+      // SYNC MODE (Rollout Phase 0/1)
+      const { original, variants } = await processImage(file.buffer);
+      const originalUrl = await this.storage.save(baseStorageKey, file.buffer, file.mimetype);
+
+      const variantUrls: any = {};
+      for (const [key, variant] of Object.entries(variants)) {
+        const ext = variant.mime.split('/')[1];
+        const variantKey = `${baseStorageKey}_${key}.${ext}`;
+        const url = await this.storage.save(variantKey, variant.buffer, variant.mime);
+        variantUrls[key] = { url, mime: variant.mime, width: variant.width, height: variant.height, sizeBytes: variant.sizeBytes };
+      }
+
+      return this.createMedia({
+        storageKey: baseStorageKey,
+        url: originalUrl,
+        type: 'image',
+        mime: original.mime,
+        width: original.width,
+        height: original.height,
+        sizeBytes: original.sizeBytes,
+        variants: variantUrls,
+        status: MediaStatus.COMPLETED,
+      }, uploadedBy);
+    }
+
+    // ASYNC MODE (Rollout Phase 2+)
+    const metadata = await sharp(file.buffer).metadata();
     const originalUrl = await this.storage.save(baseStorageKey, file.buffer, file.mimetype);
 
-    const variantUrls: any = {};
-    await Promise.all(Object.entries(variants).map(async ([key, variant]) => {
-      const ext = variant.mime.split('/')[1];
-      const variantKey = `${baseStorageKey}_${key}.${ext}`;
-      const url = await this.storage.save(variantKey, variant.buffer, variant.mime);
-
-      variantUrls[key] = {
-        url,
-        mime: variant.mime,
-        width: variant.width,
-        height: variant.height,
-        sizeBytes: variant.sizeBytes,
-      };
-    }));
-
-    return this.createMedia({
+    const media = await this.createMedia({
       storageKey: baseStorageKey,
       url: originalUrl,
       type: 'image',
-      mime: original.mime,
-      width: original.width,
-      height: original.height,
-      sizeBytes: original.sizeBytes,
-      variants: variantUrls,
+      mime: file.mimetype,
+      width: metadata.width,
+      height: metadata.height,
+      sizeBytes: file.size,
+      status: MediaStatus.PENDING,
     }, uploadedBy);
+
+    await mediaQueue.add(MEDIA_JOBS.PROCESS_IMAGE, {
+      mediaId: media.id.toString(),
+      storageKey: baseStorageKey,
+      mime: file.mimetype,
+    }, { jobId: `media:${media.id}` });
+
+    return {
+      message: 'Upload successful. Processing variants in background.',
+      mediaId: media.id.toString(),
+      status: MediaStatus.PENDING,
+      url: originalUrl,
+    };
   }
 
   async getMedia(id: bigint) {

@@ -1,4 +1,4 @@
-import { redis } from './redis';
+import { redisCache as redis } from './redis';
 import { logger } from '../logger/logger';
 
 export class CacheService {
@@ -73,7 +73,7 @@ export class CacheService {
 
     // Cache miss or fully expired - Stampede protection using a lock
     const lockKey = `lock:${key}`;
-    const acquired = await redis.set(this.PREFIX + lockKey, '1', 'NX', 'EX', 10);
+    const acquired = await redis.set(this.PREFIX + lockKey, '1', 'EX', 10, 'NX');
 
     if (!acquired) {
       // Someone else is fetching, wait a bit and try cache again
@@ -100,7 +100,7 @@ export class CacheService {
 
   private static async backgroundRevalidate<T>(key: string, fn: () => Promise<T>, ttlSeconds: number) {
     const lockKey = `lock:bg:${key}`;
-    const acquired = await redis.set(this.PREFIX + lockKey, '1', 'NX', 'EX', 30);
+    const acquired = await redis.set(this.PREFIX + lockKey, '1', 'EX', 30, 'NX');
     if (!acquired) return;
 
     try {

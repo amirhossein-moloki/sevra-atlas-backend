@@ -73,6 +73,13 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum MediaStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 enum ReviewStatus {
   PUBLISHED
   HIDDEN
@@ -251,6 +258,7 @@ model Media {
   variants   Json?    @default("{}")
   altText    String   @default("") @map("alt_text") @db.VarChar(255)
   title      String   @default("") @db.VarChar(255)
+  status     MediaStatus @default(COMPLETED)
   uploadedBy BigInt?  @map("uploaded_by_id")
   createdAt  DateTime @default(now()) @map("created_at")
   deletedAt  DateTime? @map("deleted_at")

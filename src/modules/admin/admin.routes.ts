@@ -209,4 +209,48 @@ registry.registerPath({
 });
 router.patch('/artists/:id/status', requireAuth(), requireAdmin(), controller.updateArtistStatus);
 
+registry.registerPath({
+  method: 'get',
+  path: '/admin/queues/health',
+  summary: 'Check all background queues health (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Queues health data',
+      content: { 'application/json': { schema: withApiSuccess(z.object({})) } },
+    },
+  },
+});
+router.get('/queues/health', requireAuth(), requireAdmin(), controller.getQueuesHealth);
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/jobs/{queue}/{id}',
+  summary: 'Check background job status (Admin)',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  parameters: [
+    { name: 'queue', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'id', in: 'path', schema: { type: 'string' }, required: true },
+  ],
+  responses: {
+    200: {
+      description: 'Job status',
+      content: { 'application/json': { schema: withApiSuccess(z.object({
+        id: z.string(),
+        name: z.string(),
+        status: z.string(),
+        progress: z.any(),
+        failedReason: z.string().optional(),
+        timestamp: z.number(),
+        finishedOn: z.number().optional(),
+        data: z.any(),
+        returnValue: z.any(),
+      })) } },
+    },
+  },
+});
+router.get('/jobs/:queue/:id', requireAuth(), requireAdmin(), controller.getJobStatus);
+
 export default router;

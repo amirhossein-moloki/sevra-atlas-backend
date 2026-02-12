@@ -25,25 +25,28 @@ cp .env.example .env
 برای شروع فرآیند ساخت ایمیج‌ها و اجرای کانتینرها، دستور زیر را در ریشه پروژه اجرا کنید:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 این دستور سرویس‌های زیر را بالا می‌آورد:
-- `postgres`: پایگاه داده اصلی (پورت ۵۴۳۲)
-- `redis_cache`: برای کش و مدیریت OTP (پورت ۶۳۷۹)
-- `redis_queue`: برای صف‌های پس‌زمینه (پورت ۶۳۸۰)
-- `app`: سرور اصلی Express (پورت ۳۰۰۰)
-- `worker`: پردازشگر کارهای پس‌زمینه
+- `postgres`: پایگاه داده اصلی
+- `redis_cache`: برای کش و مدیریت OTP
+- `redis_queue`: برای صف‌های پس‌زمینه
+- `migrate`: اجرای خودکار مهاجرت‌های دیتابیس
+- `api`: سرور اصلی Express و AdminJS (پورت ۳۰۰۰)
+- `worker`: پردازشگر کارهای پس‌زمینه (BullMQ)
+- `nginx`: پروکسی معکوس و مدیریت SSL
+- `certbot`: تمدید خودکار گواهی SSL
 
-## ۴. آماده‌سازی دیتابیس
-پس از اینکه کانتینرها با موفقیت بالا آمدند، باید ساختار دیتابیس را ایجاد کنید:
+## ۴. مدیریت دیتابیس
+در معماری جدید، مهاجرت‌ها (Migrations) به صورت خودکار توسط سرویس `migrate` قبل از شروع برنامه اجرا می‌شوند. برای کارهای دستی:
 
 ```bash
-# ایجاد جداول
-docker-compose exec app npx prisma migrate dev --name init
+# ریختن داده‌های اولیه (Seed)
+docker compose exec api npm run prisma:seed
 
-# ریختن داده‌های اولیه (اختیاری)
-docker-compose exec app npm run prisma:seed
+# مشاهده وضعیت مهاجرت‌ها
+docker compose exec api npx prisma migrate status
 ```
 
 ## ۵. دسترسی به اپلیکیشن
@@ -55,25 +58,25 @@ docker-compose exec app npm run prisma:seed
 
 ### مشاهده وضعیت کانتینرها
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 ### مشاهده لاگ‌های اپلیکیشن
 ```bash
-docker-compose logs -f app
+docker compose logs -f api
 ```
 
 ### متوقف کردن همه سرویس‌ها
 ```bash
-docker-compose down
+docker compose down
 ```
 
-### بازسازی ایمیج‌ها (بعد از تغییر در package.json)
+### بازسازی ایمیج‌ها (بعد از تغییر در کد یا تنظیمات)
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ### اجرای دستورات داخل کانتینر
 ```bash
-docker-compose exec app <command>
+docker compose exec api <command>
 ```

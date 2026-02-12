@@ -8,26 +8,32 @@ Sevra Atlas is designed for a VPS-based deployment using Docker and Nginx.
      |
 [ Port 80/443: Nginx ] --- SSL Termination (Certbot)
      |
-     +--- [ Port 3000: Express API (Docker) ]
+     +--- [ Port 3000: Express API (api) ]
      |
-     +--- [ Port 3001: Worker Process (Docker) ]
+     +--- [ Port 3001: Worker Process (worker) ]
      |
-     +--- [ Port 5432: PostgreSQL (Docker) ]
+     +--- [ Port 5432: PostgreSQL (postgres) ]
      |
-     +--- [ Port 6379: Redis (Docker) ]
+     +--- [ Port 6379: Redis Cache (redis_cache) ]
+     |
+     +--- [ Port 6380: Redis Queue (redis_queue) ]
 ```
 
 ## 2. Docker Setup
-We use a multi-container architecture managed via `docker-compose.yml`.
+We use a production-grade multi-container architecture managed via `docker compose`.
 
 ### 2.1. Containers
-- **app**: Node.js environment running the Express server.
-- **worker**: Same image as `app`, but started with `IS_WORKER=true`.
-- **postgres**: Database with persistent volume at `./data/db`.
-- **redis**: Cache and Queue store with AOF persistence.
+- **api**: Node.js environment running the Express server and AdminJS.
+- **worker**: Node.js environment processing background jobs (BullMQ).
+- **migrate**: One-shot service for running Prisma migrations before app startup.
+- **postgres**: Database with persistent volume.
+- **redis_cache**: Redis optimized for caching (allkeys-lru).
+- **redis_queue**: Redis optimized for jobs (noeviction, AOF persistence).
+- **nginx**: Reverse proxy and SSL termination.
+- **certbot**: Automated Let's Encrypt certificate management.
 
 ## 3. Nginx Configuration
-Located in `deploy/proxy/nginx.conf`.
+Located in `proxy/nginx.conf` and `proxy/conf.d/`.
 - **SSL**: Automated via Certbot with a sidecar container for renewal.
 - **Micro-caching**: Enabled for anonymous GET requests to reduce app load.
 - **Buffers**: Optimized for high-throughput image uploads and large JSON responses.
@@ -52,9 +58,9 @@ Located in `deploy/proxy/nginx.conf`.
 2. **Registry**: Image pushed to GHCR (GitHub Container Registry).
 3. **Deploy**:
    - SSH into VPS.
-   - Pull latest image.
-   - Run Prisma migrations (`migrate deploy`).
-   - Restart containers (`up -d`).
+   - Pull latest images.
+   - Start services: `docker compose up -d`.
+   - The `migrate` service automatically handles migrations before `api` and `worker` start.
 
 ## 7. Rollback Flow
 1. Identify the previous stable image tag (e.g., `v1.2.0`).

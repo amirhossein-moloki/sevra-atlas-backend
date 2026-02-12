@@ -2,10 +2,11 @@
 
 ## 1. Redis Crash / Data Loss
 - **Symptoms**: Failed logins (OTP), API 500s on cached routes, Background jobs stalled.
-- **Detection**: Monitoring alerts on `6379`, `BullMQ: Connection Error` in logs.
+- **Detection**: Monitoring alerts on `6379/6380`, `BullMQ: Connection Error` in logs.
 - **Immediate Action**:
-  - Restart Redis container: `docker compose restart redis`.
-  - Check AOF logs: `docker compose logs redis`.
+  - Restart Redis Cache: `docker compose restart redis_cache`.
+  - Restart Redis Queue: `docker compose restart redis_queue`.
+  - Check AOF logs (Queue): `docker compose logs redis_queue`.
 - **Root Cause**: Memory exhaustion or OOM killer.
 - **Recovery**: Redis will rebuild state from AOF. Stale caches will be re-populated on next request.
 - **Prevention**: Increase VPS RAM; ensure `maxmemory-policy` is `allkeys-lru`.
@@ -43,7 +44,7 @@
 - **Symptoms**: Browser warnings, mobile app unable to connect (HTTPS failure).
 - **Detection**: `curl -vI https://api.sevra.ir`.
 - **Immediate Action**:
-  - Manual renew: `docker compose exec proxy certbot renew`.
+  - Manual renew: `docker compose exec certbot certbot renew`.
 - **Root Cause**: Certbot cron job failure or firewall blocking port 80.
 - **Recovery**: Renew cert; reload Nginx.
 - **Prevention**: Set up automated alerting for certificate expiry (e.g., UptimeRobot).

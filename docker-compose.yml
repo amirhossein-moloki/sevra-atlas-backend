@@ -3,85 +3,135 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    ports:
-      - "5432:5432"
+    restart: always
     environment:
-      POSTGRES_USER: jules
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: sevra_atlas
+      POSTGRES_USER: ${POSTGRES_USER:-jules}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-sevra_atlas}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backups/sevra/wal:/var/backups/sevra/wal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jules -d sevra_atlas"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-jules} -d $${POSTGRES_DB:-sevra_atlas}"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
   redis_cache:
     image: redis:7-alpine
+    restart: always
     command: >
       redis-server
       --maxmemory 512mb
       --maxmemory-policy allkeys-lru
-      --slowlog-log-slower-than 10000
-    ports:
-      - "6379:6379"
     volumes:
       - redis_cache_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis_queue:
     image: redis:7-alpine
+    restart: always
     command: >
       redis-server
       --appendonly yes
       --appendfsync everysec
       --maxmemory 512mb
       --maxmemory-policy noeviction
-      --slowlog-log-slower-than 10000
-      --latency-monitor-threshold 100
-    ports:
-      - "6380:6379"
     volumes:
       - redis_queue_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  app:
-    build: .
-    env_file:
-      - .env
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npx prisma migrate deploy
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: always
+    env_file: .env
     environment:
-      - DATABASE_URL=postgresql://jules:password@postgres:5432/sevra_atlas?schema=public
-      - REDIS_URL=redis://redis_cache:6379
-      - REDIS_QUEUE_URL=redis://redis_queue:6379
       - IS_WORKER=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis_cache:
+        condition: service_healthy
+      redis_queue:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - uploads_data:/app/uploads
+    # Port 3000 is exposed for Nginx, but can also be mapped if needed for direct access
     ports:
       - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis_cache:
-        condition: service_started
-      redis_queue:
-        condition: service_started
 
   worker:
-    build: .
-    env_file:
-      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: always
+    env_file: .env
     environment:
-      - DATABASE_URL=postgresql://jules:password@postgres:5432/sevra_atlas?schema=public
-      - REDIS_URL=redis://redis_cache:6379
-      - REDIS_QUEUE_URL=redis://redis_queue:6379
       - IS_WORKER=true
+      - PORT=3001
     depends_on:
       postgres:
         condition: service_healthy
       redis_cache:
-        condition: service_started
+        condition: service_healthy
       redis_queue:
-        condition: service_started
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "3001:3001"
+
+  nginx:
+    image: nginx:1.25-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/conf.d:/etc/nginx/templates:ro
+      - ./proxy/certbot/conf:/etc/letsencrypt:ro
+      - ./proxy/certbot/www:/var/www/certbot:ro
+      - uploads_data:/app/uploads:ro
+    environment:
+      - DOMAIN=${DOMAIN}
+    depends_on:
+      - api
+    command: >
+      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./proxy/certbot/conf:/etc/letsencrypt
+      - ./proxy/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
 
 volumes:
   postgres_data:
   redis_cache_data:
   redis_queue_data:
+  uploads_data:

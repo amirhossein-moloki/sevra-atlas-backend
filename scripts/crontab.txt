@@ -1,0 +1,9 @@
+# Sevra Atlas Backup Cron Jobs
+# 03:00 AM daily full DB backup
+0 3 * * * /app/scripts/backup-db.sh >> /app/logs/sevra-backup.log 2>&1
+
+# 04:00 AM daily Media backup
+0 4 * * * /app/scripts/backup-media.sh >> /app/logs/sevra-backup.log 2>&1
+
+# 05:00 AM daily monitoring check
+0 5 * * * /app/scripts/monitor-backups.sh >> /app/logs/sevra-backup.log 2>&1

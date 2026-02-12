@@ -186,6 +186,7 @@ model User {
   verification    VerificationStatus @default(NONE)
   gender          Gender            @default(UNSPECIFIED)
   bio             String?           @db.Text
+  password        String?           @db.VarChar(255)
 
   cityId          BigInt?
   city            City?             @relation(fields: [cityId], references: [id], onDelete: SetNull)

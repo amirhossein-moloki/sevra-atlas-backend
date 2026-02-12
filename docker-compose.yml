@@ -42,6 +42,7 @@ services:
 
   app:
     build: .
+    env_file: .env
     environment:
       - DATABASE_URL=postgresql://jules:password@postgres:5432/sevra_atlas?schema=public
       - REDIS_URL=redis://redis_cache:6379
@@ -56,6 +57,7 @@ services:
 
   worker:
     build: .
+    env_file: .env
     environment:
       - DATABASE_URL=postgresql://jules:password@postgres:5432/sevra_atlas?schema=public
       - REDIS_URL=redis://redis_cache:6379

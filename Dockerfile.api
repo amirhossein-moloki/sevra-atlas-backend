@@ -9,30 +9,43 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 COPY prisma ./prisma/
 
+# Using npm ci for clean, predictable installs
 RUN npm ci
 
 COPY . .
 
+# Generate Prisma Client
 RUN npx prisma generate
+
+# Build TypeScript
 RUN npm run build
+
+# Remove development dependencies
+RUN npm prune --production
+
 
 # Stage 2: Runtime
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
+# Install curl for healthchecks
 RUN apk add --no-cache curl
 
-# Create non-root user
+# Create non-root user for security
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
 
+# Copy only necessary files from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# Ensure uploads directory exists and has correct permissions
-RUN mkdir -p uploads && chown -R nodejs:nodejs /app
+# Create and set permissions for uploads directory
+RUN mkdir -p uploads && chown -R nodejs:nodejs /app/uploads
+
+# Ensure the app directory is owned by nodejs
+RUN chown -R nodejs:nodejs /app
 
 USER nodejs
 
@@ -41,7 +54,8 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV IS_WORKER=false
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Healthcheck to ensure the API is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3000/api/v1/health || exit 1
 
 CMD ["node", "dist/server.js"]

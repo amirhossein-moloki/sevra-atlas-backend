@@ -13,14 +13,22 @@ RUN npm ci
 
 COPY . .
 
+# Generate Prisma Client
 RUN npx prisma generate
+
+# Build TypeScript
 RUN npm run build
+
+# Remove development dependencies
+RUN npm prune --production
+
 
 # Stage 2: Runtime
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
+# Install curl for healthchecks
 RUN apk add --no-cache curl
 
 # Create non-root user
@@ -32,7 +40,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
 # Ensure uploads directory exists and has correct permissions
-RUN mkdir -p uploads && chown -R nodejs:nodejs /app
+RUN mkdir -p uploads && chown -R nodejs:nodejs /app/uploads
+RUN chown -R nodejs:nodejs /app
 
 USER nodejs
 
@@ -41,8 +50,10 @@ EXPOSE 3001
 
 ENV NODE_ENV=production
 ENV IS_WORKER=true
+ENV PORT=3001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Healthcheck for the worker process
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3001/health || exit 1
 
 CMD ["node", "dist/server.js"]

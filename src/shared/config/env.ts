@@ -32,6 +32,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   IS_WORKER: z.coerce.boolean().default(false),
   ENABLE_ASYNC_WORKERS: z.coerce.boolean().default(true),
+  DOMAIN: z.string().optional(),
+  EMAIL: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

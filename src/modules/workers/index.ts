@@ -27,12 +27,38 @@ export const startWorkers = () => {
   // Health check server for Worker process
   if (env.IS_WORKER) {
     const healthApp = express();
-    healthApp.get('/health', (req, res) => {
-      res.json({
-        status: 'OK',
+    healthApp.get('/health', async (req, res) => {
+      const { redisQueue } = await import('../../shared/redis/redis');
+      const { prisma } = await import('../../shared/db/prisma');
+
+      let isHealthy = true;
+      const services = {
+        database: 'UNKNOWN',
+        redis: 'UNKNOWN'
+      };
+
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        services.database = 'CONNECTED';
+      } catch (e) {
+        services.database = 'DISCONNECTED';
+        isHealthy = false;
+      }
+
+      try {
+        await redisQueue.ping();
+        services.redis = 'CONNECTED';
+      } catch (e) {
+        services.redis = 'DISCONNECTED';
+        isHealthy = false;
+      }
+
+      res.status(isHealthy ? 200 : 503).json({
+        status: isHealthy ? 'OK' : 'ERROR',
         worker: true,
         uptime: process.uptime(),
         memory: process.memoryUsage(),
+        services
       });
     });
     const port = env.PORT || 3001;

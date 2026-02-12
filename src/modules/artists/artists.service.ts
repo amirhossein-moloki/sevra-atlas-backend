@@ -10,7 +10,7 @@ export class ArtistsService {
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
-      const { city, neighborhood, specialty, verified, minRating, sort, page = 1, pageSize = 20 } = filters;
+      const { q, city, neighborhood, specialty, verified, minRating, minReviewCount, sort, page = 1, pageSize = 20 } = filters;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
@@ -19,11 +19,20 @@ export class ArtistsService {
       deletedAt: null,
     };
 
+    if (q) {
+      where.OR = [
+        { fullName: { contains: q as string, mode: 'insensitive' } },
+        { bio: { contains: q as string, mode: 'insensitive' } },
+        { summary: { contains: q as string, mode: 'insensitive' } },
+      ];
+    }
+
     if (city) where.city = { slug: city };
     if (neighborhood) where.neighborhood = { slug: neighborhood };
     if (specialty) where.specialties = { some: { specialty: { slug: specialty } } };
     if (verified === 'true') where.verification = 'VERIFIED';
     if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
+    if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
 
     let orderBy: any = { createdAt: 'desc' };
     if (sort === 'rating') orderBy = { avgRating: 'desc' };

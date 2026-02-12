@@ -24,6 +24,30 @@ const router = Router();
 const artistsController = new ArtistsController();
 const searchController = new SearchController();
 
+import { registry, withApiSuccess, z } from './shared/openapi/registry';
+registry.registerPath({
+  method: 'get',
+  path: '/search',
+  summary: 'Global search across salons, artists and blog posts',
+  tags: ['Search'],
+  parameters: [
+    { name: 'q', in: 'query', schema: { type: 'string' }, required: true, description: 'Search term' }
+  ],
+  responses: {
+    200: {
+      description: 'Search results',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.object({
+            salons: z.array(z.any()),
+            artists: z.array(z.any()),
+            posts: z.array(z.any())
+          }))
+        }
+      }
+    }
+  }
+});
 router.get('/search', searchController.search);
 router.use('/auth', authRoutes);
 router.use('/', usersRoutes);

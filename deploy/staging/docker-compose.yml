@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sevra-network
+
+  redis_cache:
+    image: redis:7-alpine
+    restart: always
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    networks:
+      - sevra-network
+
+  redis_queue:
+    image: redis:7-alpine
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
+    volumes:
+      - redis_queue_data:/data
+    networks:
+      - sevra-network
+
+  app:
+    image: ${IMAGE_TAG}
+    restart: always
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+      - REDIS_QUEUE_URL=redis://redis_queue:6379
+      - IS_WORKER=false
+      - NODE_ENV=staging
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - STORAGE_PROVIDER=local
+    depends_on:
+      - postgres
+      - redis_cache
+      - redis_queue
+    networks:
+      - sevra-network
+
+  worker:
+    image: ${IMAGE_TAG}
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+      - REDIS_QUEUE_URL=redis://redis_queue:6379
+      - IS_WORKER=true
+      - NODE_ENV=staging
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - STORAGE_PROVIDER=local
+    depends_on:
+      - postgres
+      - redis_cache
+      - redis_queue
+    networks:
+      - sevra-network
+
+volumes:
+  postgres_data:
+  redis_queue_data:
+
+networks:
+  sevra-network:
+    external: true

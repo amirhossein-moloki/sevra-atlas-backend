@@ -1,0 +1,72 @@
+name: Deploy Staging
+
+on:
+  workflow_run:
+    workflows: ["Build and Publish Image"]
+    types:
+      - completed
+    branches: [ main ]
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: staging_deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_STAGING_HOST }}
+          username: ${{ secrets.VPS_STAGING_USER }}
+          key: ${{ secrets.VPS_STAGING_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.VPS_STAGING_USER }}/sevra-staging
+
+            # Save current image for rollback
+            grep "IMAGE_TAG=" .env > .env.bak || true
+
+            # Pull new image
+            docker compose pull app worker
+
+            # Run migrations
+            docker compose run --rm app npx prisma migrate deploy
+
+            # Start services
+            docker compose up -d
+
+            # Polling Health Check
+            echo "Performing health check..."
+            MAX_RETRIES=12
+            RETRY_COUNT=0
+            HEALTHY=false
+
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if curl -s http://localhost:3001/api/v1/health | grep '"status":"OK"'; then
+                HEALTHY=true
+                break
+              fi
+              echo "Waiting for healthy state... ($((RETRY_COUNT+1))/$MAX_RETRIES)"
+              sleep 10
+              RETRY_COUNT=$((RETRY_COUNT+1))
+            done
+
+            if [ "$HEALTHY" = false ]; then
+              echo "Smoke test failed! Rolling back..."
+              if [ -f .env.bak ]; then
+                mv .env.bak .env
+                docker compose up -d
+                echo "Rollback to previous tag completed."
+              else
+                echo "No backup .env found, cannot rollback automatically."
+              fi
+              exit 1
+            fi
+
+            echo "Deployment successful!"
+            rm -f .env.bak

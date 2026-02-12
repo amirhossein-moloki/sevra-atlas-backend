@@ -56,6 +56,14 @@ The project follows a modular, feature-based architecture:
 ## Documentation
 Access Swagger UI at `http://localhost:3000/api-docs`.
 
+## Deployment
+The project uses GitHub Actions for CI/CD.
+
+- **CI**: Linting, Typechecking, and Tests run on every PR.
+- **Continuous Deployment**: Automated deployment to Staging on push to `main` and to Production on release tags.
+
+For detailed information on the CI/CD pipeline and deployment instructions, see [DOCS/CI_CD_RUNBOOK.md](DOCS/CI_CD_RUNBOOK.md).
+
 ## Testing
 ```bash
 npm test

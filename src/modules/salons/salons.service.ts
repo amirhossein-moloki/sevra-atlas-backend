@@ -2,10 +2,15 @@ import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
+import { CacheService } from '../../shared/redis/cache.service';
+import { CacheKeys } from '../../shared/redis/cache-keys';
 
 export class SalonsService {
   async getSalons(filters: any) {
-    const { province, city, neighborhood, service, verified, minRating, womenOnly, sort, page = 1, pageSize = 20 } = filters;
+    const cacheKey = CacheKeys.SALONS_LIST(JSON.stringify(filters));
+
+    return CacheService.wrap(cacheKey, async () => {
+      const { province, city, neighborhood, service, verified, minRating, womenOnly, sort, page = 1, pageSize = 20 } = filters;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
@@ -38,14 +43,16 @@ export class SalonsService {
       prisma.salon.count({ where }),
     ]);
 
-    return {
-      data: data,
-      meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
-    };
+      return {
+        data: data,
+        meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+      };
+    }, 300, { staleWhileRevalidate: 60 });
   }
 
   async getSalonBySlug(slug: string) {
-    const salon = await prisma.salon.findFirst({
+    return CacheService.wrap(CacheKeys.SALON_DETAIL(slug), async () => {
+      const salon = await prisma.salon.findFirst({
       where: { slug, deletedAt: null },
       include: {
         avatar: true,
@@ -58,11 +65,12 @@ export class SalonsService {
       },
     });
 
-    if (!salon || salon.status !== AccountStatus.ACTIVE) {
-      throw new ApiError(404, 'Salon not found');
-    }
+      if (!salon || salon.status !== AccountStatus.ACTIVE) {
+        throw new ApiError(404, 'Salon not found');
+      }
 
-    return salon;
+      return salon;
+    }, 1800, { staleWhileRevalidate: 300 });
   }
 
   async createSalon(data: any, userId: bigint) {
@@ -78,6 +86,9 @@ export class SalonsService {
         },
       });
       await initSeoMeta(EntityType.SALON, salon.id, salon.name, tx);
+      // Invalidate lists and geo stats
+      await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
+      if (salon.cityId) await CacheService.del(CacheKeys.CITY_STATS(salon.cityId));
       return salon;
     });
   }
@@ -115,6 +126,10 @@ export class SalonsService {
           coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
+
+      // Invalidate
+      await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
+      await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
       return updatedSalon;
     });
   }

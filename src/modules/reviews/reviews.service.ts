@@ -1,6 +1,8 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { ReviewStatus } from '@prisma/client';
+import { CacheService } from '../../shared/redis/cache.service';
+import { CacheKeys } from '../../shared/redis/cache-keys';
 
 export class ReviewsService {
   async createReview(data: any, authorId: bigint) {
@@ -122,15 +124,23 @@ export class ReviewsService {
     const reviewCount = aggregations._count.id || 0;
 
     if (targetType === 'SALON') {
-      await prisma.salon.update({
+      const salon = await prisma.salon.update({
         where: { id: targetId },
         data: { avgRating, reviewCount },
+        select: { slug: true, cityId: true }
       });
+      await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
+      await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
+      if (salon.cityId) await CacheService.del(CacheKeys.CITY_STATS(salon.cityId));
     } else {
-      await prisma.artist.update({
+      const artist = await prisma.artist.update({
         where: { id: targetId },
         data: { avgRating, reviewCount },
+        select: { slug: true, cityId: true }
       });
+      await CacheService.del(CacheKeys.ARTIST_DETAIL(artist.slug));
+      await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
+      if (artist.cityId) await CacheService.del(CacheKeys.CITY_STATS(artist.cityId));
     }
   }
 

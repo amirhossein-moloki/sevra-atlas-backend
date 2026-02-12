@@ -2,10 +2,15 @@ import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
+import { CacheService } from '../../shared/redis/cache.service';
+import { CacheKeys } from '../../shared/redis/cache-keys';
 
 export class ArtistsService {
   async getArtists(filters: any) {
-    const { city, neighborhood, specialty, verified, minRating, sort, page = 1, pageSize = 20 } = filters;
+    const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
+
+    return CacheService.wrap(cacheKey, async () => {
+      const { city, neighborhood, specialty, verified, minRating, sort, page = 1, pageSize = 20 } = filters;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
@@ -36,14 +41,16 @@ export class ArtistsService {
       prisma.artist.count({ where }),
     ]);
 
-    return {
-      data: data,
-      meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
-    };
+      return {
+        data: data,
+        meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+      };
+    }, 300, { staleWhileRevalidate: 60 });
   }
 
   async getArtistBySlug(slug: string) {
-    const artist = await prisma.artist.findFirst({
+    return CacheService.wrap(CacheKeys.ARTIST_DETAIL(slug), async () => {
+      const artist = await prisma.artist.findFirst({
       where: { slug, deletedAt: null },
       include: {
         avatar: true,
@@ -57,11 +64,12 @@ export class ArtistsService {
       },
     });
 
-    if (!artist || artist.status !== AccountStatus.ACTIVE) {
-      throw new ApiError(404, 'Artist not found');
-    }
+      if (!artist || artist.status !== AccountStatus.ACTIVE) {
+        throw new ApiError(404, 'Artist not found');
+      }
 
-    return artist;
+      return artist;
+    }, 1800, { staleWhileRevalidate: 300 });
   }
 
   async createArtist(data: any, userId: bigint) {
@@ -76,6 +84,9 @@ export class ArtistsService {
         },
       });
       await initSeoMeta(EntityType.ARTIST, artist.id, artist.fullName, tx);
+      // Invalidate
+      await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
+      if (artist.cityId) await CacheService.del(CacheKeys.CITY_STATS(artist.cityId));
       return artist;
     });
   }
@@ -112,6 +123,10 @@ export class ArtistsService {
           coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
+
+      // Invalidate
+      await CacheService.del(CacheKeys.ARTIST_DETAIL(artist.slug));
+      await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
       return updatedArtist;
     });
   }

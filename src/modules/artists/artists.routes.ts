@@ -20,6 +20,18 @@ registry.registerPath({
   path: '/artists',
   summary: 'List all artists',
   tags: [tag],
+  parameters: [
+    { name: 'q', in: 'query', schema: { type: 'string' }, description: 'Search term for name, summary or bio' },
+    { name: 'city', in: 'query', schema: { type: 'string' }, description: 'City slug' },
+    { name: 'neighborhood', in: 'query', schema: { type: 'string' }, description: 'Neighborhood slug' },
+    { name: 'specialty', in: 'query', schema: { type: 'string' }, description: 'Specialty slug' },
+    { name: 'verified', in: 'query', schema: { type: 'string', enum: ['true', 'false'] } },
+    { name: 'minRating', in: 'query', schema: { type: 'number' } },
+    { name: 'minReviewCount', in: 'query', schema: { type: 'integer' } },
+    { name: 'sort', in: 'query', schema: { type: 'string', enum: ['rating', 'popular', 'new'] } },
+    { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+    { name: 'pageSize', in: 'query', schema: { type: 'integer', default: 20 } },
+  ],
   responses: {
     200: {
       description: 'List of artists',

@@ -10,7 +10,7 @@ export class SalonsService {
     const cacheKey = CacheKeys.SALONS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
-      const { province, city, neighborhood, service, verified, minRating, womenOnly, sort, page = 1, pageSize = 20 } = filters;
+      const { q, province, city, neighborhood, service, verified, minRating, womenOnly, priceTier, minReviewCount, sort, page = 1, pageSize = 20 } = filters;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
@@ -19,13 +19,23 @@ export class SalonsService {
       deletedAt: null,
     };
 
+    if (q) {
+      where.OR = [
+        { name: { contains: q as string, mode: 'insensitive' } },
+        { description: { contains: q as string, mode: 'insensitive' } },
+        { summary: { contains: q as string, mode: 'insensitive' } },
+      ];
+    }
+
     if (province) where.city = { province: { slug: province } };
     if (city) where.city = { slug: city };
     if (neighborhood) where.neighborhood = { slug: neighborhood };
     if (service) where.services = { some: { service: { slug: service } } };
     if (verified === 'true') where.verification = 'VERIFIED';
     if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
+    if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
     if (womenOnly === 'true') where.isWomenOnly = true;
+    if (priceTier) where.priceTier = parseInt(priceTier as string);
 
     let orderBy: any = { createdAt: 'desc' };
     if (sort === 'rating') orderBy = { avgRating: 'desc' };

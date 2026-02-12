@@ -19,6 +19,21 @@ registry.registerPath({
   path: '/salons',
   summary: 'List all salons',
   tags: [tag],
+  parameters: [
+    { name: 'q', in: 'query', schema: { type: 'string' }, description: 'Search term for name, summary or description' },
+    { name: 'province', in: 'query', schema: { type: 'string' }, description: 'Province slug' },
+    { name: 'city', in: 'query', schema: { type: 'string' }, description: 'City slug' },
+    { name: 'neighborhood', in: 'query', schema: { type: 'string' }, description: 'Neighborhood slug' },
+    { name: 'service', in: 'query', schema: { type: 'string' }, description: 'Service slug' },
+    { name: 'verified', in: 'query', schema: { type: 'string', enum: ['true', 'false'] } },
+    { name: 'minRating', in: 'query', schema: { type: 'number' } },
+    { name: 'minReviewCount', in: 'query', schema: { type: 'integer' } },
+    { name: 'womenOnly', in: 'query', schema: { type: 'string', enum: ['true', 'false'] } },
+    { name: 'priceTier', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 4 } },
+    { name: 'sort', in: 'query', schema: { type: 'string', enum: ['rating', 'popular', 'new'] } },
+    { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+    { name: 'pageSize', in: 'query', schema: { type: 'integer', default: 20 } },
+  ],
   responses: {
     200: {
       description: 'List of salons',

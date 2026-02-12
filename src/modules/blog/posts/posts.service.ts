@@ -8,7 +8,7 @@ export class PostsService {
   async listPosts(query: any, user?: any) {
     const {
       page = 1, pageSize = 10, q, ordering,
-      published_after, published_before, category, tag,
+      published_after, published_before, category, tag, author,
       is_hot, series, visibility
     } = query;
     
@@ -50,12 +50,24 @@ export class PostsService {
     if (is_hot === 'true') where.isHot = true;
     if (series) where.series = { slug: series };
     if (visibility) where.visibility = visibility as PostVisibility;
+    if (author) {
+      if (!isNaN(Number(author))) {
+        where.authorId = BigInt(author);
+      } else {
+        where.author = { user: { username: author } };
+      }
+    }
 
     let orderBy: any = { publishedAt: 'desc' };
     if (ordering) {
-      const field = ordering.startsWith('-') ? ordering.substring(1) : ordering;
       const direction = ordering.startsWith('-') ? 'desc' : 'asc';
-      orderBy = { [field]: direction };
+      const field = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+
+      if (field === 'comments_count') {
+        orderBy = { comments: { _count: direction } };
+      } else {
+        orderBy = { [field]: direction };
+      }
     }
 
     const [posts, total] = await Promise.all([

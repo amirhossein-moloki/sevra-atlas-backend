@@ -1,6 +1,9 @@
 # Rate limiting zone
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 
+# Nginx Proxy Cache Path
+proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=sevra_cache:10m max_size=1g inactive=60m use_temp_path=off;
+
 server {
     listen 80;
     listen [::]:80;
@@ -51,6 +54,25 @@ server {
 
     location / {
         limit_req zone=api_limit burst=20 nodelay;
+
+        # Proxy Cache Configuration
+        proxy_cache sevra_cache;
+        proxy_cache_valid 200 301 302 5s;
+        proxy_cache_valid 404 1m;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+
+        # Bypass cache for authenticated users or explicit no-cache
+        proxy_cache_bypass $http_authorization $cookie_session $http_pragma $http_cache_control;
+        proxy_no_cache $http_authorization $cookie_session;
+
+        # Ignore Set-Cookie header to allow caching
+        proxy_ignore_headers Set-Cookie;
+        proxy_hide_header Set-Cookie;
+
+        # Enhanced Cache Key
+        proxy_cache_key "$request_method$scheme$host$request_uri$http_accept_encoding";
+
+        add_header X-Proxy-Cache $upstream_cache_status;
 
         resolver 127.0.0.11 valid=30s;
         set $upstream ${APP_UPSTREAM};

@@ -15,7 +15,14 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes --appendfsync everysec
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --slowlog-log-slower-than 10000
+      --latency-monitor-threshold 100
     ports:
       - "6379:6379"
     volumes:

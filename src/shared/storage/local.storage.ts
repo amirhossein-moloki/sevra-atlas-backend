@@ -26,4 +26,17 @@ export class LocalStorageProvider implements StorageProvider {
     // For now, we'll return a path that starts with /uploads/
     return `/uploads/${key}`;
   }
+
+  async get(key: string): Promise<Buffer | null> {
+    const filePath = path.join(this.uploadDir, key);
+    if (!fs.existsSync(filePath)) return null;
+    return fs.promises.readFile(filePath);
+  }
+
+  async delete(key: string): Promise<void> {
+    const filePath = path.join(this.uploadDir, key);
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+    }
+  }
 }

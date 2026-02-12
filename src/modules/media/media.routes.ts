@@ -72,11 +72,16 @@ registry.registerPath({
     },
   },
   responses: {
-    201: {
-      description: 'Image uploaded and optimized',
+    202: {
+      description: 'Image upload accepted and enqueued for processing',
       content: {
         'application/json': {
-          schema: withApiSuccess(MediaSchema),
+          schema: withApiSuccess(z.object({
+            message: z.string(),
+            mediaId: z.string(),
+            status: z.string(),
+            url: z.string(),
+          })),
         },
       },
     },
@@ -89,6 +94,25 @@ router.post(
   upload.single('file'),
   controller.uploadAndOptimize
 );
+
+registry.registerPath({
+  method: 'get',
+  path: '/media/{id}/status',
+  summary: 'Check media processing status',
+  tags: [tag],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  responses: {
+    200: {
+      description: 'Media status',
+      content: { 'application/json': { schema: withApiSuccess(z.object({
+        mediaId: z.string(),
+        status: z.string(),
+        hasVariants: z.boolean(),
+      })) } },
+    },
+  },
+});
+router.get('/:id/status', controller.getMediaStatus);
 
 registry.registerPath({
   method: 'get',

@@ -21,12 +21,21 @@ export class MediaController {
       throw new Error('No file uploaded');
     }
     const result = await mediaService.uploadAndOptimize(req.file, req.user!.id);
-    res.status(201).json(result);
+    res.status(202).json(result); // Return 202 Accepted
   }
 
   async getMedia(req: AuthRequest, res: Response) {
     const result = await mediaService.getMedia(BigInt(req.params.id));
     res.json(result);
+  }
+
+  async getMediaStatus(req: AuthRequest, res: Response) {
+    const media = await mediaService.getMedia(BigInt(req.params.id));
+    res.json({
+      mediaId: media.id.toString(),
+      status: media.status,
+      hasVariants: !!(media.variants && Object.keys(media.variants as object).length > 0),
+    });
   }
 
   async updateMedia(req: AuthRequest, res: Response) {

@@ -6,6 +6,7 @@ dotenv.config();
 const envSchema = z.object({
   DATABASE_URL: z.string(),
   REDIS_URL: z.string(),
+  REDIS_QUEUE_URL: z.string().optional(),
   JWT_ACCESS_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
   JWT_ACCESS_TTL: z.coerce.number().default(900),
@@ -28,13 +29,15 @@ const envSchema = z.object({
   S3_PUBLIC_URL: z.string().optional(),
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  IS_WORKER: z.coerce.boolean().default(false),
+  ENABLE_ASYNC_WORKERS: z.coerce.boolean().default(true),
 });
 
 const _env = envSchema.safeParse(process.env);
 
-if (!_env.success) {
+if (!_env.success && process.env.NODE_ENV !== 'test') {
   console.error('❌ Invalid environment variables:', _env.error.format());
   process.exit(1);
 }
 
-export const env = _env.data;
+export const env = _env.data || {} as any;

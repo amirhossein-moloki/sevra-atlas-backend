@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { StorageProvider } from './storage.provider';
 import { env } from '../config/env';
 
@@ -44,5 +44,32 @@ export class S3StorageProvider implements StorageProvider {
 
     // Default S3 URL format
     return `https://${this.bucket}.s3.${env.S3_REGION}.amazonaws.com/${key}`;
+  }
+
+  async get(key: string): Promise<Buffer | null> {
+    try {
+      const response = await this.client.send(
+        new GetObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        })
+      );
+
+      if (!response.Body) return null;
+      const arrayBuffer = await response.Body.transformToByteArray();
+      return Buffer.from(arrayBuffer);
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey') return null;
+      throw error;
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.client.send(
+      new DeleteObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      })
+    );
   }
 }

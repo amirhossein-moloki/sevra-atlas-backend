@@ -1,65 +1,37 @@
-import { prisma } from '../../shared/db/prisma';
 import { EntityType, AccountStatus, VerificationStatus } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { seoRepository, SeoRepository } from './seo.repository';
+import { withTx } from '../../shared/db/tx';
 
 export class SeoService {
+  constructor(
+    private readonly repo: SeoRepository = seoRepository
+  ) {}
+
   async resolveRedirect(path: string) {
-    return prisma.redirectRule.findFirst({
-      where: { fromPath: path, isActive: true },
-    });
+    return this.repo.findRedirectRule({ fromPath: path, isActive: true });
   }
 
   async setSeoMeta(data: any) {
     const { entityType, entityId, ...meta } = data;
     const id = BigInt(entityId);
 
-    return prisma.$transaction(async (tx) => {
-      const seoMeta = await tx.seoMeta.upsert({
-        where: {
-          entityType_entityId: { entityType, entityId: id },
-        },
-        update: {
-          ...meta,
-          ogImageMediaId: meta.ogImageMediaId ? BigInt(meta.ogImageMediaId) : undefined,
-          twitterImageMediaId: meta.twitterImageMediaId ? BigInt(meta.twitterImageMediaId) : undefined,
-        },
-        create: {
-          entityType,
-          entityId: id,
-          ...meta,
-          ogImageMediaId: meta.ogImageMediaId ? BigInt(meta.ogImageMediaId) : undefined,
-          twitterImageMediaId: meta.twitterImageMediaId ? BigInt(meta.twitterImageMediaId) : undefined,
-        },
-      });
+    return withTx(async (tx) => {
+      const seoMeta = await this.repo.upsertSeoMeta(entityType, id, {
+        ...meta,
+        ogImageMediaId: meta.ogImageMediaId ? BigInt(meta.ogImageMediaId) : undefined,
+        twitterImageMediaId: meta.twitterImageMediaId ? BigInt(meta.twitterImageMediaId) : undefined,
+      }, tx);
+
+      // Check if entity exists
+      const entity = await this.repo.findEntity(entityType, id, tx);
+      if (!entity) {
+        throw new ApiError(404, `${entityType} with ID ${id} not found`);
+      }
 
       // Update the target entity's seoMetaId if it supports it
-      const entityModels: Record<string, any> = {
-        SALON: tx.salon,
-        ARTIST: tx.artist,
-        BLOG_POST: tx.post,
-        BLOG_PAGE: tx.page,
-        CITY: tx.city,
-        PROVINCE: tx.province,
-        CATEGORY: tx.category,
-        TAG: tx.tag,
-        SERIES: tx.series,
-      };
-
-      const targetModel = entityModels[entityType];
-      if (targetModel) {
-        // Check if entity exists
-        const entity = await targetModel.findUnique({ where: { id } });
-        if (!entity) {
-          throw new ApiError(404, `${entityType} with ID ${id} not found`);
-        }
-
-        // Only update if the model has seoMetaId (check Tag/Series which don't)
-        if (['SALON', 'ARTIST', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY'].includes(entityType)) {
-          await targetModel.update({
-            where: { id },
-            data: { seoMetaId: seoMeta.id },
-          });
-        }
+      if (['SALON', 'ARTIST', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY'].includes(entityType)) {
+        await this.repo.updateEntitySeoMetaId(entityType, id, seoMeta.id, tx);
       }
 
       return seoMeta;
@@ -67,18 +39,18 @@ export class SeoService {
   }
 
   async createRedirect(data: any) {
-    return prisma.redirectRule.create({ data });
+    return this.repo.createRedirectRule(data);
   }
 
   async rebuildSitemap() {
-    return prisma.$transaction(async (tx) => {
+    return withTx(async (tx) => {
       // 1. Clear existing sitemap
-      await tx.sitemapUrl.deleteMany({});
+      await this.repo.deleteSitemapUrls({}, tx);
 
       const entries: any[] = [];
 
       // 2. Add Provinces
-      const provinces = await tx.province.findMany();
+      const provinces = await this.repo.getAllProvinces(tx);
       for (const province of provinces) {
         entries.push({
           path: `/atlas/province/${province.slug}`,
@@ -89,7 +61,7 @@ export class SeoService {
       }
 
       // 3. Add Cities
-      const cities = await tx.city.findMany({ where: { isLandingEnabled: true } });
+      const cities = await this.repo.getSitemapCities(tx);
       for (const city of cities) {
         entries.push({
           path: `/atlas/city/${city.slug}`,
@@ -100,7 +72,7 @@ export class SeoService {
       }
 
       // 4. Add Salons
-      const salons = await tx.salon.findMany({ where: { status: AccountStatus.ACTIVE } });
+      const salons = await this.repo.getActiveSalons(tx);
       for (const salon of salons) {
         entries.push({
           path: `/atlas/salon/${salon.slug}`,
@@ -111,7 +83,7 @@ export class SeoService {
       }
 
       // 5. Add Artists
-      const artists = await tx.artist.findMany({ where: { status: AccountStatus.ACTIVE } });
+      const artists = await this.repo.getActiveArtists(tx);
       for (const artist of artists) {
         entries.push({
           path: `/atlas/artist/${artist.slug}`,
@@ -122,12 +94,7 @@ export class SeoService {
       }
 
       // 6. Add Blog Posts
-      const posts = await tx.post.findMany({
-        where: {
-          status: 'published',
-          visibility: 'public'
-        }
-      });
+      const posts = await this.repo.getPublishedPosts(tx);
       for (const post of posts) {
         entries.push({
           path: `/blog/post/${post.slug}`,
@@ -138,7 +105,7 @@ export class SeoService {
       }
 
       // 7. Add Blog Pages
-      const pages = await tx.page.findMany({ where: { status: 'published' } });
+      const pages = await this.repo.getPublishedPages(tx);
       for (const page of pages) {
         entries.push({
           path: `/blog/page/${page.slug}`,
@@ -149,7 +116,7 @@ export class SeoService {
       }
 
       // 8. Add Categories
-      const categories = await tx.category.findMany();
+      const categories = await this.repo.getAllCategories(tx);
       for (const category of categories) {
         entries.push({
           path: `/blog/category/${category.slug}`,
@@ -160,7 +127,7 @@ export class SeoService {
       }
 
       // 9. Add Tags
-      const tags = await tx.tag.findMany();
+      const tags = await this.repo.getAllTags(tx);
       for (const tag of tags) {
         entries.push({
           path: `/blog/tag/${tag.slug}`,
@@ -171,7 +138,7 @@ export class SeoService {
       }
 
       // 10. Add Series
-      const series = await tx.series.findMany();
+      const series = await this.repo.getAllSeries(tx);
       for (const s of series) {
         entries.push({
           path: `/blog/series/${s.slug}`,
@@ -183,15 +150,10 @@ export class SeoService {
 
       // 11. Bulk insert
       if (entries.length > 0) {
-        await tx.sitemapUrl.createMany({
-          data: entries,
-          skipDuplicates: true,
-        });
+        await this.repo.createSitemapUrls(entries, tx);
       }
 
       return { ok: true, rebuilt: entries.length };
-    }, {
-      timeout: 30000, // Extend timeout for large rebuilds
-    });
+    }, { timeout: 30000 });
   }
 }

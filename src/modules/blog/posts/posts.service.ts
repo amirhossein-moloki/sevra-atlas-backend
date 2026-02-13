@@ -1,10 +1,17 @@
-import { prisma } from '../../../shared/db/prisma';
 import { ApiError } from '../../../shared/errors/ApiError';
-import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
+import { PostStatus, PostVisibility, UserRole, EntityType, Prisma } from '@prisma/client';
 import { handleSlugChange, initSeoMeta } from '../../../shared/utils/seo';
 import { isStaff, isAdmin } from '../../../shared/auth/roles';
+import { withTx } from '../../../shared/db/tx';
+import { postsRepository, PostsRepository } from './posts.repository';
+import { authorsRepository, AuthorsRepository } from '../authors/authors.repository';
 
 export class PostsService {
+  constructor(
+    private readonly repo: PostsRepository = postsRepository,
+    private readonly authorsRepo: AuthorsRepository = authorsRepository
+  ) {}
+
   async listPosts(query: any, user?: any) {
     const {
       page = 1, pageSize = 10, q, ordering,
@@ -15,7 +22,7 @@ export class PostsService {
     const limit = Math.min(parseInt(pageSize as string) || 10, 100);
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.PostWhereInput = { deletedAt: null };
 
     // Permission-based queryset
     if (!user || user.role === UserRole.USER) {
@@ -33,15 +40,21 @@ export class PostsService {
     }
 
     if (q) {
-      where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { content: { contains: q, mode: 'insensitive' } },
-        { excerpt: { contains: q, mode: 'insensitive' } },
+      const qOR = [
+        { title: { contains: q as string, mode: 'insensitive' as const } },
+        { content: { contains: q as string, mode: 'insensitive' as const } },
+        { excerpt: { contains: q as string, mode: 'insensitive' as const } },
       ];
+      if (where.OR) {
+        where.AND = [{ OR: where.OR }, { OR: qOR }];
+        delete where.OR;
+      } else {
+        where.OR = qOR;
+      }
     }
 
-    if (published_after) where.publishedAt = { ...where.publishedAt, gte: new Date(published_after) };
-    if (published_before) where.publishedAt = { ...where.publishedAt, lte: new Date(published_before) };
+    if (published_after) where.publishedAt = { ...((where.publishedAt as any) || {}), gte: new Date(published_after) };
+    if (published_before) where.publishedAt = { ...((where.publishedAt as any) || {}), lte: new Date(published_before) };
     if (category) where.category = { slug: category };
     if (tag) {
       const tagSlugs = Array.isArray(tag) ? tag : (tag as string).split(',');
@@ -70,22 +83,12 @@ export class PostsService {
       }
     }
 
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        orderBy: [orderBy, { id: 'desc' }],
-        skip,
-        take: limit,
-        include: {
-          author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
-          category: true,
-          coverMedia: true,
-          tags: { include: { tag: true } },
-          _count: { select: { comments: { where: { status: 'approved' } } } }
-        }
-      }),
-      prisma.post.count({ where })
-    ]);
+    const { data: posts, total } = await this.repo.findMany({
+      where,
+      orderBy: [orderBy, { id: 'desc' }],
+      skip,
+      take: limit,
+    });
 
     return {
       data: posts,
@@ -94,18 +97,7 @@ export class PostsService {
   }
 
   async getPostBySlug(slug: string, user?: any) {
-    const post = await prisma.post.findFirst({
-      where: { slug, deletedAt: null },
-      include: {
-        author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
-        category: true,
-        coverMedia: true,
-        ogImage: true,
-        tags: { include: { tag: true } },
-        series: true,
-        mediaAttachments: { include: { media: true } }
-      }
-    });
+    const post = await this.repo.findFirst({ slug, deletedAt: null });
 
     if (!post) throw new ApiError(404, 'Post not found');
 
@@ -116,16 +108,13 @@ export class PostsService {
     }
 
     // Increment views
-    await prisma.post.update({
-      where: { id: post.id },
-      data: { viewsCount: { increment: 1 } }
-    });
+    await this.repo.incrementViews(post.id);
 
     return post;
   }
 
   async createPost(data: any, authorUserId: bigint) {
-    const authorProfile = await prisma.authorProfile.findUnique({ where: { userId: authorUserId } });
+    const authorProfile = await this.authorsRepo.findUnique(authorUserId);
     if (!authorProfile) throw new ApiError(403, 'User does not have an author profile');
 
     const { tag_ids, ...postData } = data;
@@ -133,21 +122,19 @@ export class PostsService {
     // Handle publication date logic
     const publication = this.handlePublicationDate(data.status, data.publish_at);
 
-    return prisma.$transaction(async (tx) => {
-      const post = await tx.post.create({
-        data: {
-          ...postData,
-          ...publication,
-          authorId: authorUserId,
-          categoryId: data.category_id ? BigInt(data.category_id) : undefined,
-          seriesId: data.series_id ? BigInt(data.series_id) : undefined,
-          coverMediaId: data.cover_media_id ? BigInt(data.cover_media_id) : undefined,
-          ogImageId: data.og_image_id ? BigInt(data.og_image_id) : undefined,
-          tags: tag_ids ? {
-            create: tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
-          } : undefined
-        }
-      });
+    return withTx(async (tx) => {
+      const post = await this.repo.create({
+        ...postData,
+        ...publication,
+        authorId: authorUserId,
+        categoryId: data.category_id ? BigInt(data.category_id) : undefined,
+        seriesId: data.series_id ? BigInt(data.series_id) : undefined,
+        coverMediaId: data.cover_media_id ? BigInt(data.cover_media_id) : undefined,
+        ogImageId: data.og_image_id ? BigInt(data.og_image_id) : undefined,
+        tags: tag_ids ? {
+          create: tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
+        } : undefined
+      }, tx);
 
       await initSeoMeta(EntityType.BLOG_POST, post.id, post.title, tx);
 
@@ -156,7 +143,7 @@ export class PostsService {
   }
 
   async updatePost(slug: string, data: any, user: any) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await this.repo.findFirst({ slug });
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {
@@ -166,55 +153,46 @@ export class PostsService {
     const { tag_ids, ...postData } = data;
     const publication = this.handlePublicationDate(data.status || post.status, data.publish_at);
 
-    return prisma.$transaction(async (tx) => {
+    return withTx(async (tx) => {
       if (data.slug && data.slug !== post.slug) {
         await handleSlugChange(EntityType.BLOG_POST, post.id, post.slug, data.slug, '/blog/post', tx);
       }
 
-      const updatedPost = await tx.post.update({
-        where: { id: post.id },
-        data: {
-          ...postData,
-          ...publication,
-          categoryId: data.category_id ? BigInt(data.category_id) : undefined,
-          seriesId: data.series_id ? BigInt(data.series_id) : undefined,
-          coverMediaId: data.cover_media_id ? BigInt(data.cover_media_id) : undefined,
-          ogImageId: data.og_image_id ? BigInt(data.og_image_id) : undefined,
-          tags: tag_ids ? {
-            deleteMany: {},
-            create: tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
-          } : undefined
-        }
-      });
+      const updatedPost = await this.repo.update(post.id, {
+        ...postData,
+        ...publication,
+        categoryId: data.category_id ? BigInt(data.category_id) : undefined,
+        seriesId: data.series_id ? BigInt(data.series_id) : undefined,
+        coverMediaId: data.cover_media_id ? BigInt(data.cover_media_id) : undefined,
+        ogImageId: data.og_image_id ? BigInt(data.og_image_id) : undefined,
+        tags: tag_ids ? {
+          deleteMany: {},
+          create: tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
+        } : undefined
+      }, tx);
 
       return updatedPost;
     });
   }
 
   async deletePost(slug: string, user: any) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await this.repo.findFirst({ slug });
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 
-    await prisma.post.update({
-      where: { id: post.id },
-      data: {
-        status: PostStatus.archived,
-        deletedAt: new Date()
-      }
-    });
+    await this.repo.softDelete(post.id);
     return { ok: true };
   }
 
   async getSimilarPosts(slug: string) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+    const post = await this.repo.findFirst({ slug, deletedAt: null });
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [] };
 
-    const similar = await prisma.post.findMany({
+    const { data: similar } = await this.repo.findMany({
       where: {
         categoryId: post.categoryId,
         status: PostStatus.published,
@@ -224,18 +202,13 @@ export class PostsService {
       },
       orderBy: { publishedAt: 'desc' },
       take: 5,
-      include: {
-        author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
-        category: true,
-        coverMedia: true
-      }
     });
 
     return { data: similar };
   }
 
   async getSameCategoryPosts(slug: string, query: any) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+    const post = await this.repo.findFirst({ slug, deletedAt: null });
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [], meta: { total: 0 } };
 
@@ -243,7 +216,7 @@ export class PostsService {
     const limit = parseInt(pageSize as string) || 10;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where = {
+    const where: Prisma.PostWhereInput = {
       categoryId: post.categoryId,
       status: PostStatus.published,
       publishedAt: { lte: new Date() },
@@ -251,40 +224,27 @@ export class PostsService {
       deletedAt: null
     };
 
-    const [data, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        orderBy: { publishedAt: 'desc' },
-        skip,
-        take: limit,
-        include: {
-          author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
-          category: true,
-          coverMedia: true
-        }
-      }),
-      prisma.post.count({ where })
-    ]);
+    const { data, total } = await this.repo.findMany({
+      where,
+      orderBy: { publishedAt: 'desc' },
+      skip,
+      take: limit,
+    });
 
     return {
       data: data,
-      meta: { page, pageSize: limit, total, totalPages: Math.ceil(total / limit) }
+      meta: { page: parseInt(page), pageSize: limit, total, totalPages: Math.ceil(total / limit) }
     };
   }
 
   async getRelatedPosts(slug: string) {
-    const post = await prisma.post.findFirst({
-      where: { slug, deletedAt: null },
-      include: { tags: true }
-    });
+    const post = await this.repo.findFirst({ slug, deletedAt: null });
     if (!post) throw new ApiError(404, 'Post not found');
 
-    const tagIds = post.tags.map(t => t.tagId);
+    const tagIds = (post.tags as any[]).map(t => t.tagId);
     if (tagIds.length === 0) return { data: [] };
 
-    // In Prisma we can't easily do the "count common tags" annotation in a single findMany
-    // without raw query or multiple steps. For simplicity:
-    const related = await prisma.post.findMany({
+    const { data: related } = await this.repo.findMany({
       where: {
         status: PostStatus.published,
         publishedAt: { lte: new Date() },
@@ -293,18 +253,12 @@ export class PostsService {
         deletedAt: null
       },
       take: 10,
-      include: {
-        author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
-        category: true,
-        coverMedia: true,
-        tags: true
-      }
     });
 
     // Sort by common tags manually
-    related.sort((a, b) => {
-      const aCommon = a.tags.filter(t => tagIds.includes(t.tagId)).length;
-      const bCommon = b.tags.filter(t => tagIds.includes(t.tagId)).length;
+    related.sort((a: any, b: any) => {
+      const aCommon = a.tags.filter((t: any) => tagIds.includes(t.tagId)).length;
+      const bCommon = b.tags.filter((t: any) => tagIds.includes(t.tagId)).length;
       return bCommon - aCommon || (b.publishedAt?.getTime() || 0) - (a.publishedAt?.getTime() || 0);
     });
 
@@ -312,7 +266,7 @@ export class PostsService {
   }
 
   async publishPost(slug: string, user: any) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+    const post = await this.repo.findFirst({ slug, deletedAt: null });
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {
@@ -323,13 +277,10 @@ export class PostsService {
       throw new ApiError(400, 'Only drafts or scheduled posts can be published');
     }
 
-    const updated = await prisma.post.update({
-      where: { id: post.id },
-      data: {
-        status: PostStatus.published,
-        publishedAt: new Date(),
-        scheduledAt: null
-      }
+    const updated = await this.repo.update(post.id, {
+      status: PostStatus.published,
+      publishedAt: new Date(),
+      scheduledAt: null
     });
 
     return updated;

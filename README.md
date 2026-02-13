@@ -13,10 +13,14 @@ Modular Node.js + Express.js backend for a Directory and Blog CMS, with SEO-firs
 - **Jest** (Testing)
 
 ## Project Structure
-The project follows a modular, feature-based architecture:
-- `src/modules/<feature>`: Contains routes, controllers, services, etc., for a specific feature.
-- `src/shared`: Contains common utilities, middlewares, and configurations.
-- `prisma`: Database schema and seed scripts.
+The project follows a modular, layered architecture using the Repository Pattern. See [DOCS/ARCHITECTURE.md](DOCS/ARCHITECTURE.md) for details.
+
+- `src/modules/<feature>`:
+    - `*.controller.ts`: API request handling.
+    - `*.service.ts`: Business logic (Decoupled from Prisma).
+    - `*.repository.ts`: Data access (Only place where Prisma is used).
+- `src/shared`: Common utilities, middlewares, and Database infrastructure.
+- `prisma`: Database schema and migrations.
 
 ## 🌍 Environment Guide
 

@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import os from 'os';
 import { redisQueue } from '../../shared/redis/redis';
-import { prisma } from '../../shared/db/prisma';
+import { mediaRepository } from '../media/media.repository';
 import { processImage } from '../../shared/utils/image';
 import { getStorageProvider } from '../../shared/storage';
 import { MediaStatus } from '@prisma/client';
@@ -14,7 +14,7 @@ export const mediaWorker = new Worker('media', async (job: Job) => {
   const mId = BigInt(mediaId);
 
   // 1. Idempotency Check: Verify current DB state
-  const media = await prisma.media.findUnique({ where: { id: mId } });
+  const media = await mediaRepository.findUnique(mId);
   if (!media) {
     logger.warn(`Media ${mediaId} not found. Job failed.`);
     throw new Error(`Media ${mediaId} not found`);
@@ -27,10 +27,7 @@ export const mediaWorker = new Worker('media', async (job: Job) => {
 
   try {
     // Update status to PROCESSING
-    await prisma.media.update({
-      where: { id: mId },
-      data: { status: MediaStatus.PROCESSING }
-    });
+    await mediaRepository.update(mId, { status: MediaStatus.PROCESSING });
 
     // 2. Fetch original buffer from storage
     const buffer = await storage.get(storageKey);
@@ -55,21 +52,15 @@ export const mediaWorker = new Worker('media', async (job: Job) => {
     }
 
     // 4. Update DB
-    await prisma.media.update({
-      where: { id: mId },
-      data: {
-        variants: variantUrls,
-        status: MediaStatus.COMPLETED
-      }
+    await mediaRepository.update(mId, {
+      variants: variantUrls,
+      status: MediaStatus.COMPLETED
     });
 
     logger.info(`Successfully processed media ${mediaId}`);
   } catch (error) {
     logger.error(`Failed to process media ${mediaId}:`, error);
-    await prisma.media.update({
-      where: { id: mId },
-      data: { status: MediaStatus.FAILED }
-    });
+    await mediaRepository.update(mId, { status: MediaStatus.FAILED });
     throw error; // Let BullMQ handle retry
   }
 }, {

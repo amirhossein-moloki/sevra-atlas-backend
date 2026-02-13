@@ -1,49 +1,27 @@
-import { prisma } from '../../shared/db/prisma';
 import { FollowTargetType } from '@prisma/client';
+import { followsRepository, FollowsRepository } from './follows.repository';
 
 export class FollowsService {
+  constructor(
+    private readonly repo: FollowsRepository = followsRepository
+  ) {}
+
   async follow(userId: bigint, targetType: FollowTargetType, targetId: bigint) {
-    return prisma.follow.upsert({
-      where: {
-        followerId_targetType_salonId_artistId: {
-          followerId: userId,
-          targetType,
-          salonId: (targetType === 'SALON' ? targetId : null) as any,
-          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
-        },
-      },
-      create: {
-        followerId: userId,
-        targetType,
-        salonId: targetType === 'SALON' ? targetId : null,
-        artistId: targetType === 'ARTIST' ? targetId : null,
-      },
-      update: {},
-    });
+    return this.repo.upsert(userId, targetType, targetId);
   }
 
   async unfollow(userId: bigint, targetType: FollowTargetType, targetId: bigint) {
-    await prisma.follow.delete({
-      where: {
-        followerId_targetType_salonId_artistId: {
-          followerId: userId,
-          targetType,
-          salonId: (targetType === 'SALON' ? targetId : null) as any,
-          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
-        },
-      },
-    });
+    await this.repo.delete(userId, targetType, targetId);
     return { ok: true };
   }
 
   async getMyFollows(userId: bigint) {
-    const follows = await prisma.follow.findMany({
+    return this.repo.findMany({
       where: { followerId: userId },
       include: {
         salon: { select: { id: true, name: true, slug: true } },
         artist: { select: { id: true, fullName: true, slug: true } },
       },
     });
-    return follows;
   }
 }

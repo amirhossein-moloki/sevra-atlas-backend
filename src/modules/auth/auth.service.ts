@@ -1,4 +1,3 @@
-import { prisma } from '../../shared/db/prisma';
 import { redis } from '../../shared/redis/redis';
 import { RedisFallback } from '../../shared/redis/redis-fallback';
 import { env } from '../../shared/config/env';
@@ -8,8 +7,15 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '.
 import { UserRole } from '@prisma/client';
 import { logger } from '../../shared/logger/logger';
 import crypto from 'crypto';
+import { authRepository, AuthRepository } from './auth.repository';
+import { usersRepository, UsersRepository } from '../users/users.repository';
 
 export class AuthService {
+  constructor(
+    private readonly repo: AuthRepository = authRepository,
+    private readonly usersRepo: UsersRepository = usersRepository
+  ) {}
+
   async requestOtp(phoneNumber: string, ip?: string, userAgent?: string) {
     const code = crypto.randomInt(100000, 1000000).toString();
     const redisKey = `otp:${phoneNumber}`;
@@ -22,22 +28,16 @@ export class AuthService {
         await redis.set(redisKey, code, 'EX', env.OTP_TTL_SECONDS);
         await redis.set(`${redisKey}:attempts`, 0, 'EX', env.OTP_TTL_SECONDS);
         // Also clear any DB fallback record to keep it clean if Redis is working
-        await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
+        await this.repo.deleteOtps(phoneNumber);
       },
       async () => {
-        await prisma.otp.upsert({
-          where: { phoneE164: phoneNumber },
-          update: { code, expiresAt, attempts: 0 },
-          create: { phoneE164: phoneNumber, code, expiresAt, attempts: 0 },
-        });
+        await this.repo.upsertOtp(phoneNumber, { code, expiresAt, attempts: 0 });
       }
     );
 
     await smsProvider.sendOtp(phoneNumber, code);
 
-    await prisma.otpAttempt.create({
-      data: { phoneE164: phoneNumber, ip, userAgent, purpose: 'LOGIN', success: false },
-    });
+    await this.repo.createOtpAttempt({ phoneE164: phoneNumber, ip, userAgent, purpose: 'LOGIN', success: false });
 
     return { message: 'OTP sent successfully' };
   }
@@ -58,7 +58,7 @@ export class AuthService {
 
     // If not found in Redis or Redis failed, check DB
     if (!storedCode) {
-      const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: phoneNumber } });
+      const otpRecord = await this.repo.findOtpUnique(phoneNumber);
       if (otpRecord && otpRecord.expiresAt > new Date()) {
         storedCode = otpRecord.code;
         attempts = otpRecord.attempts;
@@ -78,15 +78,10 @@ export class AuthService {
       if (source === 'redis') {
         await RedisFallback.tryReady('incrAttempts', () => redis.incr(`${redisKey}:attempts`), 0);
       } else {
-        await prisma.otp.update({
-          where: { phoneE164: phoneNumber },
-          data: { attempts: { increment: 1 } },
-        });
+        await this.repo.updateOtp(phoneNumber, { attempts: { increment: 1 } });
       }
 
-      await prisma.otpAttempt.create({
-        data: { phoneE164: phoneNumber, ip, userAgent, purpose: 'VERIFY', success: false },
-      });
+      await this.repo.createOtpAttempt({ phoneE164: phoneNumber, ip, userAgent, purpose: 'VERIFY', success: false });
       throw new ApiError(400, 'Invalid OTP');
     }
 
@@ -97,33 +92,27 @@ export class AuthService {
         await redis.del(`${redisKey}:attempts`);
       }, null);
     } else {
-      await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
+      await this.repo.deleteOtps(phoneNumber);
     }
 
-    let user = await prisma.user.findUnique({
-      where: { phoneNumber },
-    });
+    let user = await this.usersRepo.findFirst({ phoneNumber });
 
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          phoneNumber,
-          username: `user_${crypto.randomBytes(4).toString('hex')}_${Date.now()}`,
-          firstName: '',
-          lastName: '',
-          email: '',
-          isStaff: false,
-          isActive: true,
-          isPhoneVerified: true,
-          role: UserRole.USER,
-          referralCode: Math.random().toString(36).substring(2, 10),
-        },
+      user = await this.usersRepo.create({
+        phoneNumber,
+        username: `user_${crypto.randomBytes(4).toString('hex')}_${Date.now()}`,
+        firstName: '',
+        lastName: '',
+        email: '',
+        isStaff: false,
+        isActive: true,
+        isPhoneVerified: true,
+        role: UserRole.USER,
+        referralCode: Math.random().toString(36).substring(2, 10),
       });
     }
 
-    await prisma.otpAttempt.create({
-      data: { phoneE164: phoneNumber, ip, userAgent, purpose: 'VERIFY', success: true, userId: user.id },
-    });
+    await this.repo.createOtpAttempt({ phoneE164: phoneNumber, ip, userAgent, purpose: 'VERIFY', success: true, userId: user.id });
 
     const payload = { sub: user.id.toString(), role: user.role };
     const accessToken = generateAccessToken(payload);
@@ -138,12 +127,10 @@ export class AuthService {
       null
     );
 
-    await prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        token: refreshToken,
-        expiresAt,
-      },
+    await this.repo.createRefreshToken({
+      userId: user.id,
+      token: refreshToken,
+      expiresAt,
     });
 
     return {
@@ -173,9 +160,7 @@ export class AuthService {
 
       // If not in Redis or Redis failed, check DB
       if (!exists) {
-        const tokenRecord = await prisma.refreshToken.findUnique({
-          where: { token: refreshToken },
-        });
+        const tokenRecord = await this.repo.findRefreshTokenUnique(refreshToken);
         exists = !!tokenRecord && tokenRecord.expiresAt > new Date();
       }
 
@@ -195,9 +180,7 @@ export class AuthService {
     const redisKey = `refresh_token:${userId}:${refreshToken}`;
 
     await RedisFallback.tryReady('logoutRedis', () => redis.del(redisKey), null);
-    await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
-    });
+    await this.repo.deleteRefreshToken(refreshToken);
 
     return { ok: true };
   }

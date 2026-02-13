@@ -1,77 +1,43 @@
-import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
+import { artistsRepository, ArtistsRepository } from './artists.repository';
+import { mediaRepository, MediaRepository } from '../media/media.repository';
+import { withTx } from '../../shared/db/tx';
+import { ArtistQueryFragments } from '../../shared/db/queryFragments';
 
 export class ArtistsService {
+  constructor(
+    private readonly repo: ArtistsRepository = artistsRepository,
+    private readonly mediaRepo: MediaRepository = mediaRepository
+  ) {}
+
   async getArtists(filters: any) {
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
-      const { q, city, neighborhood, specialty, verified, minRating, minReviewCount, sort, page = 1, pageSize = 20 } = filters;
-    const limit = parseInt(pageSize as string) || 20;
-    const skip = (parseInt(page as string || '1') - 1) * limit;
+      const page = parseInt(filters.page as string || '1');
+      const pageSize = parseInt(filters.pageSize as string || '20');
+      const skip = (page - 1) * pageSize;
 
-    const where: any = {
-      status: AccountStatus.ACTIVE,
-      deletedAt: null,
-    };
-
-    if (q) {
-      where.OR = [
-        { fullName: { contains: q as string, mode: 'insensitive' } },
-        { bio: { contains: q as string, mode: 'insensitive' } },
-        { summary: { contains: q as string, mode: 'insensitive' } },
-      ];
-    }
-
-    if (city) where.city = { slug: city };
-    if (neighborhood) where.neighborhood = { slug: neighborhood };
-    if (specialty) where.specialties = { some: { specialty: { slug: specialty } } };
-    if (verified === 'true') where.verification = 'VERIFIED';
-    if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
-    if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
-
-    let orderBy: any = { createdAt: 'desc' };
-    if (sort === 'rating') orderBy = { avgRating: 'desc' };
-    if (sort === 'popular') orderBy = { reviewCount: 'desc' };
-    if (sort === 'new') orderBy = { createdAt: 'desc' };
-
-    const [data, total] = await Promise.all([
-      prisma.artist.findMany({
-        where,
-        orderBy,
+      const { data, total } = await this.repo.findArtists({
+        ...filters,
         skip,
-        take: limit,
-        include: { avatar: true, city: true, neighborhood: true },
-      }),
-      prisma.artist.count({ where }),
-    ]);
+        take: pageSize,
+      });
 
       return {
-        data: data,
-        meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+        data,
+        meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
       };
     }, 300, { staleWhileRevalidate: 60 });
   }
 
   async getArtistBySlug(slug: string) {
     return CacheService.wrap(CacheKeys.ARTIST_DETAIL(slug), async () => {
-      const artist = await prisma.artist.findFirst({
-      where: { slug, deletedAt: null },
-      include: {
-        avatar: true,
-        cover: true,
-        city: true,
-        neighborhood: true,
-        specialties: { include: { specialty: true } },
-        certifications: { include: { media: true } },
-        salonArtists: { include: { salon: true } },
-        seoMeta: true,
-      },
-    });
+      const artist = await this.repo.findBySlug(slug, ArtistQueryFragments.DETAIL_INCLUDE);
 
       if (!artist || artist.status !== AccountStatus.ACTIVE) {
         throw new ApiError(404, 'Artist not found');
@@ -82,16 +48,14 @@ export class ArtistsService {
   }
 
   async createArtist(data: any, userId: bigint) {
-    return prisma.$transaction(async (tx) => {
-      const artist = await tx.artist.create({
-        data: {
-          ...data,
-          primaryOwnerId: userId,
-          owners: { connect: { id: userId } },
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-        },
-      });
+    return withTx(async (tx) => {
+      const artist = await this.repo.create({
+        ...data,
+        primaryOwnerId: userId,
+        owners: { connect: { id: userId } },
+        cityId: data.cityId ? BigInt(data.cityId) : undefined,
+        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+      }, tx);
       await initSeoMeta(EntityType.ARTIST, artist.id, artist.fullName, tx);
       // Invalidate
       await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
@@ -100,14 +64,11 @@ export class ArtistsService {
     });
   }
 
-  private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
-    const artist = await tx.artist.findFirst({
-      where: { id, deletedAt: null },
-      include: { owners: { select: { id: true } } },
-    });
+  private async checkOwnership(id: bigint, userId: bigint, isAdmin: boolean, tx?: any) {
+    const artist = await this.repo.findFirst({ id, deletedAt: null }, { owners: { select: { id: true } } }, tx);
     if (!artist) throw new ApiError(404, 'Artist not found');
 
-    const isOwner = artist.owners.some((o: any) => o.id === userId);
+    const isOwner = (artist.owners as any[]).some((o: any) => o.id === userId);
     if (!isAdmin && !isOwner) {
       throw new ApiError(403, 'Forbidden');
     }
@@ -115,23 +76,20 @@ export class ArtistsService {
   }
 
   async updateArtist(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    return prisma.$transaction(async (tx) => {
-      const artist = await this.checkOwnership(tx, id, userId, isAdmin);
+    return withTx(async (tx) => {
+      const artist = await this.checkOwnership(id, userId, isAdmin, tx);
 
       if (data.slug && data.slug !== artist.slug) {
         await handleSlugChange(EntityType.ARTIST, id, artist.slug, data.slug, '/atlas/artist', tx);
       }
 
-      const updatedArtist = await tx.artist.update({
-        where: { id },
-        data: {
-          ...data,
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
-          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
-        },
-      });
+      const updatedArtist = await this.repo.update(id, {
+        ...data,
+        cityId: data.cityId ? BigInt(data.cityId) : undefined,
+        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+        avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
+        coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
+      }, tx);
 
       // Invalidate
       await CacheService.del(CacheKeys.ARTIST_DETAIL(artist.slug));
@@ -141,36 +99,30 @@ export class ArtistsService {
   }
 
   async deleteArtist(id: bigint, userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, id, userId, isAdmin);
+    await this.checkOwnership(id, userId, isAdmin);
 
-    await prisma.artist.update({
-      where: { id },
-      data: { status: AccountStatus.DELETED, deletedAt: new Date() },
-    });
+    await this.repo.softDelete(id);
     return { ok: true };
   }
 
   async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, id, userId, isAdmin);
+    await this.checkOwnership(id, userId, isAdmin);
 
     if (kind === 'GALLERY' && data.mediaIds) {
       const results = [];
       for (const mId of data.mediaIds) {
         const mediaId = BigInt(mId);
-        const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+        const existingMedia = await this.mediaRepo.findUnique(mediaId);
         if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
 
         if (!isAdmin && existingMedia.uploadedBy !== userId) {
           throw new ApiError(403, `You do not have permission to use media ${mId}`);
         }
 
-        const updated = await prisma.media.update({
-          where: { id: mediaId },
-          data: {
-            kind,
-            entityType: EntityType.ARTIST,
-            entityId: id,
-          },
+        const updated = await this.mediaRepo.update(mediaId, {
+          kind,
+          entityType: EntityType.ARTIST,
+          entityId: id,
         });
         results.push(updated);
       }
@@ -182,7 +134,7 @@ export class ArtistsService {
     }
 
     const mediaId = BigInt(data.mediaId);
-    const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    const existingMedia = await this.mediaRepo.findUnique(mediaId);
     if (!existingMedia) throw new ApiError(404, 'Media not found');
 
     if (!isAdmin && existingMedia.uploadedBy !== userId) {
@@ -190,166 +142,130 @@ export class ArtistsService {
     }
 
     // Update media metadata to link it to this artist
-    await prisma.media.update({
-      where: { id: mediaId },
-      data: {
-        kind,
-        entityType: EntityType.ARTIST,
-        entityId: id,
-      },
+    await this.mediaRepo.update(mediaId, {
+      kind,
+      entityType: EntityType.ARTIST,
+      entityId: id,
     });
 
     if (kind === 'AVATAR') {
-      await prisma.artist.update({ where: { id }, data: { avatarMediaId: mediaId } });
+      await this.repo.update(id, { avatarMediaId: mediaId });
     } else if (kind === 'COVER') {
-      await prisma.artist.update({ where: { id }, data: { coverMediaId: mediaId } });
+      await this.repo.update(id, { coverMediaId: mediaId });
     }
 
-    const finalMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    const finalMedia = await this.mediaRepo.findUnique(mediaId);
     return finalMedia;
   }
 
   async addCertification(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, id, userId, isAdmin);
+    await this.checkOwnership(id, userId, isAdmin);
 
     let mediaId: bigint | undefined;
     if (data.mediaId) {
       mediaId = BigInt(data.mediaId);
-      const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+      const existingMedia = await this.mediaRepo.findUnique(mediaId);
       if (!existingMedia) throw new ApiError(404, 'Media not found');
 
       if (!isAdmin && existingMedia.uploadedBy !== userId) {
         throw new ApiError(403, 'You do not have permission to use this media');
       }
 
-      await prisma.media.update({
-        where: { id: mediaId },
-        data: {
-          kind: 'CERTIFICATE',
-          entityType: EntityType.ARTIST,
-          entityId: id,
-        }
+      await this.mediaRepo.update(mediaId, {
+        kind: 'CERTIFICATE',
+        entityType: EntityType.ARTIST,
+        entityId: id,
       });
     }
 
-    const cert = await prisma.artistCertification.create({
-      data: {
-        artistId: id,
-        title: data.title,
-        issuer: data.issuer,
-        issuerSlug: data.issuerSlug,
-        category: data.category,
-        level: data.level,
-        issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
-        credentialId: data.credentialId,
-        credentialUrl: data.credentialUrl,
-        mediaId,
-      },
+    const cert = await this.repo.createCertification({
+      artistId: id,
+      title: data.title,
+      issuer: data.issuer,
+      issuerSlug: data.issuerSlug,
+      category: data.category,
+      level: data.level,
+      issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
+      expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+      credentialId: data.credentialId,
+      credentialUrl: data.credentialUrl,
+      mediaId,
     });
 
     return cert;
   }
 
   async updateCertification(certId: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const cert = await prisma.artistCertification.findUnique({
-      where: { id: certId },
-    });
+    const cert = await this.repo.findCertificationUnique(certId);
     if (!cert) throw new ApiError(404, 'Certification not found');
 
-    await this.checkOwnership(prisma, cert.artistId, userId, isAdmin);
+    await this.checkOwnership(cert.artistId, userId, isAdmin);
 
-    const updated = await prisma.artistCertification.update({
-      where: { id: certId },
-      data: {
-        ...data,
-        issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
-      },
+    const updated = await this.repo.updateCertification(certId, {
+      ...data,
+      issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
+      expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
     });
     return updated;
   }
 
   async deleteCertification(certId: bigint, userId: bigint, isAdmin: boolean) {
-    const cert = await prisma.artistCertification.findUnique({
-      where: { id: certId },
-    });
+    const cert = await this.repo.findCertificationUnique(certId);
     if (!cert) throw new ApiError(404, 'Certification not found');
 
-    await this.checkOwnership(prisma, cert.artistId, userId, isAdmin);
+    await this.checkOwnership(cert.artistId, userId, isAdmin);
 
-    await prisma.artistCertification.delete({ where: { id: certId } });
+    await this.repo.deleteCertification(certId);
     return { ok: true };
   }
 
   async verifyCertification(certId: bigint, isVerified: boolean, userId: bigint) {
-    await prisma.artistCertification.update({
-      where: { id: certId },
-      data: {
-        isVerified,
-        verifiedAt: new Date(),
-        verifiedById: userId,
-      },
+    await this.repo.updateCertification(certId, {
+      isVerified,
+      verifiedAt: new Date(),
+      verifiedById: userId,
     });
     return { ok: true };
   }
 
   async listSpecialties() {
-    return prisma.specialty.findMany({
-      where: { deletedAt: null },
-      orderBy: { order: 'asc' }
-    });
+    return this.repo.findSpecialties();
   }
 
   async createSpecialty(data: any) {
-    const specialty = await prisma.specialty.create({ data });
-    return specialty;
+    return this.repo.createSpecialty(data);
   }
 
   async updateSpecialty(id: bigint, data: any) {
-    const specialty = await prisma.specialty.update({
-      where: { id },
-      data,
-    });
-    return specialty;
+    return this.repo.updateSpecialty(id, data);
   }
 
   async deleteSpecialty(id: bigint) {
-    await prisma.specialty.update({
-      where: { id },
-      data: { deletedAt: new Date() }
-    });
+    await this.repo.deleteSpecialty(id);
     return { ok: true };
   }
 
   async reorderSpecialties(items: { id: string | bigint, order: number }[]) {
-    return prisma.$transaction(
-      items.map(item => prisma.specialty.update({
-        where: { id: BigInt(item.id) },
-        data: { order: item.order }
-      }))
-    );
+    return withTx(async (tx) => {
+      const results = [];
+      for (const item of items) {
+        const updated = await this.repo.updateSpecialty(BigInt(item.id), { order: item.order }, tx);
+        results.push(updated);
+      }
+      return results;
+    });
   }
 
   async assignSpecialties(id: bigint, specialtyIds: number[], mode: 'replace' | 'append', userId: bigint, isAdmin: boolean) {
-    return prisma.$transaction(async (tx) => {
-      await this.checkOwnership(tx, id, userId, isAdmin);
+    return withTx(async (tx) => {
+      await this.checkOwnership(id, userId, isAdmin, tx);
 
       if (mode === 'replace') {
-        await tx.artistSpecialty.deleteMany({ where: { artistId: id } });
+        await this.repo.deleteSpecialties(id, tx);
       }
 
       for (const sId of specialtyIds) {
-        await tx.artistSpecialty.upsert({
-          where: {
-            artistId_specialtyId: { artistId: id, specialtyId: BigInt(sId) },
-          },
-          create: {
-            artistId: id,
-            specialtyId: BigInt(sId),
-          },
-          update: {},
-        });
+        await this.repo.upsertSpecialty(id, BigInt(sId), tx);
       }
       return { ok: true };
     });

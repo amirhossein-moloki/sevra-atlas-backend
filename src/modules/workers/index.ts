@@ -38,7 +38,7 @@ export const startWorkersGracefully = () => {
     const healthApp = express();
     healthApp.get('/health', async (req, res) => {
       const { redisQueue } = await import('../../shared/redis/redis');
-      const { prisma } = await import('../../shared/db/prisma');
+      const { adminRepository } = await import('../admin/admin.repository');
 
       let isHealthy = true;
       const services = {
@@ -47,7 +47,7 @@ export const startWorkersGracefully = () => {
       };
 
       try {
-        await prisma.$queryRaw`SELECT 1`;
+        await adminRepository.ping();
         services.database = 'CONNECTED';
       } catch (e) {
         services.database = 'DISCONNECTED';

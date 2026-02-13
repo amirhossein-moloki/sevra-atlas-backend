@@ -68,6 +68,7 @@ app.use(
     validateResponses: env.NODE_ENV !== 'test', // Disable response validation in tests for speed and stability
     ignoreUndocumented: false,
     ignorePaths: /^\/backoffice/, // Ignore AdminJS routes from OpenAPI validation
+    // @ts-ignore - ajvOptions is valid in express-openapi-validator 5.x but sometimes has type conflicts
     ajvOptions: {
       allErrors: true,
       strict: false, // Less strict to handle some zod-to-openapi quirks

@@ -28,3 +28,12 @@ redisQueue.on('error', (err) => logger.error('Redis Queue error', err));
 
 // Deprecated export for backward compatibility during migration
 export const redis = redisCache;
+
+export const closeRedisConnections = async () => {
+  try {
+    await redisCache.quit();
+    await redisQueue.quit();
+  } catch (error) {
+    // Ignore errors during closing
+  }
+};

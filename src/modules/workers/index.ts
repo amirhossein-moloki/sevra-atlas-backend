@@ -23,6 +23,15 @@ export const startWorkers = () => {
 
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
+};
+
+export const stopWorkers = async () => {
+  logger.info('Stopping background workers...');
+  await mediaWorker.close();
+};
+
+export const startWorkersGracefully = () => {
+  startWorkers();
 
   // Health check server for Worker process
   if (env.IS_WORKER) {

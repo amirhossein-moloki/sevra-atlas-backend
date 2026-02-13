@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - sevra-prod-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_cache:
+    image: redis:7-alpine
+    restart: always
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_cache_prod_data:/data
+    networks:
+      - sevra-prod-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_queue:
+    image: redis:7-alpine
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
+    volumes:
+      - redis_queue_prod_data:/data
+    networks:
+      - sevra-prod-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npx prisma migrate deploy
+    networks:
+      - sevra-prod-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: always
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - IS_WORKER=false
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+      - REDIS_QUEUE_URL=redis://redis_queue:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis_cache:
+        condition: service_healthy
+      redis_queue:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - uploads_prod_data:/app/uploads
+    networks:
+      - sevra-prod-network
+    expose:
+      - "3000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: always
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - IS_WORKER=true
+      - PORT=3001
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+      - REDIS_QUEUE_URL=redis://redis_queue:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis_cache:
+        condition: service_healthy
+      redis_queue:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - uploads_prod_data:/app/uploads
+    networks:
+      - sevra-prod-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/conf.d:/etc/nginx/templates:ro
+      - ./proxy/certbot/conf:/etc/letsencrypt:ro
+      - ./proxy/certbot/www:/var/www/certbot:ro
+      - uploads_prod_data:/app/uploads:ro
+    environment:
+      - DOMAIN=${DOMAIN}
+    depends_on:
+      - api
+    networks:
+      - sevra-prod-network
+    # Use the existing command pattern but ensure it's robust
+    command: >
+      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./proxy/certbot/conf:/etc/letsencrypt
+      - ./proxy/certbot/www:/var/www/certbot
+    networks:
+      - sevra-prod-network
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
+
+networks:
+  sevra-prod-network:
+    driver: bridge
+
+volumes:
+  postgres_prod_data:
+  redis_cache_prod_data:
+  redis_queue_prod_data:
+  uploads_prod_data:

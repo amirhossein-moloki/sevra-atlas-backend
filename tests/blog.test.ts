@@ -216,7 +216,8 @@ describe('Blog Module E2E', () => {
 
     beforeAll(async () => {
         const post = await prisma.post.findFirst({ where: { authorId: BigInt(authorId) } });
-        postSlug = post!.slug;
+        if (!post) throw new Error('Post not found for comments test');
+        postSlug = post.slug;
     });
 
     it('should allow authenticated user to post a comment', async () => {

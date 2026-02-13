@@ -18,50 +18,52 @@ The project follows a modular, feature-based architecture:
 - `src/shared`: Contains common utilities, middlewares, and configurations.
 - `prisma`: Database schema and seed scripts.
 
-## 🚀 Production Deployment (Docker)
+## 🌍 Environment Guide
 
-The project is fully containerized for production-grade deployment on a VPS.
+The project implements a strict separation of environments using Docker Compose and environment-specific configurations.
+
+### 🛠 1. Local Development (dev)
+Focused on speed, hot-reloading, and minimal dependencies. No SSL complexity.
+
+- **Setup:** `cp .env.development.example .env.development`
+- **Run:** `npm run docker:dev`
+- **Access:** `http://localhost:3000`
+- **Features:** Bind-mounts for source code, automatic restarts via nodemon.
+
+### 🧪 2. Testing & CI (test)
+Isolated and reproducible environment for automated tests.
+
+- **Setup:** `cp .env.test.example .env.test`
+- **Run:** `npm run docker:test`
+- **Features:** Ephemeral Postgres with `tmpfs`, isolated Redis, automatic migrations, and cleanup.
+
+### 🚀 3. Production (prod)
+Hardened environment with Nginx reverse proxy, Certbot SSL, and separate workers.
+
+- **Setup:** `cp .env.production.example .env.production`
+- **Bootstrap SSL:** `./proxy/scripts/init-letsencrypt.sh` (First time only)
+- **Run:** `npm run docker:prod`
+- **Features:** Nginx + Real SSL, Trust Proxy, separate Worker container, AOF Redis for queues.
+
+## 🚀 Production Deployment (Detailed)
 
 1. **Prepare Environment:**
    ```bash
-   cp .env.example .env
-   # Edit .env with production secrets, DOMAIN, and EMAIL
+   cp .env.production.example .env.production
+   # Edit .env.production with real secrets, DOMAIN, and EMAIL
    ```
 
-2. **Bootstrap SSL (First time only):**
+2. **Bootstrap SSL:**
    ```bash
    ./proxy/scripts/init-letsencrypt.sh
    ```
 
 3. **Launch Services:**
    ```bash
-   docker compose up -d
+   npm run docker:prod
    ```
 
-For detailed operations, migrations, and troubleshooting, see the [Production Operations Runbook](DOCS/PRODUCTION_RUNBOOK.md).
-
-## 🛠 Local Development
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Setup DB & Infrastructure:**
-   Ensure you have a local PostgreSQL and Redis running, or use:
-   ```bash
-   docker compose up -d postgres redis_cache redis_queue
-   ```
-
-3. **Database Migrations:**
-   ```bash
-   npx prisma migrate dev
-   ```
-
-4. **Run Server:**
-   ```bash
-   npm run dev
-   ```
+For detailed operations and troubleshooting, see the [Production Operations Runbook](DOCS/PRODUCTION_RUNBOOK.md).
 
 ## OTP Flow (Dev Mode)
 1. Request OTP: `POST /api/v1/auth/otp/request { "phoneNumber": "+989..." }`

@@ -62,12 +62,12 @@ describe('Critical Business Flows E2E', () => {
         const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: phoneNumber } });
         otpCode = otpRecord?.code || null;
       }
-      expect(otpCode).toBeDefined();
+      expect(otpCode).not.toBeNull();
 
       // 3. Verify OTP
       const verifyRes = await request(app)
         .post('/api/v1/auth/otp/verify')
-        .send({ phoneNumber, code: otpCode });
+        .send({ phoneNumber, code: otpCode as string });
 
       expect(verifyRes.status).toBe(200);
       expect(verifyRes).toSatisfyApiSpec();
@@ -110,7 +110,7 @@ describe('Critical Business Flows E2E', () => {
           const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: phoneNumber } });
           code = otpRecord?.code || null;
         }
-        const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber, code });
+        const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber, code: code as string });
         token = res.body.accessToken;
         userId = res.body.user.id;
     });
@@ -261,7 +261,7 @@ describe('Critical Business Flows E2E', () => {
         const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: '+989000000003' } });
         code = otpRecord?.code || null;
       }
-      const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000003', code });
+      const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000003', code: code as string });
       adminToken = res.body.accessToken;
 
       // Create initial Salon
@@ -383,9 +383,9 @@ describe('Critical Business Flows E2E', () => {
 
     beforeAll(async () => {
       // 1. Setup User & Salon
-      const userRes = await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000005' });
+      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000005' });
       const userCode = (await redis.get('otp:+989000000005')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000005'}}))?.code;
-      const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000005', code: userCode });
+      const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000005', code: userCode as string });
       userToken = userVerify.body.accessToken;
       userId5 = userVerify.body.user.id;
 
@@ -404,7 +404,7 @@ describe('Critical Business Flows E2E', () => {
       });
       await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000006' });
       const adminCode = (await redis.get('otp:+989000000006')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000006'}}))?.code;
-      const adminVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000006', code: adminCode });
+      const adminVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000006', code: adminCode as string });
       adminToken = adminVerify.body.accessToken;
     });
 
@@ -471,7 +471,7 @@ describe('Critical Business Flows E2E', () => {
         const phone = '+989000000007';
         await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: phone });
         const code = (await redis.get(`otp:${phone}`)) || (await prisma.otp.findUnique({where:{phoneE164:phone}}))?.code;
-        const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: phone, code });
+        const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: phone, code: code as string });
         authorToken = res.body.accessToken;
         authorId = res.body.user.id;
 

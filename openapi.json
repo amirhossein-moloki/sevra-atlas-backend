@@ -19,41 +19,6 @@
       }
     },
     "schemas": {
-      "AuthResponse": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
-          "user": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "phoneNumber": {
-                "type": "string"
-              },
-              "role": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "phoneNumber",
-              "role"
-            ]
-          }
-        },
-        "required": [
-          "accessToken",
-          "refreshToken",
-          "user"
-        ]
-      },
       "PaginationMeta": {
         "type": "object",
         "properties": {
@@ -90,6 +55,41 @@
             "$ref": "#/components/schemas/PaginationMeta"
           }
         }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "phoneNumber": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "phoneNumber",
+              "role"
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "user"
+        ]
       },
       "User": {
         "type": "object",
@@ -1311,15 +1311,29 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
-                    "message": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
                   "required": [
                     "success",
-                    "message"
+                    "data"
                   ]
                 }
               }

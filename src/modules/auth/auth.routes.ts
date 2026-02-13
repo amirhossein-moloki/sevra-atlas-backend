@@ -31,10 +31,9 @@ registry.registerPath({
       description: 'OTP sent successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.boolean(),
+          schema: withApiSuccess(z.object({
             message: z.string()
-          })
+          }))
         }
       }
     },

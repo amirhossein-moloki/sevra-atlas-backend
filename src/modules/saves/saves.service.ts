@@ -1,46 +1,22 @@
-import { prisma } from '../../shared/db/prisma';
 import { SaveTargetType } from '@prisma/client';
+import { savesRepository, SavesRepository } from './saves.repository';
 
 export class SavesService {
+  constructor(
+    private readonly repo: SavesRepository = savesRepository
+  ) {}
+
   async save(userId: bigint, targetType: SaveTargetType, targetId: bigint) {
-    return prisma.save.upsert({
-      where: {
-        userId_targetType_salonId_artistId_postId: {
-          userId,
-          targetType,
-          salonId: (targetType === 'SALON' ? targetId : null) as any,
-          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
-          postId: (targetType === 'BLOG_POST' ? targetId : null) as any,
-        },
-      },
-      create: {
-        userId,
-        targetType,
-        salonId: targetType === 'SALON' ? targetId : null,
-        artistId: targetType === 'ARTIST' ? targetId : null,
-        postId: targetType === 'BLOG_POST' ? targetId : null,
-      },
-      update: {},
-    });
+    return this.repo.upsert(userId, targetType, targetId);
   }
 
   async unsave(userId: bigint, targetType: SaveTargetType, targetId: bigint) {
-    await prisma.save.delete({
-      where: {
-        userId_targetType_salonId_artistId_postId: {
-          userId,
-          targetType,
-          salonId: (targetType === 'SALON' ? targetId : null) as any,
-          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
-          postId: (targetType === 'BLOG_POST' ? targetId : null) as any,
-        },
-      },
-    });
+    await this.repo.delete(userId, targetType, targetId);
     return { ok: true };
   }
 
   async getMySaves(userId: bigint) {
-    const saves = await prisma.save.findMany({
+    return this.repo.findMany({
       where: { userId },
       include: {
         salon: { select: { id: true, name: true, slug: true } },
@@ -48,6 +24,5 @@ export class SavesService {
         post: { select: { id: true, title: true, slug: true } },
       },
     });
-    return saves;
   }
 }

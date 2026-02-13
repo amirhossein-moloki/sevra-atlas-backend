@@ -1,11 +1,11 @@
-import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { getStorageProvider } from '../../shared/storage';
 import { mediaQueue, MEDIA_JOBS } from '../../shared/queues/media.queue';
-import { MediaStatus, Media } from '@prisma/client';
+import { MediaStatus, Media, Prisma } from '@prisma/client';
 import sharp from 'sharp';
 import { env } from '../../shared/config/env';
 import { processImage } from '../../shared/utils/image';
+import { mediaRepository, MediaRepository } from './media.repository';
 
 export type UploadResult = Media | {
   message: string;
@@ -17,46 +17,45 @@ export type UploadResult = Media | {
 export class MediaService {
   private storage = getStorageProvider();
 
+  constructor(
+    private readonly repo: MediaRepository = mediaRepository
+  ) {}
+
   async listMedia(query: any) {
     const { page = 1, pageSize = 20 } = query;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const [data, total] = await Promise.all([
-      prisma.media.findMany({
-        where: { deletedAt: null },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.media.count({ where: { deletedAt: null } }),
-    ]);
+    const { data, total } = await this.repo.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    });
 
     return {
-      data: data,
-      meta: { page: parseInt(page), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+      data,
+      meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 
   async createMedia(data: any, uploadedBy: bigint) {
-    const media = await prisma.media.create({
-      data: {
-        storageKey: data.storageKey,
-        url: data.url,
-        type: data.type || 'image',
-        mime: data.mime,
-        width: data.width,
-        height: data.height,
-        sizeBytes: data.sizeBytes || 0,
-        variants: data.variants || {},
-        altText: data.altText || '',
-        title: data.title || '',
-        status: data.status || MediaStatus.COMPLETED,
-        uploadedBy,
-        kind: data.kind,
-        entityType: data.entityType,
-        entityId: data.entityId ? BigInt(data.entityId) : undefined,
-      },
+    const media = await this.repo.create({
+      storageKey: data.storageKey,
+      url: data.url,
+      type: data.type || 'image',
+      mime: data.mime,
+      width: data.width,
+      height: data.height,
+      sizeBytes: data.sizeBytes || 0,
+      variants: data.variants || {},
+      altText: data.altText || '',
+      title: data.title || '',
+      status: data.status || MediaStatus.COMPLETED,
+      uploadedBy,
+      kind: data.kind,
+      entityType: data.entityType,
+      entityId: data.entityId ? BigInt(data.entityId) : undefined,
     });
     return media;
   }
@@ -125,35 +124,26 @@ export class MediaService {
   }
 
   async getMedia(id: bigint) {
-    const media = await prisma.media.findFirst({
-      where: { id, deletedAt: null },
-    });
+    const media = await this.repo.findFirst({ id, deletedAt: null });
     if (!media) throw new ApiError(404, 'Media not found');
     return media;
   }
 
   async updateMedia(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const media = await prisma.media.findFirst({
-      where: { id, deletedAt: null }
-    });
+    const media = await this.repo.findFirst({ id, deletedAt: null });
     if (!media) throw new ApiError(404, 'Media not found');
 
     if (!isAdmin && media.uploadedBy !== userId) {
       throw new ApiError(403, 'Forbidden');
     }
 
-    const updated = await prisma.media.update({
-      where: { id },
-      data,
-    });
+    const updated = await this.repo.update(id, data);
 
     return updated;
   }
 
   async deleteMedia(id: bigint, userId: bigint, isAdmin: boolean) {
-    const media = await prisma.media.findFirst({
-      where: { id, deletedAt: null }
-    });
+    const media = await this.repo.findFirst({ id, deletedAt: null });
     if (!media) throw new ApiError(404, 'Media not found');
 
     if (!isAdmin && media.uploadedBy !== userId) {
@@ -161,52 +151,12 @@ export class MediaService {
     }
 
     // Check if referenced
-    const isReferenced = await this.checkMediaReferences(id);
+    const isReferenced = await this.repo.checkReferences(id);
     if (isReferenced) {
       throw new ApiError(409, 'Media is in use and cannot be deleted');
     }
 
-    await prisma.media.update({
-      where: { id },
-      data: { deletedAt: new Date() }
-    });
+    await this.repo.softDelete(id);
     return { ok: true };
-  }
-
-  private async checkMediaReferences(id: bigint) {
-    const [
-      salonAvatar, salonCover,
-      artistAvatar, artistCover,
-      postCover, postOg,
-      authorAvatar,
-      seoOg, seoTwitter,
-      verificationDoc,
-      artistCert,
-      postAttachment
-    ] = await Promise.all([
-      prisma.salon.findFirst({ where: { avatarMediaId: id } }),
-      prisma.salon.findFirst({ where: { coverMediaId: id } }),
-      prisma.artist.findFirst({ where: { avatarMediaId: id } }),
-      prisma.artist.findFirst({ where: { coverMediaId: id } }),
-      prisma.post.findFirst({ where: { coverMediaId: id } }),
-      prisma.post.findFirst({ where: { ogImageId: id } }),
-      prisma.authorProfile.findFirst({ where: { avatarId: id } }),
-      prisma.seoMeta.findFirst({ where: { ogImageMediaId: id } }),
-      prisma.seoMeta.findFirst({ where: { twitterImageMediaId: id } }),
-      prisma.verificationDocument.findFirst({ where: { mediaId: id } }),
-      prisma.artistCertification.findFirst({ where: { mediaId: id } }),
-      prisma.postMedia.findFirst({ where: { mediaId: id } }),
-    ]);
-
-    return !!(
-      salonAvatar || salonCover ||
-      artistAvatar || artistCover ||
-      postCover || postOg ||
-      authorAvatar ||
-      seoOg || seoTwitter ||
-      verificationDoc ||
-      artistCert ||
-      postAttachment
-    );
   }
 }

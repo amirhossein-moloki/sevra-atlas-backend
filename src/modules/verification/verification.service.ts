@@ -1,51 +1,51 @@
-import { prisma } from '../../shared/db/prisma';
-import { VerificationStatus, EntityType, MediaKind } from '@prisma/client';
+import { VerificationStatus, MediaKind, Prisma } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { verificationRepository, VerificationRepository } from './verification.repository';
+import { salonsRepository, SalonsRepository } from '../salons/salons.repository';
+import { artistsRepository, ArtistsRepository } from '../artists/artists.repository';
+import { mediaRepository, MediaRepository } from '../media/media.repository';
+import { withTx } from '../../shared/db/tx';
 
 export class VerificationService {
+  constructor(
+    private readonly repo: VerificationRepository = verificationRepository,
+    private readonly salonsRepo: SalonsRepository = salonsRepository,
+    private readonly artistsRepo: ArtistsRepository = artistsRepository,
+    private readonly mediaRepo: MediaRepository = mediaRepository
+  ) {}
+
   async requestVerification(userId: bigint, data: any) {
     const { targetType, targetId, notes, documents } = data;
     const tId = BigInt(targetId);
 
-    return prisma.$transaction(async (tx) => {
+    return withTx(async (tx) => {
       // 1. Check if target exists and user has permission (is owner)
       if (targetType === 'SALON') {
-        const salon = await tx.salon.findUnique({
-          where: { id: tId },
-          include: { owners: { select: { id: true } } },
-        });
+        const salon = await this.salonsRepo.findUnique(tId, { owners: { select: { id: true } } }, tx);
         if (!salon) throw new ApiError(404, 'Salon not found');
-        const isOwner = salon.owners.some(o => o.id === userId);
+        const isOwner = (salon.owners as any[]).some(o => o.id === userId);
         if (!isOwner) throw new ApiError(403, 'Only owners can request verification');
       } else if (targetType === 'ARTIST') {
-        const artist = await tx.artist.findUnique({
-          where: { id: tId },
-          include: { owners: { select: { id: true } } },
-        });
+        const artist = await this.artistsRepo.findUnique(tId, { owners: { select: { id: true } } }, tx);
         if (!artist) throw new ApiError(404, 'Artist not found');
-        const isOwner = artist.owners.some(o => o.id === userId);
+        const isOwner = (artist.owners as any[]).some(o => o.id === userId);
         if (!isOwner) throw new ApiError(403, 'Only owners can request verification');
       }
 
       // 2. Check if a request already exists
-      const existing = await tx.verificationRequest.findFirst({
-        where: targetType === 'SALON' ? { salonId: tId } : { artistId: tId },
-      });
+      const existing = await this.repo.findFirst(targetType === 'SALON' ? { salonId: tId } : { artistId: tId }, tx);
       if (existing) throw new ApiError(400, 'A verification request already exists for this entity');
 
       const docData = [];
       for (const doc of documents) {
         const mediaId = BigInt(doc.mediaId);
-        const media = await tx.media.findUnique({ where: { id: mediaId } });
+        const media = await this.mediaRepo.findUnique(mediaId, tx);
         if (!media) throw new ApiError(404, `Media ${doc.mediaId} not found`);
         if (media.uploadedBy !== userId) throw new ApiError(403, `You do not own media ${doc.mediaId}`);
 
-        await tx.media.update({
-          where: { id: mediaId },
-          data: {
-            kind: doc.label === 'Business License' ? MediaKind.LICENSE : MediaKind.CERTIFICATE,
-          }
-        });
+        await this.mediaRepo.update(mediaId, {
+          kind: doc.label === 'Business License' ? MediaKind.LICENSE : MediaKind.CERTIFICATE,
+        }, tx);
 
         docData.push({
           mediaId,
@@ -53,18 +53,16 @@ export class VerificationService {
         });
       }
 
-      const request = await tx.verificationRequest.create({
-        data: {
-          requestedById: userId,
-          salonId: targetType === 'SALON' ? tId : null,
-          artistId: targetType === 'ARTIST' ? tId : null,
-          notes,
-          status: VerificationStatus.PENDING,
-          documents: {
-            create: docData,
-          },
+      const request = await this.repo.create({
+        requestedById: userId,
+        salonId: targetType === 'SALON' ? tId : null,
+        artistId: targetType === 'ARTIST' ? tId : null,
+        notes,
+        status: VerificationStatus.PENDING,
+        documents: {
+          create: docData,
         },
-      });
+      }, tx);
 
       return request;
     });
@@ -75,19 +73,16 @@ export class VerificationService {
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.VerificationRequestWhereInput = {};
     if (status) where.status = status as VerificationStatus;
 
-    const [data, total] = await Promise.all([
-      prisma.verificationRequest.findMany({
-        where,
-        include: { documents: { include: { media: true } }, requestedBy: true },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.verificationRequest.count({ where }),
-    ]);
+    const { data, total } = await this.repo.findMany({
+      where,
+      include: { documents: { include: { media: true } }, requestedBy: true },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    });
 
     return {
       data: data,
@@ -98,32 +93,21 @@ export class VerificationService {
   async reviewRequest(requestId: bigint, data: any, userId: bigint) {
     const { status, notes } = data;
 
-    return prisma.$transaction(async (tx) => {
-      const request = await tx.verificationRequest.findUnique({
-        where: { id: requestId },
-      });
+    return withTx(async (tx) => {
+      const request = await this.repo.findUnique(requestId, tx);
       if (!request) throw new ApiError(404, 'Verification request not found');
 
-      const updatedRequest = await tx.verificationRequest.update({
-        where: { id: requestId },
-        data: {
-          status: status as VerificationStatus,
-          notes: notes || request.notes,
-          reviewedById: userId,
-        },
-      });
+      const updatedRequest = await this.repo.update(requestId, {
+        status: status as VerificationStatus,
+        notes: notes || request.notes,
+        reviewedById: userId,
+      }, tx);
 
       if (status === VerificationStatus.VERIFIED) {
         if (request.salonId) {
-          await tx.salon.update({
-            where: { id: request.salonId },
-            data: { verification: VerificationStatus.VERIFIED },
-          });
+          await this.salonsRepo.update(request.salonId, { verification: VerificationStatus.VERIFIED }, tx);
         } else if (request.artistId) {
-          await tx.artist.update({
-            where: { id: request.artistId },
-            data: { verification: VerificationStatus.VERIFIED },
-          });
+          await this.artistsRepo.update(request.artistId, { verification: VerificationStatus.VERIFIED }, tx);
         }
       }
 

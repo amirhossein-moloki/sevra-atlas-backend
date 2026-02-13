@@ -1,133 +1,103 @@
-import { prisma } from '../../shared/db/prisma';
 import { handleSlugChange } from '../../shared/utils/seo';
 import { EntityType } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { geoRepository, GeoRepository } from './geo.repository';
+import { withTx } from '../../shared/db/tx';
 
 export class GeoService {
+  constructor(
+    private readonly repo: GeoRepository = geoRepository
+  ) {}
+
   async getProvinces() {
-    const provinces = await prisma.province.findMany({
+    return this.repo.findProvinces({
       orderBy: { nameFa: 'asc' },
     });
-    return provinces;
   }
 
   async getProvinceCities(slug: string) {
-    const cities = await prisma.city.findMany({
+    return this.repo.findCities({
       where: { province: { slug } },
       orderBy: { nameFa: 'asc' },
     });
-    return cities;
   }
 
   async getCityBySlug(slug: string) {
-    const city = await prisma.city.findFirst({
-      where: { slug },
-      include: { neighborhoods: true, cityStats: true },
-    });
-    return city;
+    return this.repo.findCityFirst({ slug }, { neighborhoods: true, cityStats: true });
   }
 
   async refreshCityStats(cityId: bigint) {
     const [salonCount, artistCount, aggregation] = await Promise.all([
-      prisma.salon.count({ where: { cityId, status: 'ACTIVE' } }),
-      prisma.artist.count({ where: { cityId, status: 'ACTIVE' } }),
-      prisma.salon.aggregate({
+      this.repo.countSalons({ cityId, status: 'ACTIVE' }),
+      this.repo.countArtists({ cityId, status: 'ACTIVE' }),
+      this.repo.aggregateSalons({
         where: { cityId, status: 'ACTIVE' },
         _avg: { avgRating: true }
       })
     ]);
 
-    await prisma.cityStats.upsert({
-      where: { cityId },
-      update: {
-        salonCount,
-        artistCount,
-        avgRating: aggregation._avg.avgRating || 0,
-      },
-      create: {
-        cityId,
-        salonCount,
-        artistCount,
-        avgRating: aggregation._avg.avgRating || 0,
-      }
+    await this.repo.upsertCityStats(cityId, {
+      salonCount,
+      artistCount,
+      avgRating: (aggregation as any)._avg.avgRating || 0,
     });
   }
 
   async getCityNeighborhoods(slug: string) {
-    const neighborhoods = await prisma.neighborhood.findMany({
+    return this.repo.findNeighborhoods({
       where: { city: { slug } },
       orderBy: { nameFa: 'asc' },
     });
-    return neighborhoods;
   }
 
   async createProvince(data: any) {
-    const result = await prisma.province.create({ data: this.handleBigInts(data) });
-    return result;
+    return this.repo.createProvince(this.handleBigInts(data));
   }
 
   async createCity(data: any) {
-    const result = await prisma.city.create({
-      data: {
-        ...this.handleBigInts(data),
-        provinceId: BigInt(data.provinceId),
-      },
+    return this.repo.createCity({
+      ...this.handleBigInts(data),
+      provinceId: BigInt(data.provinceId),
     });
-    return result;
   }
 
   async createNeighborhood(data: any) {
-    const result = await prisma.neighborhood.create({
-      data: {
-        ...this.handleBigInts(data),
-        cityId: BigInt(data.cityId),
-      },
+    return this.repo.createNeighborhood({
+      ...this.handleBigInts(data),
+      cityId: BigInt(data.cityId),
     });
-    return result;
   }
 
   async updateCity(id: string, data: any) {
     const cityId = BigInt(id);
-    return prisma.$transaction(async (tx) => {
-      const city = await tx.city.findUnique({ where: { id: cityId } });
+    return withTx(async (tx) => {
+      const city = await this.repo.findCityUnique(cityId, tx);
       if (!city) throw new ApiError(404, 'City not found');
 
       if (data.slug && data.slug !== city.slug) {
         await handleSlugChange(EntityType.CITY, cityId, city.slug, data.slug, '/atlas/city', tx);
       }
 
-      const result = await tx.city.update({
-        where: { id: cityId },
-        data: this.handleBigInts(data),
-      });
-      return result;
+      return this.repo.updateCity(cityId, this.handleBigInts(data), tx);
     });
   }
 
   async updateProvince(id: string, data: any) {
     const provinceId = BigInt(id);
-    return prisma.$transaction(async (tx) => {
-      const province = await tx.province.findUnique({ where: { id: provinceId } });
+    return withTx(async (tx) => {
+      const province = await this.repo.findProvinceUnique(provinceId, tx);
       if (!province) throw new ApiError(404, 'Province not found');
 
       if (data.slug && data.slug !== province.slug) {
         await handleSlugChange(EntityType.PROVINCE, provinceId, province.slug, data.slug, '/atlas/province', tx);
       }
 
-      const result = await tx.province.update({
-        where: { id: provinceId },
-        data: this.handleBigInts(data),
-      });
-      return result;
+      return this.repo.updateProvince(provinceId, this.handleBigInts(data), tx);
     });
   }
 
   async updateNeighborhood(id: string, data: any) {
-    const result = await prisma.neighborhood.update({
-      where: { id: BigInt(id) },
-      data: this.handleBigInts(data),
-    });
-    return result;
+    return this.repo.updateNeighborhood(BigInt(id), this.handleBigInts(data));
   }
 
   private handleBigInts(data: any) {

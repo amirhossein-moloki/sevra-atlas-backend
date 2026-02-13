@@ -1,79 +1,43 @@
-import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
+import { salonsRepository, SalonsRepository } from './salons.repository';
+import { mediaRepository, MediaRepository } from '../media/media.repository';
+import { withTx } from '../../shared/db/tx';
+import { SalonQueryFragments } from '../../shared/db/queryFragments';
 
 export class SalonsService {
+  constructor(
+    private readonly repo: SalonsRepository = salonsRepository,
+    private readonly mediaRepo: MediaRepository = mediaRepository
+  ) {}
+
   async getSalons(filters: any) {
     const cacheKey = CacheKeys.SALONS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
-      const { q, province, city, neighborhood, service, verified, minRating, womenOnly, priceTier, minReviewCount, sort, page = 1, pageSize = 20 } = filters;
-    const limit = parseInt(pageSize as string) || 20;
-    const skip = (parseInt(page as string || '1') - 1) * limit;
+      const page = parseInt(filters.page as string || '1');
+      const pageSize = parseInt(filters.pageSize as string || '20');
+      const skip = (page - 1) * pageSize;
 
-    const where: any = {
-      status: AccountStatus.ACTIVE,
-      deletedAt: null,
-    };
-
-    if (q) {
-      where.OR = [
-        { name: { contains: q as string, mode: 'insensitive' } },
-        { description: { contains: q as string, mode: 'insensitive' } },
-        { summary: { contains: q as string, mode: 'insensitive' } },
-      ];
-    }
-
-    if (province) where.city = { province: { slug: province } };
-    if (city) where.city = { slug: city };
-    if (neighborhood) where.neighborhood = { slug: neighborhood };
-    if (service) where.services = { some: { service: { slug: service } } };
-    if (verified === 'true') where.verification = 'VERIFIED';
-    if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
-    if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
-    if (womenOnly === 'true') where.isWomenOnly = true;
-    if (priceTier) where.priceTier = parseInt(priceTier as string);
-
-    let orderBy: any = { createdAt: 'desc' };
-    if (sort === 'rating') orderBy = { avgRating: 'desc' };
-    if (sort === 'popular') orderBy = { reviewCount: 'desc' };
-    if (sort === 'new') orderBy = { createdAt: 'desc' };
-
-    const [data, total] = await Promise.all([
-      prisma.salon.findMany({
-        where,
-        orderBy,
+      const { data, total } = await this.repo.findSalons({
+        ...filters,
         skip,
-        take: limit,
-        include: { avatar: true, city: true, neighborhood: true },
-      }),
-      prisma.salon.count({ where }),
-    ]);
+        take: pageSize,
+      });
 
       return {
-        data: data,
-        meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+        data,
+        meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
       };
     }, 300, { staleWhileRevalidate: 60 });
   }
 
   async getSalonBySlug(slug: string) {
     return CacheService.wrap(CacheKeys.SALON_DETAIL(slug), async () => {
-      const salon = await prisma.salon.findFirst({
-      where: { slug, deletedAt: null },
-      include: {
-        avatar: true,
-        cover: true,
-        city: true,
-        neighborhood: true,
-        services: { include: { service: true } },
-        salonArtists: { include: { artist: true } },
-        seoMeta: true,
-      },
-    });
+      const salon = await this.repo.findBySlug(slug, SalonQueryFragments.DETAIL_INCLUDE);
 
       if (!salon || salon.status !== AccountStatus.ACTIVE) {
         throw new ApiError(404, 'Salon not found');
@@ -84,17 +48,17 @@ export class SalonsService {
   }
 
   async createSalon(data: any, userId: bigint) {
-    return prisma.$transaction(async (tx) => {
-      const salon = await tx.salon.create({
-        data: {
-          ...data,
-          primaryOwnerId: userId,
-          owners: { connect: { id: userId } },
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
-        },
-      });
+    return withTx(async (tx) => {
+      const salon = await this.repo.create({
+        ...data,
+        primaryOwnerId: userId,
+        owners: { connect: { id: userId } },
+        cityId: data.cityId ? BigInt(data.cityId) : undefined,
+        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+        provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
+        avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
+        coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
+      }, tx);
       await initSeoMeta(EntityType.SALON, salon.id, salon.name, tx);
       // Invalidate lists and geo stats
       await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
@@ -103,14 +67,11 @@ export class SalonsService {
     });
   }
 
-  private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
-    const salon = await tx.salon.findUnique({
-      where: { id },
-      include: { owners: { select: { id: true } } },
-    });
+  private async checkOwnership(id: bigint, userId: bigint, isAdmin: boolean, tx?: any) {
+    const salon = await this.repo.findUnique(id, { owners: { select: { id: true } } }, tx);
     if (!salon) throw new ApiError(404, 'Salon not found');
 
-    const isOwner = salon.owners.some((o: any) => o.id === userId);
+    const isOwner = (salon.owners as any[]).some((o: any) => o.id === userId);
     if (!isAdmin && !isOwner) {
       throw new ApiError(403, 'Forbidden');
     }
@@ -118,24 +79,21 @@ export class SalonsService {
   }
 
   async updateSalon(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    return prisma.$transaction(async (tx) => {
-      const salon = await this.checkOwnership(tx, id, userId, isAdmin);
+    return withTx(async (tx) => {
+      const salon = await this.checkOwnership(id, userId, isAdmin, tx);
 
       if (data.slug && data.slug !== salon.slug) {
         await handleSlugChange(EntityType.SALON, id, salon.slug, data.slug, '/atlas/salon', tx);
       }
 
-      const updatedSalon = await tx.salon.update({
-        where: { id },
-        data: {
-          ...data,
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
-          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
-          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
-        },
-      });
+      const updatedSalon = await this.repo.update(id, {
+        ...data,
+        cityId: data.cityId ? BigInt(data.cityId) : undefined,
+        neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+        provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
+        avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
+        coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
+      }, tx);
 
       // Invalidate
       await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
@@ -145,72 +103,52 @@ export class SalonsService {
   }
 
   async deleteSalon(id: bigint, userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, id, userId, isAdmin);
+    await this.checkOwnership(id, userId, isAdmin);
 
-    await prisma.salon.update({
-      where: { id },
-      data: { status: AccountStatus.DELETED, deletedAt: new Date() },
-    });
+    await this.repo.softDelete(id);
     return { ok: true };
   }
 
   async assignServices(id: bigint, serviceData: { serviceId: number; notes?: string }[], mode: 'append' | 'replace', userId: bigint, isAdmin: boolean) {
-    return prisma.$transaction(async (tx) => {
-      await this.checkOwnership(tx, id, userId, isAdmin);
+    return withTx(async (tx) => {
+      await this.checkOwnership(id, userId, isAdmin, tx);
 
       if (mode === 'replace') {
-        await tx.salonService.deleteMany({ where: { salonId: id } });
+        await this.repo.deleteServices(id, tx);
       }
 
       for (const item of serviceData) {
-        await tx.salonService.upsert({
-          where: {
-            salonId_serviceId: { salonId: id, serviceId: BigInt(item.serviceId) },
-          },
-          create: {
-            salonId: id,
-            serviceId: BigInt(item.serviceId),
-            notes: item.notes,
-          },
-          update: {
-            notes: item.notes,
-          },
-        });
+        await this.repo.upsertService(id, BigInt(item.serviceId), item.notes, tx);
       }
       return { ok: true };
     });
   }
 
   async removeService(id: bigint, serviceId: bigint, userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, id, userId, isAdmin);
+    await this.checkOwnership(id, userId, isAdmin);
 
-    await prisma.salonService.delete({
-      where: { salonId_serviceId: { salonId: id, serviceId } },
-    });
+    await this.repo.deleteService(id, serviceId);
     return { ok: true };
   }
 
   async attachMedia(id: bigint, data: { mediaId?: string | bigint; mediaIds?: (string | bigint)[] }, kind: 'AVATAR' | 'COVER' | 'GALLERY', userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, id, userId, isAdmin);
+    await this.checkOwnership(id, userId, isAdmin);
 
     if (kind === 'GALLERY' && data.mediaIds) {
       const results = [];
       for (const mId of data.mediaIds) {
         const mediaId = BigInt(mId);
-        const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+        const existingMedia = await this.mediaRepo.findUnique(mediaId);
         if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
 
         if (!isAdmin && existingMedia.uploadedBy !== userId) {
           throw new ApiError(403, `You do not have permission to use media ${mId}`);
         }
 
-        const updated = await prisma.media.update({
-          where: { id: mediaId },
-          data: {
-            kind,
-            entityType: EntityType.SALON,
-            entityId: id,
-          },
+        const updated = await this.mediaRepo.update(mediaId, {
+          kind,
+          entityType: EntityType.SALON,
+          entityId: id,
         });
         results.push(updated);
       }
@@ -222,7 +160,7 @@ export class SalonsService {
     }
 
     const mediaId = BigInt(data.mediaId);
-    const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    const existingMedia = await this.mediaRepo.findUnique(mediaId);
     if (!existingMedia) throw new ApiError(404, 'Media not found');
 
     if (!isAdmin && existingMedia.uploadedBy !== userId) {
@@ -230,54 +168,37 @@ export class SalonsService {
     }
 
     // Update media metadata to link it to this salon
-    await prisma.media.update({
-      where: { id: mediaId },
-      data: {
-        kind,
-        entityType: EntityType.SALON,
-        entityId: id,
-      },
+    await this.mediaRepo.update(mediaId, {
+      kind,
+      entityType: EntityType.SALON,
+      entityId: id,
     });
 
     if (kind === 'AVATAR') {
-      await prisma.salon.update({ where: { id }, data: { avatarMediaId: mediaId } });
+      await this.repo.update(id, { avatarMediaId: mediaId });
     } else if (kind === 'COVER') {
-      await prisma.salon.update({ where: { id }, data: { coverMediaId: mediaId } });
+      await this.repo.update(id, { coverMediaId: mediaId });
     }
 
-    const finalMedia = await prisma.media.findUnique({ where: { id: mediaId } });
+    const finalMedia = await this.mediaRepo.findUnique(mediaId);
     return finalMedia;
   }
 
   async linkArtist(salonId: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, salonId, userId, isAdmin);
+    await this.checkOwnership(salonId, userId, isAdmin);
 
-    const salonArtist = await prisma.salonArtist.upsert({
-      where: {
-        salonId_artistId: { salonId, artistId: BigInt(data.artistId) },
-      },
-      create: {
-        salonId,
-        artistId: BigInt(data.artistId),
-        roleTitle: data.roleTitle,
-        isActive: data.isActive ?? true,
-        startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
-      },
-      update: {
-        roleTitle: data.roleTitle,
-        isActive: data.isActive,
-        startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
-      },
+    const salonArtist = await this.repo.upsertArtist(salonId, BigInt(data.artistId), {
+      roleTitle: data.roleTitle,
+      isActive: data.isActive ?? true,
+      startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
     });
     return salonArtist;
   }
 
   async unlinkArtist(salonId: bigint, artistId: bigint, userId: bigint, isAdmin: boolean) {
-    await this.checkOwnership(prisma, salonId, userId, isAdmin);
+    await this.checkOwnership(salonId, userId, isAdmin);
 
-    await prisma.salonArtist.delete({
-      where: { salonId_artistId: { salonId, artistId } },
-    });
+    await this.repo.deleteArtist(salonId, artistId);
     return { ok: true };
   }
 }

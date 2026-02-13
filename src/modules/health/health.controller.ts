@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../../shared/db/prisma';
+import { adminRepository, AdminRepository } from '../admin/admin.repository';
 import { redisCache, redisQueue } from '../../shared/redis/redis';
 import { env } from '../../shared/config/env';
 
@@ -15,11 +15,15 @@ interface HealthStatus {
 }
 
 export class HealthController {
-  async check(req: Request, res: Response) {
+  constructor(
+    private readonly adminRepo: AdminRepository = adminRepository
+  ) {}
+
+  check = async (req: Request, res: Response) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
   }
 
-  async ready(req: Request, res: Response) {
+  ready = async (req: Request, res: Response) => {
     const health: HealthStatus = {
       status: 'OK',
       timestamp: new Date().toISOString(),
@@ -35,7 +39,7 @@ export class HealthController {
 
     // Check Database
     try {
-      await prisma.$queryRaw`SELECT 1`;
+      await this.adminRepo.ping();
       health.services.database = 'CONNECTED';
     } catch (error) {
       health.services.database = 'DISCONNECTED';

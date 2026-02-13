@@ -1,26 +1,28 @@
-import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType } from '@prisma/client';
+import { withTx } from '../../shared/db/tx';
+import { taxonomyRepository, TaxonomyRepository } from './taxonomy.repository';
 
 export class BlogTaxonomyService {
+  constructor(
+    private readonly repo: TaxonomyRepository = taxonomyRepository
+  ) {}
+
   // Categories
   async listCategories() {
-    const data = await prisma.category.findMany({
+    return this.repo.findCategories({
       where: { deletedAt: null },
       include: { parent: true }
     });
-    return data;
   }
 
   async createCategory(data: any) {
-    return prisma.$transaction(async (tx) => {
-      const result = await tx.category.create({
-        data: {
-          ...data,
-          parentId: data.parentId ? BigInt(data.parentId) : undefined
-        }
-      });
+    return withTx(async (tx) => {
+      const result = await this.repo.createCategory({
+        ...data,
+        parentId: data.parentId ? BigInt(data.parentId) : undefined
+      }, tx);
       await initSeoMeta(EntityType.CATEGORY, result.id, result.name, tx);
       return result;
     });
@@ -28,18 +30,15 @@ export class BlogTaxonomyService {
 
   async getCategory(id: string | bigint) {
     const categoryId = BigInt(id);
-    const category = await prisma.category.findFirst({
-      where: { id: categoryId, deletedAt: null },
-      include: { parent: true }
-    });
+    const category = await this.repo.findCategoryFirst({ id: categoryId, deletedAt: null }, { parent: true });
     if (!category) throw new ApiError(404, 'Category not found');
     return category;
   }
 
   async updateCategory(id: string | bigint, data: any) {
     const categoryId = BigInt(id);
-    return prisma.$transaction(async (tx) => {
-      const category = await tx.category.findUnique({ where: { id: categoryId } });
+    return withTx(async (tx) => {
+      const category = await this.repo.findCategoryUnique(categoryId, undefined, tx);
       if (!category) throw new ApiError(404, 'Category not found');
 
       if (data.slug && data.slug !== category.slug) {
@@ -47,37 +46,30 @@ export class BlogTaxonomyService {
       }
 
       const { parentId, ...rest } = data;
-      const result = await tx.category.update({
-        where: { id: categoryId },
-        data: {
-          ...rest,
-          parentId: parentId ? BigInt(parentId) : (parentId === null ? null : undefined)
-        }
-      });
+      const result = await this.repo.updateCategory(categoryId, {
+        ...rest,
+        parentId: parentId ? BigInt(parentId) : (parentId === null ? null : undefined)
+      }, tx);
       return result;
     });
   }
 
   async deleteCategory(id: string | bigint) {
     const categoryId = BigInt(id);
-    await prisma.category.update({
-      where: { id: categoryId },
-      data: { deletedAt: new Date() }
-    });
+    await this.repo.softDeleteCategory(categoryId);
     return { ok: true };
   }
 
   // Tags
   async listTags() {
-    const data = await prisma.tag.findMany({
+    return this.repo.findTags({
       where: { deletedAt: null }
     });
-    return data;
   }
 
   async createTag(data: any) {
-    return prisma.$transaction(async (tx) => {
-      const result = await tx.tag.create({ data });
+    return withTx(async (tx) => {
+      const result = await this.repo.createTag(data, tx);
       await initSeoMeta(EntityType.TAG, result.id, result.name, tx);
       return result;
     });
@@ -85,48 +77,42 @@ export class BlogTaxonomyService {
 
   async getTag(id: string | bigint) {
     const tagId = BigInt(id);
-    const tag = await prisma.tag.findFirst({
-      where: { id: tagId, deletedAt: null }
-    });
+    const tag = await this.repo.findTagFirst({ id: tagId, deletedAt: null });
     if (!tag) throw new ApiError(404, 'Tag not found');
     return tag;
   }
 
   async updateTag(id: string | bigint, data: any) {
     const tagId = BigInt(id);
-    return prisma.$transaction(async (tx) => {
-      const tag = await tx.tag.findUnique({ where: { id: tagId } });
+    return withTx(async (tx) => {
+      const tag = await this.repo.findTagUnique(tagId, tx);
       if (!tag) throw new ApiError(404, 'Tag not found');
 
       if (data.slug && data.slug !== tag.slug) {
         await handleSlugChange(EntityType.TAG, tagId, tag.slug, data.slug, '/blog/tag', tx);
       }
 
-      const result = await tx.tag.update({ where: { id: tagId }, data });
+      const result = await this.repo.updateTag(tagId, data, tx);
       return result;
     });
   }
 
   async deleteTag(id: string | bigint) {
     const tagId = BigInt(id);
-    await prisma.tag.update({
-      where: { id: tagId },
-      data: { deletedAt: new Date() }
-    });
+    await this.repo.softDeleteTag(tagId);
     return { ok: true };
   }
 
   // Series
   async listSeries() {
-    const data = await prisma.series.findMany({
+    return this.repo.findSeries({
       where: { deletedAt: null }
     });
-    return data;
   }
 
   async createSeries(data: any) {
-    return prisma.$transaction(async (tx) => {
-      const result = await tx.series.create({ data });
+    return withTx(async (tx) => {
+      const result = await this.repo.createSeries(data, tx);
       await initSeoMeta(EntityType.SERIES, result.id, result.title, tx);
       return result;
     });
@@ -134,43 +120,40 @@ export class BlogTaxonomyService {
 
   async getSeries(id: string | bigint) {
     const seriesId = BigInt(id);
-    const series = await prisma.series.findFirst({
-      where: { id: seriesId, deletedAt: null }
-    });
+    const series = await this.repo.findSeriesFirst({ id: seriesId, deletedAt: null });
     if (!series) throw new ApiError(404, 'Series not found');
     return series;
   }
 
   async updateSeries(id: string | bigint, data: any) {
     const seriesId = BigInt(id);
-    return prisma.$transaction(async (tx) => {
-      const series = await tx.series.findUnique({ where: { id: seriesId } });
+    return withTx(async (tx) => {
+      const series = await this.repo.findSeriesUnique(seriesId, tx);
       if (!series) throw new ApiError(404, 'Series not found');
 
       if (data.slug && data.slug !== series.slug) {
         await handleSlugChange(EntityType.SERIES, seriesId, series.slug, data.slug, '/blog/series', tx);
       }
 
-      const result = await tx.series.update({ where: { id: seriesId }, data });
+      const result = await this.repo.updateSeries(seriesId, data, tx);
       return result;
     });
   }
 
   async deleteSeries(id: string | bigint) {
     const seriesId = BigInt(id);
-    await prisma.series.update({
-      where: { id: seriesId },
-      data: { deletedAt: new Date() }
-    });
+    await this.repo.softDeleteSeries(seriesId);
     return { ok: true };
   }
 
   async reorderCategories(items: { id: string | bigint, order: number }[]) {
-    return prisma.$transaction(
-      items.map(item => prisma.category.update({
-        where: { id: BigInt(item.id) },
-        data: { order: item.order }
-      }))
-    );
+    return withTx(async (tx) => {
+      const results = [];
+      for (const item of items) {
+        const updated = await this.repo.updateCategory(BigInt(item.id), { order: item.order }, tx);
+        results.push(updated);
+      }
+      return results;
+    });
   }
 }

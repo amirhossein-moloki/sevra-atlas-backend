@@ -1,27 +1,30 @@
-import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
+import { servicesRepository, ServicesRepository } from './services.repository';
+import { withTx } from '../../shared/db/tx';
+import { Prisma } from '@prisma/client';
 
 export class ServicesService {
+  constructor(
+    private readonly repo: ServicesRepository = servicesRepository
+  ) {}
+
   async listServiceCategories(query: any) {
     const { include, q, page = 1, pageSize = 20 } = query;
-    const skip = (parseInt(page as string || '1') - 1) * (parseInt(pageSize as string) || 20);
     const limit = parseInt(pageSize as string) || 20;
+    const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.ServiceCategoryWhereInput = { deletedAt: null };
     if (q) {
-      where.nameFa = { contains: q, mode: 'insensitive' };
+      where.nameFa = { contains: q as string, mode: 'insensitive' as const };
     }
 
-    const [categories, total] = await Promise.all([
-      prisma.serviceCategory.findMany({
-        where,
-        include: include === 'categories' ? { services: true } : undefined,
-        skip,
-        take: limit,
-        orderBy: { order: 'asc' },
-      }),
-      prisma.serviceCategory.count({ where }),
-    ]);
+    const { data: categories, total } = await this.repo.findCategories({
+      where,
+      include: include === 'categories' ? { services: true } : undefined,
+      skip,
+      take: limit,
+      orderBy: { order: 'asc' },
+    });
 
     return {
       data: categories,
@@ -30,69 +33,51 @@ export class ServicesService {
   }
 
   async getServiceBySlug(slug: string) {
-    const service = await prisma.serviceDefinition.findFirst({
-      where: { slug, deletedAt: null },
-    });
+    const service = await this.repo.findServiceFirst({ slug, deletedAt: null });
     if (!service) throw new ApiError(404, 'Service not found');
     return service;
   }
 
   async createCategory(data: any) {
-    const category = await prisma.serviceCategory.create({ data });
-    return category;
+    return this.repo.createCategory(data);
   }
 
   async createService(data: any) {
-    const service = await prisma.serviceDefinition.create({
-      data: {
-        ...data,
-        categoryId: BigInt(data.categoryId),
-      },
+    return this.repo.createService({
+      ...data,
+      categoryId: BigInt(data.categoryId),
     });
-    return service;
   }
 
   async updateService(id: string, data: any) {
-    const service = await prisma.serviceDefinition.update({
-      where: { id: BigInt(id) },
-      data: {
-        ...data,
-        categoryId: data.categoryId ? BigInt(data.categoryId) : undefined,
-      },
+    return this.repo.updateService(BigInt(id), {
+      ...data,
+      categoryId: data.categoryId ? BigInt(data.categoryId) : undefined,
     });
-    return service;
   }
 
   async updateCategory(id: string, data: any) {
-    const category = await prisma.serviceCategory.update({
-      where: { id: BigInt(id) },
-      data,
-    });
-    return category;
+    return this.repo.updateCategory(BigInt(id), data);
   }
 
   async deleteCategory(id: string) {
-    await prisma.serviceCategory.update({
-      where: { id: BigInt(id) },
-      data: { deletedAt: new Date() },
-    });
+    await this.repo.softDeleteCategory(BigInt(id));
     return { ok: true };
   }
 
   async deleteService(id: string) {
-    await prisma.serviceDefinition.update({
-      where: { id: BigInt(id) },
-      data: { deletedAt: new Date() },
-    });
+    await this.repo.softDeleteService(BigInt(id));
     return { ok: true };
   }
 
   async reorderCategories(items: { id: string | bigint, order: number }[]) {
-    return prisma.$transaction(
-      items.map(item => prisma.serviceCategory.update({
-        where: { id: BigInt(item.id) },
-        data: { order: item.order }
-      }))
-    );
+    return withTx(async (tx) => {
+      const results = [];
+      for (const item of items) {
+        const updated = await this.repo.updateCategory(BigInt(item.id), { order: item.order }, tx);
+        results.push(updated);
+      }
+      return results;
+    });
   }
 }

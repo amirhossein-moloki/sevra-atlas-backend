@@ -19,7 +19,8 @@ async function start() {
     let server: any;
 
     if (env.IS_WORKER) {
-      startWorkers();
+      const { startWorkersGracefully } = await import('./modules/workers');
+      startWorkersGracefully();
       logger.info('Worker process started');
     } else {
       server = app.listen(env.PORT, () => {

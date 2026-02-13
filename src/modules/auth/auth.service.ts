@@ -7,10 +7,11 @@ import { ApiError } from '../../shared/errors/ApiError';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../shared/auth/jwt';
 import { UserRole } from '@prisma/client';
 import { logger } from '../../shared/logger/logger';
+import crypto from 'crypto';
 
 export class AuthService {
   async requestOtp(phoneNumber: string, ip?: string, userAgent?: string) {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = crypto.randomInt(100000, 1000000).toString();
     const redisKey = `otp:${phoneNumber}`;
     const expiresAt = new Date(Date.now() + env.OTP_TTL_SECONDS * 1000);
 
@@ -107,7 +108,7 @@ export class AuthService {
       user = await prisma.user.create({
         data: {
           phoneNumber,
-          username: `user_${Date.now()}`,
+          username: `user_${crypto.randomBytes(4).toString('hex')}_${Date.now()}`,
           firstName: '',
           lastName: '',
           email: '',

@@ -2,10 +2,17 @@ import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { getStorageProvider } from '../../shared/storage';
 import { mediaQueue, MEDIA_JOBS } from '../../shared/queues/media.queue';
-import { MediaStatus } from '@prisma/client';
+import { MediaStatus, Media } from '@prisma/client';
 import sharp from 'sharp';
 import { env } from '../../shared/config/env';
 import { processImage } from '../../shared/utils/image';
+
+export type UploadResult = Media | {
+  message: string;
+  mediaId: string;
+  status: MediaStatus;
+  url: string;
+};
 
 export class MediaService {
   private storage = getStorageProvider();
@@ -54,7 +61,7 @@ export class MediaService {
     return media;
   }
 
-  async uploadAndOptimize(file: Express.Multer.File, uploadedBy: bigint) {
+  async uploadAndOptimize(file: Express.Multer.File, uploadedBy: bigint): Promise<UploadResult> {
     if (!file.mimetype.startsWith('image/')) {
       throw new ApiError(400, 'Only image files are supported for optimization');
     }

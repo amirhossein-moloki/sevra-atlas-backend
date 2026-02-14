@@ -13,7 +13,7 @@ export const redisCache = new Redis(config.redis.url, {
   ...redisConfig,
   password: config.redis.password,
   maxRetriesPerRequest: 1,
-  enableOfflineQueue: false,
+  enableOfflineQueue: true, // Allow queuing during short blips or startup
 });
 
 // Queue Redis (Dedicated for BullMQ)

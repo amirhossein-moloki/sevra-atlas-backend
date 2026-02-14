@@ -6,12 +6,12 @@ const postsService = new PostsService();
 
 export class PostsController {
   async listPosts(req: Request, res: Response) {
-    const result = await postsService.listPosts(req.query, (req as any).user);
+    const result = await postsService.listPosts(req.query, req.user);
     res.json(result);
   }
 
   async getPost(req: Request, res: Response) {
-    const result = await postsService.getPostBySlug(req.params.slug, (req as any).user);
+    const result = await postsService.getPostBySlug(req.params.slug, req.user);
     res.json(result);
   }
 

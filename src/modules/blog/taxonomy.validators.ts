@@ -6,7 +6,7 @@ export const createCategorySchema = z.object({
   body: z.object({
     name: z.string().min(1).max(255),
     slug: slugSchema,
-    parentId: z.union([z.string(), z.number(), z.bigint()]).optional().nullable(),
+    parentId: z.string().optional().nullable().openapi({ type: 'string' }),
     description: z.string().optional().default(''),
     order: z.number().int().optional().default(0),
   }),

@@ -8,9 +8,11 @@ export class SavesService {
         userId_targetType_salonId_artistId_postId: {
           userId,
           targetType,
-          salonId: (targetType === 'SALON' ? targetId : null) as any,
-          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
-          postId: (targetType === 'BLOG_POST' ? targetId : null) as any,
+          // Use unknown cast for null values to satisfy Prisma's strict compound unique key types
+          // while maintaining runtime correctness (PostgreSQL allows NULL in unique constraints)
+          salonId: targetType === 'SALON' ? BigInt(targetId) : (null as unknown as bigint),
+          artistId: targetType === 'ARTIST' ? BigInt(targetId) : (null as unknown as bigint),
+          postId: targetType === 'BLOG_POST' ? BigInt(targetId) : (null as unknown as bigint),
         },
       },
       create: {
@@ -30,9 +32,9 @@ export class SavesService {
         userId_targetType_salonId_artistId_postId: {
           userId,
           targetType,
-          salonId: (targetType === 'SALON' ? targetId : null) as any,
-          artistId: (targetType === 'ARTIST' ? targetId : null) as any,
-          postId: (targetType === 'BLOG_POST' ? targetId : null) as any,
+          salonId: targetType === 'SALON' ? BigInt(targetId) : (null as unknown as bigint),
+          artistId: targetType === 'ARTIST' ? BigInt(targetId) : (null as unknown as bigint),
+          postId: targetType === 'BLOG_POST' ? BigInt(targetId) : (null as unknown as bigint),
         },
       },
     });

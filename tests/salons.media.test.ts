@@ -57,7 +57,10 @@ describe('SalonsService Media Fixes', () => {
         where: { id: salonId },
         data: { avatarMediaId: mediaId }
       }));
-      expect(result.url).toBe('test-url');
+      if (Array.isArray(result)) {
+        throw new Error('Expected single object, got array');
+      }
+      expect(result?.url).toBe('test-url');
     });
 
     it('should throw error if linking media not owned by user', async () => {

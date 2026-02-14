@@ -19,344 +19,6 @@
       }
     },
     "schemas": {
-      "PaginationMeta": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "type": "number"
-          },
-          "pageSize": {
-            "type": "number"
-          },
-          "limit": {
-            "type": "number"
-          },
-          "total": {
-            "type": "number"
-          },
-          "totalItems": {
-            "type": "number"
-          },
-          "totalPages": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "page"
-        ]
-      },
-      "ApiMeta": {
-        "type": "object",
-        "properties": {
-          "requestId": {
-            "type": "string"
-          },
-          "pagination": {
-            "$ref": "#/components/schemas/PaginationMeta"
-          }
-        }
-      },
-      "AuthResponse": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
-          "user": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "phoneNumber": {
-                "type": "string"
-              },
-              "role": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "phoneNumber",
-              "role"
-            ]
-          }
-        },
-        "required": [
-          "accessToken",
-          "refreshToken",
-          "user"
-        ]
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string",
-            "nullable": true
-          },
-          "lastName": {
-            "type": "string",
-            "nullable": true
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "USER",
-              "SALON",
-              "ARTIST",
-              "AUTHOR",
-              "MODERATOR",
-              "ADMIN"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "SUSPENDED",
-              "DELETED"
-            ]
-          },
-          "gender": {
-            "type": "string",
-            "nullable": true,
-            "enum": [
-              "FEMALE",
-              "MALE",
-              "OTHER",
-              "UNSPECIFIED"
-            ]
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "cityId": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "username",
-          "phoneNumber",
-          "firstName",
-          "lastName",
-          "role",
-          "status",
-          "gender",
-          "bio",
-          "cityId",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "Follow": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "followerId": {
-            "type": "string"
-          },
-          "targetType": {
-            "type": "string"
-          },
-          "salonId": {
-            "type": "string",
-            "nullable": true
-          },
-          "artistId": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "followerId",
-          "targetType"
-        ]
-      },
-      "Save": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "targetType": {
-            "type": "string"
-          },
-          "salonId": {
-            "type": "string",
-            "nullable": true
-          },
-          "artistId": {
-            "type": "string",
-            "nullable": true
-          },
-          "postId": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "userId",
-          "targetType"
-        ]
-      },
-      "Province": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nameFa": {
-            "type": "string"
-          },
-          "nameEn": {
-            "type": "string",
-            "nullable": true
-          },
-          "slug": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "nameFa",
-          "slug"
-        ]
-      },
-      "City": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "provinceId": {
-            "type": "string"
-          },
-          "nameFa": {
-            "type": "string"
-          },
-          "nameEn": {
-            "type": "string",
-            "nullable": true
-          },
-          "slug": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "provinceId",
-          "nameFa",
-          "slug"
-        ]
-      },
-      "Neighborhood": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "cityId": {
-            "type": "string"
-          },
-          "nameFa": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "cityId",
-          "nameFa",
-          "slug"
-        ]
-      },
-      "ServiceCategory": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nameFa": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "order": {
-            "type": "number",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "nameFa",
-          "slug",
-          "order"
-        ]
-      },
-      "Service": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "categoryId": {
-            "type": "string"
-          },
-          "nameFa": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "category": {
-            "$ref": "#/components/schemas/ServiceCategory"
-          }
-        },
-        "required": [
-          "id",
-          "categoryId",
-          "nameFa",
-          "slug",
-          "description"
-        ]
-      },
       "Media": {
         "type": "object",
         "properties": {
@@ -510,6 +172,72 @@
           "breadcrumbLabel"
         ]
       },
+      "City": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nameFa",
+          "nameEn",
+          "slug"
+        ]
+      },
+      "Neighborhood": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nameFa",
+          "slug"
+        ]
+      },
+      "Specialty": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "nameFa",
+          "slug",
+          "order"
+        ]
+      },
       "Salon": {
         "type": "object",
         "properties": {
@@ -574,28 +302,7 @@
                 "$ref": "#/components/schemas/City"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "nameFa": {
-                    "type": "string"
-                  },
-                  "nameEn": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "slug": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "nameFa",
-                  "nameEn",
-                  "slug"
-                ]
+                "nullable": true
               }
             ]
           },
@@ -605,23 +312,7 @@
                 "$ref": "#/components/schemas/Neighborhood"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "nameFa": {
-                    "type": "string"
-                  },
-                  "slug": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "nameFa",
-                  "slug"
-                ]
+                "nullable": true
               }
             ]
           }
@@ -640,58 +331,6 @@
           "reviewCount",
           "verification",
           "status"
-        ]
-      },
-      "Review": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "rating": {
-            "type": "number"
-          },
-          "title": {
-            "type": "string",
-            "nullable": true
-          },
-          "body": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "author": {
-            "type": "object",
-            "properties": {
-              "firstName": {
-                "type": "string"
-              },
-              "lastName": {
-                "type": "string"
-              },
-              "avatar": {
-                "type": "string",
-                "nullable": true
-              }
-            },
-            "required": [
-              "firstName",
-              "lastName"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "rating",
-          "title",
-          "body",
-          "status",
-          "createdAt"
         ]
       },
       "Artist": {
@@ -742,28 +381,7 @@
                 "$ref": "#/components/schemas/City"
               },
               {
-                "nullable": true,
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "nameFa": {
-                    "type": "string"
-                  },
-                  "nameEn": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "slug": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "id",
-                  "nameFa",
-                  "nameEn",
-                  "slug"
-                ]
+                "nullable": true
               }
             ]
           }
@@ -778,67 +396,6 @@
           "reviewCount",
           "verification",
           "status"
-        ]
-      },
-      "Specialty": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nameFa": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "order": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "id",
-          "nameFa",
-          "slug",
-          "order"
-        ]
-      },
-      "ArtistCertification": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "issuer": {
-            "type": "string"
-          },
-          "issuedAt": {
-            "type": "string",
-            "nullable": true
-          },
-          "isVerified": {
-            "type": "boolean"
-          },
-          "media": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Media"
-              },
-              {
-                "nullable": true
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "issuer",
-          "issuedAt",
-          "isVerified"
         ]
       },
       "BlogPost": {
@@ -928,97 +485,6 @@
           "status"
         ]
       },
-      "Comment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "content": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "user": {
-            "type": "object",
-            "properties": {
-              "username": {
-                "type": "string"
-              },
-              "firstName": {
-                "type": "string"
-              },
-              "lastName": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "username",
-              "firstName",
-              "lastName"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "content",
-          "createdAt",
-          "status",
-          "user"
-        ]
-      },
-      "Report": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
-          },
-          "details": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "reason",
-          "details",
-          "status"
-        ]
-      },
-      "VerificationRequest": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "status",
-          "notes",
-          "createdAt"
-        ]
-      },
       "Category": {
         "type": "object",
         "properties": {
@@ -1071,6 +537,139 @@
           "description"
         ]
       },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "username",
+              "firstName",
+              "lastName"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "content",
+          "createdAt",
+          "status",
+          "user"
+        ]
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "author": {
+            "type": "object",
+            "properties": {
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "avatar": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "firstName",
+              "lastName"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "rating",
+          "title",
+          "body",
+          "status",
+          "createdAt"
+        ]
+      },
+      "ArtistCertification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "media": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "issuer",
+          "issuedAt",
+          "isVerified"
+        ]
+      },
       "Series": {
         "type": "object",
         "properties": {
@@ -1097,6 +696,35 @@
           "slug",
           "description",
           "orderStrategy"
+        ]
+      },
+      "Author": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "avatar": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "nullable": true
+              }
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "bio"
         ]
       },
       "Revision": {
@@ -1243,33 +871,306 @@
           "location"
         ]
       },
-      "Author": {
+      "Follow": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string"
+          },
+          "followerId": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": "string"
+          },
+          "salonId": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "followerId",
+          "targetType"
+        ]
+      },
+      "Save": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
           "userId": {
             "type": "string"
           },
-          "displayName": {
+          "targetType": {
             "type": "string"
           },
-          "bio": {
+          "salonId": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistId": {
+            "type": "string",
+            "nullable": true
+          },
+          "postId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "targetType"
+        ]
+      },
+      "VerificationRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
             "type": "string"
           },
-          "avatar": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Media"
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "notes",
+          "createdAt"
+        ]
+      },
+      "Report": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reason",
+          "details",
+          "status"
+        ]
+      },
+      "ApiMeta": {
+        "type": "object"
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
               },
-              {
-                "nullable": true
+              "phoneNumber": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
               }
+            },
+            "required": [
+              "id",
+              "phoneNumber",
+              "role"
             ]
           }
         },
         "required": [
-          "userId",
-          "displayName",
-          "bio"
+          "accessToken",
+          "refreshToken",
+          "user"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "SALON",
+              "ARTIST",
+              "AUTHOR",
+              "MODERATOR",
+              "ADMIN"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED",
+              "DELETED"
+            ]
+          },
+          "gender": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "FEMALE",
+              "MALE",
+              "OTHER",
+              "UNSPECIFIED"
+            ]
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "cityId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "phoneNumber",
+          "firstName",
+          "lastName",
+          "role",
+          "status",
+          "gender",
+          "bio",
+          "cityId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Province": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nameFa",
+          "slug"
+        ]
+      },
+      "ServiceCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "nameFa",
+          "slug",
+          "order"
+        ]
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "nameFa": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "$ref": "#/components/schemas/ServiceCategory"
+          }
+        },
+        "required": [
+          "id",
+          "categoryId",
+          "nameFa",
+          "slug",
+          "description"
         ]
       }
     },
@@ -2142,7 +2043,37 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/City"
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/City"
+                          },
+                          {
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "provinceId": {
+                                "type": "string"
+                              },
+                              "nameFa": {
+                                "type": "string"
+                              },
+                              "nameEn": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "slug": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "provinceId",
+                              "nameFa",
+                              "slug"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "meta": {
@@ -2191,7 +2122,37 @@
                       ]
                     },
                     "data": {
-                      "$ref": "#/components/schemas/City"
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/City"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "provinceId": {
+                              "type": "string"
+                            },
+                            "nameFa": {
+                              "type": "string"
+                            },
+                            "nameEn": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "slug": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "provinceId",
+                            "nameFa",
+                            "slug"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2241,7 +2202,33 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Neighborhood"
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/Neighborhood"
+                          },
+                          {
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "cityId": {
+                                "type": "string"
+                              },
+                              "nameFa": {
+                                "type": "string"
+                              },
+                              "slug": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "cityId",
+                              "nameFa",
+                              "slug"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "meta": {
@@ -2313,7 +2300,37 @@
                       ]
                     },
                     "data": {
-                      "$ref": "#/components/schemas/City"
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/City"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "provinceId": {
+                              "type": "string"
+                            },
+                            "nameFa": {
+                              "type": "string"
+                            },
+                            "nameEn": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "slug": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "provinceId",
+                            "nameFa",
+                            "slug"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2381,7 +2398,33 @@
                       ]
                     },
                     "data": {
-                      "$ref": "#/components/schemas/Neighborhood"
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Neighborhood"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "cityId": {
+                              "type": "string"
+                            },
+                            "nameFa": {
+                              "type": "string"
+                            },
+                            "slug": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "cityId",
+                            "nameFa",
+                            "slug"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2423,7 +2466,31 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/City"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/City"
+                  },
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "provinceId": {
+                        "type": "string"
+                      },
+                      "nameFa": {
+                        "type": "string"
+                      },
+                      "nameEn": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "slug": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -2443,7 +2510,37 @@
                       ]
                     },
                     "data": {
-                      "$ref": "#/components/schemas/City"
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/City"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "provinceId": {
+                              "type": "string"
+                            },
+                            "nameFa": {
+                              "type": "string"
+                            },
+                            "nameEn": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "slug": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "provinceId",
+                            "nameFa",
+                            "slug"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -2485,7 +2582,27 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Neighborhood"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Neighborhood"
+                  },
+                  {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "cityId": {
+                        "type": "string"
+                      },
+                      "nameFa": {
+                        "type": "string"
+                      },
+                      "slug": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -2505,7 +2622,33 @@
                       ]
                     },
                     "data": {
-                      "$ref": "#/components/schemas/Neighborhood"
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Neighborhood"
+                        },
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "cityId": {
+                              "type": "string"
+                            },
+                            "nameFa": {
+                              "type": "string"
+                            },
+                            "slug": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "cityId",
+                            "nameFa",
+                            "slug"
+                          ]
+                        }
+                      ]
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
@@ -3030,17 +3173,8 @@
                     ]
                   },
                   "entityId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string",
+                    "description": "Polymorphic entity ID (string or number, but sent as string)"
                   }
                 },
                 "required": [
@@ -7006,21 +7140,7 @@
                     "maxLength": 2000
                   },
                   "parentId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -9000,7 +9120,7 @@
                           "type": "string"
                         },
                         "progress": {
-                          "nullable": true
+                          "type": "object"
                         },
                         "failedReason": {
                           "type": "string"
@@ -9012,17 +9132,20 @@
                           "type": "number"
                         },
                         "data": {
-                          "nullable": true
+                          "type": "object"
                         },
                         "returnValue": {
-                          "nullable": true
+                          "type": "object"
                         }
                       },
                       "required": [
                         "id",
                         "name",
                         "status",
-                        "timestamp"
+                        "progress",
+                        "timestamp",
+                        "data",
+                        "returnValue"
                       ]
                     },
                     "meta": {
@@ -9170,19 +9293,19 @@
                         "salons": {
                           "type": "array",
                           "items": {
-                            "nullable": true
+                            "$ref": "#/components/schemas/Salon"
                           }
                         },
                         "artists": {
                           "type": "array",
                           "items": {
-                            "nullable": true
+                            "$ref": "#/components/schemas/Artist"
                           }
                         },
                         "posts": {
                           "type": "array",
                           "items": {
-                            "nullable": true
+                            "$ref": "#/components/schemas/BlogPost"
                           }
                         }
                       },
@@ -9275,21 +9398,7 @@
                     "pattern": "^[a-z0-9-]+$"
                   },
                   "parentId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   },
                   "description": {
                     "type": "string",
@@ -9425,21 +9534,7 @@
                     "pattern": "^[a-z0-9-]+$"
                   },
                   "parentId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   },
                   "description": {
                     "type": "string",
@@ -10892,35 +10987,10 @@
                 "type": "object",
                 "properties": {
                   "menuId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      }
-                    ]
+                    "type": "string"
                   },
                   "parentId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   },
                   "label": {
                     "type": "string",
@@ -11010,21 +11080,7 @@
                 "type": "object",
                 "properties": {
                   "parentId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   },
                   "label": {
                     "type": "string",
@@ -11197,18 +11253,7 @@
                 "type": "object",
                 "properties": {
                   "userId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      }
-                    ]
+                    "type": "string"
                   },
                   "displayName": {
                     "type": "string",
@@ -11218,21 +11263,7 @@
                     "type": "string"
                   },
                   "avatarId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -11357,21 +11388,7 @@
                     "type": "string"
                   },
                   "avatarId": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string",
-                        "pattern": "^d+$"
-                      },
-                      {
-                        "nullable": true
-                      }
-                    ]
+                    "type": "string"
                   }
                 }
               }

@@ -1,3 +1,4 @@
+import '../types/express';
 import '../routes'; // This triggers all registrations
 import { writeOpenApiSpec } from '../shared/openapi/generator';
 

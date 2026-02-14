@@ -15,7 +15,7 @@ export const createMediaSchema = z.object({
     title: z.string().max(255).optional().default(''),
     kind: z.enum(['AVATAR', 'COVER', 'GALLERY', 'LICENSE', 'CERTIFICATE', 'OG_IMAGE']).optional(),
     entityType: z.enum(['SALON', 'ARTIST', 'REVIEW', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY']).optional(),
-    entityId: z.union([z.string(), z.number()]).optional().nullable(),
+    entityId: z.string().optional().nullable().openapi({ type: 'string', description: 'Polymorphic entity ID (string or number, but sent as string)' }),
   }),
 });
 

@@ -5,12 +5,12 @@ const usersService = new UsersService();
 
 export class UsersController {
   async getMe(req: Request, res: Response) {
-    const user = await usersService.getUserById((req as any).user.id.toString());
+    const user = await usersService.getUserById(req.user!.id.toString());
     res.json(user);
   }
 
   async updateMe(req: Request, res: Response) {
-    const user = await usersService.updateUser((req as any).user.id.toString(), req.body);
+    const user = await usersService.updateUser(req.user!.id.toString(), req.body);
     res.json({ ok: true, user });
   }
 

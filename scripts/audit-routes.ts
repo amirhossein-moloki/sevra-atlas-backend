@@ -60,8 +60,9 @@ async function audit() {
 
   const serverPrefix = openapi.servers?.[0]?.url || '';
 
-  for (const [pathKey, pathItem] of Object.entries(openapi.paths)) {
-    for (const method of Object.keys(pathItem as any)) {
+  const paths = openapi.paths as Record<string, Record<string, unknown>>;
+  for (const [pathKey, pathItem] of Object.entries(paths)) {
+    for (const method of Object.keys(pathItem)) {
       if (['get', 'post', 'put', 'delete', 'patch', 'options', 'head'].includes(method.toLowerCase())) {
         openapiEndpoints.push({
           method: method.toUpperCase(),

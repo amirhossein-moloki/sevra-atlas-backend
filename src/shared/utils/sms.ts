@@ -31,13 +31,14 @@ export class KavenegarSmsProvider implements ISmsProvider {
       const url = `https://api.kavenegar.com/v1/${this.apiKey}/verify/lookup.json?receptor=${phoneNumber}&token=${code}&template=verify`;
 
       const response = await fetch(url);
-      const data = await response.json() as any;
+      const data = await response.json() as Record<string, unknown>;
 
       if (!response.ok) {
         throw new Error(`Kavenegar API error: ${response.status} ${response.statusText} - ${JSON.stringify(data)}`);
       }
 
-      console.info(`[Kavenegar] Successfully sent SMS to ${phoneNumber}. Message ID: ${data.entries?.[0]?.messageid}`);
+      const entries = data.entries as Record<string, unknown>[] | undefined;
+      console.info(`[Kavenegar] Successfully sent SMS to ${phoneNumber}. Message ID: ${entries?.[0]?.messageid}`);
     } catch (error) {
       console.error(`[Kavenegar] CRITICAL: Failed to send SMS to ${phoneNumber}:`, error);
       throw error;

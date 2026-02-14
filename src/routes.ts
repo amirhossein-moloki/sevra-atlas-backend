@@ -25,6 +25,7 @@ const artistsController = new ArtistsController();
 const searchController = new SearchController();
 
 import { registry, withApiSuccess, z } from './shared/openapi/registry';
+import { SalonSchema, ArtistSchema, BlogPostSchema } from './shared/openapi/schemas';
 registry.registerPath({
   method: 'get',
   path: '/search',
@@ -39,9 +40,9 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: withApiSuccess(z.object({
-            salons: z.array(z.any()),
-            artists: z.array(z.any()),
-            posts: z.array(z.any())
+            salons: z.array(SalonSchema),
+            artists: z.array(ArtistSchema),
+            posts: z.array(BlogPostSchema)
           }))
         }
       }

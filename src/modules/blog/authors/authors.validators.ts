@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 export const createAuthorSchema = z.object({
   body: z.object({
-    userId: z.union([z.string(), z.number(), z.bigint()]),
+    userId: z.string().openapi({ type: 'string' }),
     displayName: z.string().min(1),
     bio: z.string(),
-    avatarId: z.union([z.string(), z.number(), z.bigint()]).optional().nullable(),
+    avatarId: z.string().optional().nullable().openapi({ type: 'string' }),
   }),
 });
 

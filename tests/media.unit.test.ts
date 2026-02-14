@@ -12,6 +12,15 @@ jest.mock('../src/shared/storage', () => ({
   getStorageProvider: jest.fn().mockReturnValue(storageMock),
 }));
 
+jest.mock('../src/shared/queues/media.queue', () => ({
+  mediaQueue: {
+    add: jest.fn().mockResolvedValue({ id: 'job-id' }),
+  },
+  MEDIA_JOBS: {
+    PROCESS_IMAGE: 'process-image',
+  },
+}));
+
 import { MediaService, UploadResult } from '../src/modules/media/media.service';
 import sharp from 'sharp';
 

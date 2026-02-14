@@ -1,6 +1,6 @@
-import { z } from './registry';
+import { z, registry } from './registry';
 
-export const MediaSchema = z.object({
+export const MediaSchema = registry.register('Media', z.object({
   id: z.string(),
   url: z.string(),
   storageKey: z.string(),
@@ -21,9 +21,9 @@ export const MediaSchema = z.object({
     sizeBytes: z.number(),
   })).nullable(),
   createdAt: z.string(),
-}).openapi('Media');
+}));
 
-export const SeoMetaSchema = z.object({
+export const SeoMetaSchema = registry.register('SeoMeta', z.object({
   id: z.string(),
   title: z.string().nullable(),
   description: z.string().nullable(),
@@ -34,29 +34,29 @@ export const SeoMetaSchema = z.object({
   twitterDesc: z.string().nullable(),
   h1: z.string().nullable(),
   breadcrumbLabel: z.string().nullable(),
-}).openapi('SeoMeta');
+}));
 
-export const CitySchema = z.object({
+export const CitySchema = registry.register('City', z.object({
   id: z.string(),
   nameFa: z.string(),
   nameEn: z.string().nullable(),
   slug: z.string(),
-}).openapi('City');
+}));
 
-export const NeighborhoodSchema = z.object({
+export const NeighborhoodSchema = registry.register('Neighborhood', z.object({
   id: z.string(),
   nameFa: z.string(),
   slug: z.string(),
-}).openapi('Neighborhood');
+}));
 
-export const SpecialtySchema = z.object({
+export const SpecialtySchema = registry.register('Specialty', z.object({
   id: z.string(),
   nameFa: z.string(),
   slug: z.string(),
   order: z.number(),
-}).openapi('Specialty');
+}));
 
-export const SalonSchema = z.object({
+export const SalonSchema = registry.register('Salon', z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
@@ -73,9 +73,9 @@ export const SalonSchema = z.object({
   avatar: MediaSchema.optional().nullable(),
   city: CitySchema.optional().nullable(),
   neighborhood: NeighborhoodSchema.optional().nullable(),
-}).openapi('Salon');
+}));
 
-export const ArtistSchema = z.object({
+export const ArtistSchema = registry.register('Artist', z.object({
   id: z.string(),
   fullName: z.string(),
   slug: z.string(),
@@ -87,9 +87,9 @@ export const ArtistSchema = z.object({
   status: z.string(),
   avatar: MediaSchema.optional().nullable(),
   city: CitySchema.optional().nullable(),
-}).openapi('Artist');
+}));
 
-export const BlogPostSchema = z.object({
+export const BlogPostSchema = registry.register('BlogPost', z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
@@ -107,24 +107,24 @@ export const BlogPostSchema = z.object({
     slug: z.string(),
   }).optional().nullable(),
   coverMedia: MediaSchema.optional().nullable(),
-}).openapi('BlogPost');
+}));
 
-export const CategorySchema = z.object({
+export const CategorySchema = registry.register('Category', z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
   order: z.number(),
-}).openapi('Category');
+}));
 
-export const TagSchema = z.object({
+export const TagSchema = registry.register('Tag', z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
-}).openapi('Tag');
+}));
 
-export const CommentSchema = z.object({
+export const CommentSchema = registry.register('Comment', z.object({
   id: z.string(),
   content: z.string(),
   createdAt: z.string(),
@@ -134,9 +134,9 @@ export const CommentSchema = z.object({
     firstName: z.string(),
     lastName: z.string(),
   }),
-}).openapi('Comment');
+}));
 
-export const ReviewSchema = z.object({
+export const ReviewSchema = registry.register('Review', z.object({
   id: z.string(),
   rating: z.number(),
   title: z.string().nullable(),
@@ -148,100 +148,100 @@ export const ReviewSchema = z.object({
     lastName: z.string(),
     avatar: z.string().optional().nullable(),
   }).optional(),
-}).openapi('Review');
+}));
 
-export const ArtistCertificationSchema = z.object({
+export const ArtistCertificationSchema = registry.register('ArtistCertification', z.object({
   id: z.string(),
   title: z.string(),
   issuer: z.string(),
   issuedAt: z.string().nullable(),
   isVerified: z.boolean(),
   media: MediaSchema.optional().nullable(),
-}).openapi('ArtistCertification');
+}));
 
-export const SeriesSchema = z.object({
+export const SeriesSchema = registry.register('Series', z.object({
   id: z.string(),
   title: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
   orderStrategy: z.string(),
-}).openapi('Series');
+}));
 
-export const AuthorSchema = z.object({
+export const AuthorSchema = registry.register('Author', z.object({
   userId: z.string(),
   displayName: z.string(),
   bio: z.string(),
   avatar: MediaSchema.optional().nullable(),
-}).openapi('Author');
+}));
 
-export const RevisionSchema = z.object({
+export const RevisionSchema = registry.register('Revision', z.object({
   id: z.string(),
   postId: z.string(),
   title: z.string(),
   content: z.string(),
   changeNote: z.string().nullable(),
   createdAt: z.string(),
-}).openapi('Revision');
+}));
 
-export const ReactionSchema = z.object({
+export const ReactionSchema = registry.register('Reaction', z.object({
   id: z.string(),
   reaction: z.string(),
   userId: z.string(),
   createdAt: z.string(),
-}).openapi('Reaction');
+}));
 
-export const PageSchema = z.object({
+export const PageSchema = registry.register('Page', z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
   content: z.string(),
   status: z.string(),
   publishedAt: z.string().nullable(),
-}).openapi('Page');
+}));
 
-export const MenuItemSchema = z.object({
+export const MenuItemSchema = registry.register('MenuItem', z.object({
   id: z.string(),
   label: z.string(),
   url: z.string(),
   order: z.number(),
   targetBlank: z.boolean(),
   parentId: z.string().nullable(),
-}).openapi('MenuItem');
+}));
 
-export const MenuSchema = z.object({
+export const MenuSchema = registry.register('Menu', z.object({
   id: z.string(),
   name: z.string(),
   location: z.string(),
   items: z.array(MenuItemSchema).optional(),
-}).openapi('Menu');
+}));
 
-export const FollowSchema = z.object({
+export const FollowSchema = registry.register('Follow', z.object({
   id: z.string(),
   followerId: z.string(),
   targetType: z.string(),
   salonId: z.string().optional().nullable(),
   artistId: z.string().optional().nullable(),
-}).openapi('Follow');
+}));
 
-export const SaveSchema = z.object({
+export const SaveSchema = registry.register('Save', z.object({
   id: z.string(),
   userId: z.string(),
   targetType: z.string(),
   salonId: z.string().optional().nullable(),
   artistId: z.string().optional().nullable(),
   postId: z.string().optional().nullable(),
-}).openapi('Save');
+}));
 
-export const VerificationRequestSchema = z.object({
+export const VerificationRequestSchema = registry.register('VerificationRequest', z.object({
   id: z.string(),
   status: z.string(),
   notes: z.string().nullable(),
   createdAt: z.string(),
-}).openapi('VerificationRequest');
+}));
 
-export const ReportSchema = z.object({
+export const ReportSchema = registry.register('Report', z.object({
   id: z.string(),
   reason: z.string(),
   details: z.string().nullable(),
   status: z.string(),
-}).openapi('Report');
+}));

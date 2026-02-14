@@ -66,7 +66,7 @@ function normalizeError(err: unknown): NormalizedError {
 
   // 4) Zod validation
   if (err && typeof err === 'object' && 'name' in err && err.name === 'ZodError') {
-    const error = err as any;
+    const error = err as Record<string, unknown>;
     return {
       status: 400,
       code: 'VALIDATION_ERROR',

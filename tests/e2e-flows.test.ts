@@ -400,7 +400,17 @@ describe('Critical Business Flows E2E', () => {
       await prisma.user.upsert({
           where: { phoneNumber: '+989000000006' },
           update: { role: UserRole.ADMIN },
-          create: { phoneNumber: '+989000000006', username: 'admin_verify', role: UserRole.ADMIN, isStaff: true, isActive: true, referralCode: 'VADM', firstName: '', lastName: '', email: '' } as any
+          create: {
+            phoneNumber: '+989000000006',
+            username: 'admin_verify',
+            role: UserRole.ADMIN,
+            isStaff: true,
+            isActive: true,
+            referralCode: 'VADM',
+            firstName: '',
+            lastName: '',
+            email: ''
+          }
       });
       await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000006' });
       const adminCode = (await redis.get('otp:+989000000006')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000006'}}))?.code;

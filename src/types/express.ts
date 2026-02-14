@@ -3,7 +3,7 @@ import { ApiMeta } from '../shared/utils/response';
 
 declare global {
   namespace Express {
-    export interface Request {
+    interface Request {
       actor?: {
         id?: string;
         actorId?: string;
@@ -20,7 +20,7 @@ declare global {
       };
     }
 
-    export interface Response {
+    interface Response {
       ok<T>(data: T, meta?: Omit<ApiMeta, 'requestId'>): Response;
       created<T>(data: T, meta?: Omit<ApiMeta, 'requestId'>): Response;
       noContent(): Response;
@@ -34,3 +34,5 @@ declare global {
     }
   }
 }
+
+export {};

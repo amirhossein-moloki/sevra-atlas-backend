@@ -4,7 +4,7 @@ import { CommentStatus } from '@prisma/client';
 export const createCommentSchema = z.object({
   body: z.object({
     content: z.string().min(1).max(2000),
-    parentId: z.union([z.string(), z.number(), z.bigint()]).optional().nullable(),
+    parentId: z.string().optional().nullable().openapi({ type: 'string' }),
   }),
 });
 

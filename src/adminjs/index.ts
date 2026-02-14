@@ -20,10 +20,19 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
         AdminJS.registerAdapter({ Resource, Database });
 
         // Prisma 5 metadata extraction helper
-        const prismaAny = prisma as any;
-        const dmmf = prismaAny._runtimeDataModel || prismaAny._baseDmmf;
-        const models = dmmf?.models || (dmmf?.datamodel?.models ?
-            Object.fromEntries((dmmf.datamodel.models as { name: string, fields: any }[]).map((m) => [m.name, m])) : {});
+        interface PrismaInternal {
+          _runtimeDataModel?: { models: Record<string, { name: string; fields: unknown[] }> };
+          _baseDmmf?: { datamodel: { models: { name: string; fields: unknown[] }[] } };
+        }
+        const prismaInternal = prisma as unknown as PrismaInternal;
+        const dmmf = prismaInternal._runtimeDataModel || prismaInternal._baseDmmf;
+        let models: Record<string, { name: string; fields: unknown[] }> = {};
+
+        if (prismaInternal._runtimeDataModel) {
+            models = prismaInternal._runtimeDataModel.models;
+        } else if (prismaInternal._baseDmmf) {
+            models = Object.fromEntries(prismaInternal._baseDmmf.datamodel.models.map(m => [m.name, m]));
+        }
 
         const getModelResource = (modelName: string, options: Record<string, unknown>) => {
             const modelMetadata = models[modelName];

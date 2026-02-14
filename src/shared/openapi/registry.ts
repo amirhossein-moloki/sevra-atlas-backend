@@ -17,12 +17,12 @@ export const PaginationMetaSchema = z.object({
   total: z.number().optional(),
   totalItems: z.number().optional(),
   totalPages: z.number().optional(),
-}).openapi('PaginationMeta');
+}).openapi('PaginationMeta', { type: 'object' });
 
 export const ApiMetaSchema = z.object({
   requestId: z.string().optional(),
   pagination: PaginationMetaSchema.optional(),
-}).openapi('ApiMeta');
+}).openapi('ApiMeta', { type: 'object' });
 
 export function withApiSuccess<T extends z.ZodTypeAny>(dataSchema: T) {
   return z.object({
@@ -32,7 +32,7 @@ export function withApiSuccess<T extends z.ZodTypeAny>(dataSchema: T) {
   });
 }
 
-export function withApiFailure(detailsSchema: z.ZodTypeAny = z.unknown()) {
+export function withApiFailure(detailsSchema: z.ZodTypeAny = z.record(z.any()).nullable().openapi({ type: 'object' })) {
   return z.object({
     success: z.literal(false),
     error: z.object({

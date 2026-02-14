@@ -10,8 +10,8 @@ export class FollowsService {
           targetType,
           // Use unknown cast for null values to satisfy Prisma's strict compound unique key types
           // while maintaining runtime correctness (PostgreSQL allows NULL in unique constraints)
-          salonId: targetType === 'SALON' ? BigInt(targetId) : (null as unknown as bigint),
-          artistId: targetType === 'ARTIST' ? BigInt(targetId) : (null as unknown as bigint),
+          salonId: targetType === 'SALON' ? targetId : (null as unknown as bigint),
+          artistId: targetType === 'ARTIST' ? targetId : (null as unknown as bigint),
         },
       },
       create: {
@@ -30,8 +30,8 @@ export class FollowsService {
         followerId_targetType_salonId_artistId: {
           followerId: userId,
           targetType,
-          salonId: targetType === 'SALON' ? BigInt(targetId) : (null as unknown as bigint),
-          artistId: targetType === 'ARTIST' ? BigInt(targetId) : (null as unknown as bigint),
+          salonId: targetType === 'SALON' ? targetId : (null as unknown as bigint),
+          artistId: targetType === 'ARTIST' ? targetId : (null as unknown as bigint),
         },
       },
     });

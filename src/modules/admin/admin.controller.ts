@@ -4,6 +4,7 @@ import { JobsService } from './jobs.service';
 import { SalonsService } from '../salons/salons.service';
 import { ArtistsService } from '../artists/artists.service';
 import { AccountStatus } from '@prisma/client';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const adminService = new AdminService();
 const jobsService = new JobsService();
@@ -23,12 +24,14 @@ export class AdminController {
   }
 
   async updateSalonStatus(req: Request, res: Response) {
-    const result = await salonsService.updateSalon(BigInt(req.params.id), { status: req.body.status }, BigInt(0), true);
+    const id = safeBigInt(req.params.id);
+    const result = await salonsService.updateSalon(id, { status: req.body.status }, BigInt(0), true);
     res.json(result);
   }
 
   async updateArtistStatus(req: Request, res: Response) {
-    const result = await artistsService.updateArtist(BigInt(req.params.id), { status: req.body.status }, BigInt(0), true);
+    const id = safeBigInt(req.params.id);
+    const result = await artistsService.updateArtist(id, { status: req.body.status }, BigInt(0), true);
     res.json(result);
   }
 

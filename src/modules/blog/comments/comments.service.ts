@@ -1,6 +1,7 @@
 import { prisma } from '../../../shared/db/prisma';
 import { CommentStatus, UserRole } from '@prisma/client';
 import { ApiError } from '../../../shared/errors/ApiError';
+import { safeBigInt } from '../../../shared/utils/bigint';
 
 export class BlogCommentsService {
   async listPostComments(postSlug: string, query: any) {
@@ -40,7 +41,7 @@ export class BlogCommentsService {
         postId: post.id,
         userId,
         content: data.content,
-        parentId: data.parentId ? BigInt(data.parentId) : null,
+        parentId: data.parentId ? safeBigInt(data.parentId, 'parentId') : null,
         status: CommentStatus.pending
       }
     });

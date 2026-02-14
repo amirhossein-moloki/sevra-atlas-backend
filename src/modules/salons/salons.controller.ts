@@ -3,6 +3,7 @@ import { SalonsService } from './salons.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { getPagination, formatPaginatedResponse } from '../../shared/utils/pagination';
 import { isAdmin } from '../../shared/auth/roles';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const salonsService = new SalonsService();
 
@@ -23,9 +24,10 @@ export class SalonsController {
   }
 
   async updateSalon(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.updateSalon(
-      BigInt(req.params.id),
+      id,
       req.body,
       req.user!.id,
       adminMode
@@ -34,9 +36,10 @@ export class SalonsController {
   }
 
   async deleteSalon(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.deleteSalon(
-      BigInt(req.params.id),
+      id,
       req.user!.id,
       adminMode
     );
@@ -44,10 +47,11 @@ export class SalonsController {
   }
 
   async assignServices(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.query.mode as 'append' | 'replace') || 'append';
     const result = await salonsService.assignServices(
-      BigInt(req.params.id),
+      id,
       req.body.services,
       mode,
       req.user!.id,
@@ -57,10 +61,12 @@ export class SalonsController {
   }
 
   async removeService(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
+    const serviceId = safeBigInt(req.params.serviceId, 'serviceId');
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.removeService(
-      BigInt(req.params.id),
-      BigInt(req.params.serviceId),
+      id,
+      serviceId,
       req.user!.id,
       adminMode
     );
@@ -68,9 +74,10 @@ export class SalonsController {
   }
 
   async setAvatar(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
-      BigInt(req.params.id),
+      id,
       { mediaId: req.body.mediaId },
       'AVATAR',
       req.user!.id,
@@ -80,9 +87,10 @@ export class SalonsController {
   }
 
   async setCover(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
-      BigInt(req.params.id),
+      id,
       { mediaId: req.body.mediaId },
       'COVER',
       req.user!.id,
@@ -92,9 +100,10 @@ export class SalonsController {
   }
 
   async addGallery(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
-      BigInt(req.params.id),
+      id,
       { mediaIds: req.body.mediaIds },
       'GALLERY',
       req.user!.id,
@@ -104,9 +113,10 @@ export class SalonsController {
   }
 
   async linkArtist(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.linkArtist(
-      BigInt(req.params.id),
+      id,
       req.body,
       req.user!.id,
       adminMode
@@ -115,10 +125,12 @@ export class SalonsController {
   }
 
   async unlinkArtist(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
+    const artistId = safeBigInt(req.params.artistId, 'artistId');
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.unlinkArtist(
-      BigInt(req.params.id),
-      BigInt(req.params.artistId),
+      id,
+      artistId,
       req.user!.id,
       adminMode
     );

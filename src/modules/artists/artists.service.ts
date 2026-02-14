@@ -5,6 +5,7 @@ import { EntityType, AccountStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
 import { pickAllowedFields } from '../../shared/utils/object';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 export class ArtistsService {
   private readonly allowedFields = [
@@ -122,10 +123,10 @@ export class ArtistsService {
       const artist = await tx.artist.create({
         data: {
           ...safeData,
-          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
-          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
-          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
-          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
+          cityId: safeData.cityId ? safeBigInt(safeData.cityId, 'cityId') : undefined,
+          neighborhoodId: safeData.neighborhoodId ? safeBigInt(safeData.neighborhoodId, 'neighborhoodId') : undefined,
+          avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
+          coverMediaId: safeData.coverMediaId ? safeBigInt(safeData.coverMediaId, 'coverMediaId') : undefined,
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
         },
@@ -166,10 +167,10 @@ export class ArtistsService {
         where: { id },
         data: {
           ...safeData,
-          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
-          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
-          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
-          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
+          cityId: safeData.cityId ? safeBigInt(safeData.cityId, 'cityId') : undefined,
+          neighborhoodId: safeData.neighborhoodId ? safeBigInt(safeData.neighborhoodId, 'neighborhoodId') : undefined,
+          avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
+          coverMediaId: safeData.coverMediaId ? safeBigInt(safeData.coverMediaId, 'coverMediaId') : undefined,
         },
       });
 
@@ -196,7 +197,7 @@ export class ArtistsService {
     if (kind === 'GALLERY' && data.mediaIds) {
       const results = [];
       for (const mId of data.mediaIds) {
-        const mediaId = BigInt(mId);
+        const mediaId = safeBigInt(mId, 'mediaId');
         const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
         if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
 
@@ -221,7 +222,7 @@ export class ArtistsService {
       throw new ApiError(400, 'mediaId is required');
     }
 
-    const mediaId = BigInt(data.mediaId);
+    const mediaId = safeBigInt(data.mediaId, 'mediaId');
     const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
     if (!existingMedia) throw new ApiError(404, 'Media not found');
 
@@ -254,7 +255,7 @@ export class ArtistsService {
 
     let mediaId: bigint | undefined;
     if (data.mediaId) {
-      mediaId = BigInt(data.mediaId);
+      mediaId = safeBigInt(data.mediaId, 'mediaId');
       const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
       if (!existingMedia) throw new ApiError(404, 'Media not found');
 
@@ -309,7 +310,7 @@ export class ArtistsService {
         level: data.level,
         credentialId: data.credentialId,
         credentialUrl: data.credentialUrl,
-        mediaId: data.mediaId ? BigInt(data.mediaId) : undefined,
+        mediaId: data.mediaId ? safeBigInt(data.mediaId, 'mediaId') : undefined,
         issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
@@ -389,13 +390,14 @@ export class ArtistsService {
       }
 
       for (const sId of specialtyIds) {
+        const specialtyId = safeBigInt(sId, 'specialtyId');
         await tx.artistSpecialty.upsert({
           where: {
-            artistId_specialtyId: { artistId: id, specialtyId: BigInt(sId) },
+            artistId_specialtyId: { artistId: id, specialtyId },
           },
           create: {
             artistId: id,
-            specialtyId: BigInt(sId),
+            specialtyId,
           },
           update: {},
         });

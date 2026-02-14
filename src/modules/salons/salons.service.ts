@@ -5,6 +5,7 @@ import { EntityType, AccountStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
 import { pickAllowedFields } from '../../shared/utils/object';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 export class SalonsService {
   private readonly allowedFields = [
@@ -133,11 +134,11 @@ export class SalonsService {
       const salon = await tx.salon.create({
         data: {
           ...safeData,
-          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
-          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
-          provinceId: safeData.provinceId ? BigInt(safeData.provinceId) : undefined,
-          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
-          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
+          cityId: safeData.cityId ? safeBigInt(safeData.cityId, 'cityId') : undefined,
+          neighborhoodId: safeData.neighborhoodId ? safeBigInt(safeData.neighborhoodId, 'neighborhoodId') : undefined,
+          provinceId: safeData.provinceId ? safeBigInt(safeData.provinceId, 'provinceId') : undefined,
+          avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
+          coverMediaId: safeData.coverMediaId ? safeBigInt(safeData.coverMediaId, 'coverMediaId') : undefined,
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
         },
@@ -178,11 +179,11 @@ export class SalonsService {
         where: { id },
         data: {
           ...safeData,
-          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
-          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
-          provinceId: safeData.provinceId ? BigInt(safeData.provinceId) : undefined,
-          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
-          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
+          cityId: safeData.cityId ? safeBigInt(safeData.cityId, 'cityId') : undefined,
+          neighborhoodId: safeData.neighborhoodId ? safeBigInt(safeData.neighborhoodId, 'neighborhoodId') : undefined,
+          provinceId: safeData.provinceId ? safeBigInt(safeData.provinceId, 'provinceId') : undefined,
+          avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
+          coverMediaId: safeData.coverMediaId ? safeBigInt(safeData.coverMediaId, 'coverMediaId') : undefined,
         },
       });
 
@@ -212,13 +213,14 @@ export class SalonsService {
       }
 
       for (const item of serviceData) {
+        const sId = safeBigInt(item.serviceId, 'serviceId');
         await tx.salonService.upsert({
           where: {
-            salonId_serviceId: { salonId: id, serviceId: BigInt(item.serviceId) },
+            salonId_serviceId: { salonId: id, serviceId: sId },
           },
           create: {
             salonId: id,
-            serviceId: BigInt(item.serviceId),
+            serviceId: sId,
             notes: item.notes,
           },
           update: {
@@ -245,7 +247,7 @@ export class SalonsService {
     if (kind === 'GALLERY' && data.mediaIds) {
       const results = [];
       for (const mId of data.mediaIds) {
-        const mediaId = BigInt(mId);
+        const mediaId = safeBigInt(mId, 'mediaId');
         const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
         if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
 
@@ -270,7 +272,7 @@ export class SalonsService {
       throw new ApiError(400, 'mediaId is required');
     }
 
-    const mediaId = BigInt(data.mediaId);
+    const mediaId = safeBigInt(data.mediaId, 'mediaId');
     const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
     if (!existingMedia) throw new ApiError(404, 'Media not found');
 
@@ -300,14 +302,15 @@ export class SalonsService {
 
   async linkArtist(salonId: bigint, data: any, userId: bigint, isAdmin: boolean) {
     await this.checkOwnership(prisma, salonId, userId, isAdmin);
+    const artistId = safeBigInt(data.artistId, 'artistId');
 
     const salonArtist = await prisma.salonArtist.upsert({
       where: {
-        salonId_artistId: { salonId, artistId: BigInt(data.artistId) },
+        salonId_artistId: { salonId, artistId },
       },
       create: {
         salonId,
-        artistId: BigInt(data.artistId),
+        artistId,
         roleTitle: data.roleTitle,
         isActive: data.isActive ?? true,
         startedAt: data.startedAt ? new Date(data.startedAt) : undefined,

@@ -17,10 +17,11 @@ if (fs.existsSync(openapiPath)) {
 afterAll(async () => {
   // Global cleanup to prevent open handles in tests
   try {
-    await mediaWorker.close();
+    // Force close workers and queues to ensure clean exit in tests
+    await mediaWorker.close(true);
     await mediaQueue.close();
     await prisma.$disconnect();
-    await closeRedisConnections();
+    await closeRedisConnections(true);
   } catch (error) {
     // Silent fail in teardown
   }

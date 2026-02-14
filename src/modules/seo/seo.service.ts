@@ -1,6 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { EntityType, AccountStatus, VerificationStatus } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 export class SeoService {
   async resolveRedirect(path: string) {
@@ -11,7 +12,7 @@ export class SeoService {
 
   async setSeoMeta(data: any) {
     const { entityType, entityId, ...meta } = data;
-    const id = BigInt(entityId);
+    const id = safeBigInt(entityId, 'entityId');
 
     return prisma.$transaction(async (tx) => {
       const seoMeta = await tx.seoMeta.upsert({
@@ -20,15 +21,15 @@ export class SeoService {
         },
         update: {
           ...meta,
-          ogImageMediaId: meta.ogImageMediaId ? BigInt(meta.ogImageMediaId) : undefined,
-          twitterImageMediaId: meta.twitterImageMediaId ? BigInt(meta.twitterImageMediaId) : undefined,
+          ogImageMediaId: meta.ogImageMediaId ? safeBigInt(meta.ogImageMediaId, 'ogImageMediaId') : undefined,
+          twitterImageMediaId: meta.twitterImageMediaId ? safeBigInt(meta.twitterImageMediaId, 'twitterImageMediaId') : undefined,
         },
         create: {
           entityType,
           entityId: id,
           ...meta,
-          ogImageMediaId: meta.ogImageMediaId ? BigInt(meta.ogImageMediaId) : undefined,
-          twitterImageMediaId: meta.twitterImageMediaId ? BigInt(meta.twitterImageMediaId) : undefined,
+          ogImageMediaId: meta.ogImageMediaId ? safeBigInt(meta.ogImageMediaId, 'ogImageMediaId') : undefined,
+          twitterImageMediaId: meta.twitterImageMediaId ? safeBigInt(meta.twitterImageMediaId, 'twitterImageMediaId') : undefined,
         },
       });
 

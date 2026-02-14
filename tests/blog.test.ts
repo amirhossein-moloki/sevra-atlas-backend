@@ -90,8 +90,7 @@ describe('Blog Module E2E', () => {
     await prisma.series.deleteMany({});
     await prisma.authorProfile.deleteMany({ where: { userId: BigInt(authorId) } });
     await prisma.user.deleteMany({ where: { id: { in: [BigInt(adminId), BigInt(authorId), BigInt(userId)] } } });
-    await redis.quit();
-    await prisma.$disconnect();
+    // Global cleanup handled in setup-after-env.ts
   });
 
   describe('Taxonomy Management', () => {
@@ -109,8 +108,8 @@ describe('Blog Module E2E', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.name).toBe('Technology');
-      categoryId = res.body.id;
+      expect(res.body.data.name).toBe('Technology');
+      categoryId = res.body.data.id;
     });
 
     it('should allow admin to create a tag', async () => {
@@ -124,8 +123,8 @@ describe('Blog Module E2E', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.name).toBe('TypeScript');
-      tagId = res.body.id;
+      expect(res.body.data.name).toBe('TypeScript');
+      tagId = res.body.data.id;
     });
 
     it('should list categories and tags publicly', async () => {
@@ -162,8 +161,8 @@ describe('Blog Module E2E', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.status).toBe('draft');
-      postId = res.body.id;
+      expect(res.body.data.status).toBe('draft');
+      postId = res.body.data.id;
     });
 
     it('should not show draft post in public list', async () => {
@@ -179,7 +178,7 @@ describe('Blog Module E2E', () => {
         .set('Authorization', `Bearer ${authorToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.status).toBe('published');
+      expect(res.body.data.status).toBe('published');
     });
 
     it('should show published post in public list', async () => {
@@ -197,7 +196,7 @@ describe('Blog Module E2E', () => {
         .send({ slug: newSlug });
 
       expect(res.status).toBe(200);
-      expect(res.body.slug).toBe(newSlug);
+      expect(res.body.data.slug).toBe(newSlug);
 
       // Verify redirect rule
       const redirect = await prisma.redirectRule.findUnique({
@@ -229,9 +228,9 @@ describe('Blog Module E2E', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.content).toBe('Great post! Thanks for sharing.');
-      expect(res.body.status).toBe('pending');
-      commentId = res.body.id;
+      expect(res.body.data.content).toBe('Great post! Thanks for sharing.');
+      expect(res.body.data.status).toBe('pending');
+      commentId = res.body.data.id;
     });
 
     it('should not show pending comment in public list', async () => {
@@ -252,7 +251,7 @@ describe('Blog Module E2E', () => {
         .send({ status: 'approved' });
 
       expect(res.status).toBe(200);
-      expect(res.body.status).toBe('approved');
+      expect(res.body.data.status).toBe('approved');
     });
 
     it('should show approved comment in public list', async () => {
@@ -278,7 +277,7 @@ describe('Blog Module E2E', () => {
         });
 
       expect(res.status).toBe(200);
-      expect(res.body.bio).toBe('Updated bio for E2E author');
+      expect(res.body.data.bio).toBe('Updated bio for E2E author');
     });
   });
 

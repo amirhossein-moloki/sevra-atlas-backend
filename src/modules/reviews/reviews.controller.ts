@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ReviewsService } from './reviews.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { isStaff } from '../../shared/auth/roles';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const reviewsService = new ReviewsService();
 
@@ -12,8 +13,9 @@ export class ReviewsController {
   }
 
   async voteReview(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const result = await reviewsService.voteReview(
-      BigInt(req.params.id),
+      id,
       req.user!.id,
       req.body.isLike
     );
@@ -31,8 +33,9 @@ export class ReviewsController {
   }
 
   async deleteReview(req: AuthRequest, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isStaff(req.user?.role);
-    const result = await reviewsService.deleteReview(BigInt(req.params.id), req.user!.id, adminMode);
+    const result = await reviewsService.deleteReview(id, req.user!.id, adminMode);
     res.json(result);
   }
 }

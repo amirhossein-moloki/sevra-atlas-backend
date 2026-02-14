@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { BlogCommentsService } from './comments.service';
 import { AuthRequest } from '../../../shared/middlewares/auth.middleware';
 import { isAdmin } from '../../../shared/auth/roles';
+import { safeBigInt } from '../../../shared/utils/bigint';
 
 const commentsService = new BlogCommentsService();
 
@@ -23,12 +24,14 @@ export class BlogCommentsController {
   }
 
   async updateCommentStatus(req: AuthRequest, res: Response) {
-    const result = await commentsService.updateCommentStatus(BigInt(req.params.id), req.body.status);
+    const id = safeBigInt(req.params.id);
+    const result = await commentsService.updateCommentStatus(id, req.body.status);
     res.json(result);
   }
 
   async deleteComment(req: AuthRequest, res: Response) {
-    const result = await commentsService.deleteComment(BigInt(req.params.id));
+    const id = safeBigInt(req.params.id);
+    const result = await commentsService.deleteComment(id);
     res.json(result);
   }
 }

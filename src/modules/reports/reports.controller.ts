@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { ReportStatus } from '@prisma/client';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const reportsService = new ReportsService();
 
@@ -17,7 +18,8 @@ export class ReportsController {
   }
 
   async updateStatus(req: AuthRequest, res: Response) {
-    const result = await reportsService.updateReportStatus(BigInt(req.params.id), req.body.status as ReportStatus);
+    const id = safeBigInt(req.params.id);
+    const result = await reportsService.updateReportStatus(id, req.body.status as ReportStatus);
     res.json(result);
   }
 }

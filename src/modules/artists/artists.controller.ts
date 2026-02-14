@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ArtistsService } from './artists.service';
 import { isAdmin } from '../../shared/auth/roles';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const artistsService = new ArtistsService();
 
@@ -21,12 +22,14 @@ export class ArtistsController {
   }
 
   async updateSpecialty(req: Request, res: Response) {
-    const result = await artistsService.updateSpecialty(BigInt(req.params.id), req.body);
+    const id = safeBigInt(req.params.id);
+    const result = await artistsService.updateSpecialty(id, req.body);
     res.json(result);
   }
 
   async deleteSpecialty(req: Request, res: Response) {
-    const result = await artistsService.deleteSpecialty(BigInt(req.params.id));
+    const id = safeBigInt(req.params.id);
+    const result = await artistsService.deleteSpecialty(id);
     res.json(result);
   }
 
@@ -41,9 +44,10 @@ export class ArtistsController {
   }
 
   async updateArtist(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateArtist(
-      BigInt(req.params.id),
+      id,
       req.body,
       req.user!.id,
       adminMode
@@ -52,9 +56,10 @@ export class ArtistsController {
   }
 
   async deleteArtist(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteArtist(
-      BigInt(req.params.id),
+      id,
       req.user!.id,
       adminMode
     );
@@ -62,9 +67,10 @@ export class ArtistsController {
   }
 
   async setAvatar(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
-      BigInt(req.params.id),
+      id,
       { mediaId: req.body.mediaId },
       'AVATAR',
       req.user!.id,
@@ -74,9 +80,10 @@ export class ArtistsController {
   }
 
   async setCover(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
-      BigInt(req.params.id),
+      id,
       { mediaId: req.body.mediaId },
       'COVER',
       req.user!.id,
@@ -86,9 +93,10 @@ export class ArtistsController {
   }
 
   async addGallery(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
-      BigInt(req.params.id),
+      id,
       { mediaIds: req.body.mediaIds },
       'GALLERY',
       req.user!.id,
@@ -98,9 +106,10 @@ export class ArtistsController {
   }
 
   async addCertification(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.addCertification(
-      BigInt(req.params.id),
+      id,
       req.body,
       req.user!.id,
       adminMode
@@ -109,9 +118,10 @@ export class ArtistsController {
   }
 
   async updateCertification(req: Request, res: Response) {
+    const certId = safeBigInt(req.params.certId, 'certId');
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateCertification(
-      BigInt(req.params.certId),
+      certId,
       req.body,
       req.user!.id,
       adminMode
@@ -120,9 +130,10 @@ export class ArtistsController {
   }
 
   async deleteCertification(req: Request, res: Response) {
+    const certId = safeBigInt(req.params.certId, 'certId');
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteCertification(
-      BigInt(req.params.certId),
+      certId,
       req.user!.id,
       adminMode
     );
@@ -130,8 +141,9 @@ export class ArtistsController {
   }
 
   async verifyCertification(req: Request, res: Response) {
+    const certId = safeBigInt(req.params.certId, 'certId');
     const result = await artistsService.verifyCertification(
-      BigInt(req.params.certId),
+      certId,
       req.body.isVerified,
       req.user!.id
     );
@@ -139,10 +151,11 @@ export class ArtistsController {
   }
 
   async assignSpecialties(req: Request, res: Response) {
+    const id = safeBigInt(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
     const result = await artistsService.assignSpecialties(
-      BigInt(req.params.id),
+      id,
       req.body.specialtyIds,
       mode,
       req.user!.id,

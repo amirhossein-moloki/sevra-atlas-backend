@@ -92,7 +92,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
             null,
             {
                 resave: false,
-                saveUninitialized: true,
+                saveUninitialized: false,
                 secret: env.SESSION_SECRET,
                 cookie: {
                     httpOnly: true,

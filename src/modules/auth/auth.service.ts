@@ -132,13 +132,13 @@ export class AuthService {
     // Store refresh token in Redis AND DB for fallback
     const expiresAt = new Date(Date.now() + env.JWT_REFRESH_TTL * 1000);
 
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
     await RedisFallback.tryReady(
       'storeRefreshToken',
-      () => redis.set(`refresh_token:${user!.id}:${refreshToken}`, '1', 'EX', env.JWT_REFRESH_TTL),
+      () => redis.set(`refresh_token:${user!.id}:${tokenHash}`, '1', 'EX', env.JWT_REFRESH_TTL),
       null
     );
-
-    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
     await prisma.refreshToken.create({
       data: {

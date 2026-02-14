@@ -29,7 +29,7 @@ export const userResource = {
       new: {
         before: async (request: any) => {
           if (request.payload.password) {
-            request.payload.password = await bcrypt.hash(request.payload.password, 10);
+            request.payload.password = await bcrypt.hash(request.payload.password, 12);
           }
           return request;
         },
@@ -37,7 +37,7 @@ export const userResource = {
       edit: {
         before: async (request: any) => {
           if (request.payload.password) {
-            request.payload.password = await bcrypt.hash(request.payload.password, 10);
+            request.payload.password = await bcrypt.hash(request.payload.password, 12);
           } else {
             delete request.payload.password;
           }

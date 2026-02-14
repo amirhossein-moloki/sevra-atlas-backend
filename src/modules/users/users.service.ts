@@ -3,9 +3,25 @@ import { ApiError } from '../../shared/errors/ApiError';
 import { UserRole, AccountStatus } from '@prisma/client';
 
 export class UsersService {
+  private readonly publicUserFields = {
+    id: true,
+    username: true,
+    firstName: true,
+    lastName: true,
+    phoneNumber: true,
+    role: true,
+    status: true,
+    gender: true,
+    bio: true,
+    cityId: true,
+    createdAt: true,
+    updatedAt: true,
+  };
+
   async getUserById(id: string) {
     const user = await prisma.user.findFirst({
       where: { id: BigInt(id), deletedAt: null },
+      select: this.publicUserFields,
     });
     if (!user) throw new ApiError(404, 'User not found');
     return user;
@@ -42,6 +58,7 @@ export class UsersService {
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
+        select: this.publicUserFields,
         skip,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
@@ -50,7 +67,7 @@ export class UsersService {
     ]);
 
     return {
-      data: users.map(u => u),
+      data: users,
       meta: {
         page,
         pageSize,

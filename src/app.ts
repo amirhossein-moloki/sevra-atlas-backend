@@ -15,12 +15,12 @@ import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import { generateOpenApiSpec } from './shared/openapi/generator';
-import { env } from './shared/config/env';
+import { config } from './config';
 
 const app = express();
 
-if (env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
+if (config.isProduction) {
+  app.set('trust proxy', config.server.trustProxy);
 }
 
 // Strict CSP for Public API
@@ -36,6 +36,11 @@ const strictCSP = helmet({
       upgradeInsecureRequests: [],
     },
   },
+  hsts: config.security.hsts.enabled ? {
+    maxAge: config.security.hsts.maxAge,
+    includeSubDomains: true,
+    preload: true,
+  } : false,
 });
 
 // Relaxed CSP for AdminJS (Backoffice)
@@ -50,6 +55,11 @@ const adminCSP = helmet({
       connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
     },
   },
+  hsts: config.security.hsts.enabled ? {
+    maxAge: config.security.hsts.maxAge,
+    includeSubDomains: true,
+    preload: true,
+  } : false,
 });
 
 // Apply CSP conditionally: strict by default, relaxed for /backoffice
@@ -61,17 +71,17 @@ app.use((req, res, next) => {
   }
 });
 app.use(cors({
-  origin: env.ALLOWED_ORIGINS === '*' ? '*' : env.ALLOWED_ORIGINS.split(',').map(s => s.trim()),
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  origin: config.cors.allowedOrigins,
+  methods: config.cors.allowedMethods,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
-  credentials: true,
+  credentials: config.cors.allowCredentials,
 }));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Global Rate Limit
-app.use(rateLimit('global', 100, 60)); // 100 requests per minute per IP
+app.use(rateLimit('global', config.security.rateLimit.max, config.security.rateLimit.windowS));
 
 app.use(requestIdMiddleware);
 app.use(
@@ -83,8 +93,8 @@ app.use(
 app.use(responseMiddleware);
 
 // Serve uploads if local storage is used
-if (env.STORAGE_PROVIDER === 'local') {
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+if (config.storage.provider === 'local') {
+  app.use(`/${config.storage.uploadDir}`, express.static(path.join(process.cwd(), config.storage.uploadDir)));
 }
 
 // Generate OpenAPI Spec dynamically
@@ -99,7 +109,7 @@ app.use(
   OpenApiValidator.middleware({
     apiSpec: swaggerSpec as any,
     validateRequests: true,
-    validateResponses: env.NODE_ENV !== 'test', // Disable response validation in tests for speed and stability
+    validateResponses: !config.isTest, // Disable response validation in tests for speed and stability
     ignoreUndocumented: false,
     ignorePaths: /^\/backoffice/, // Ignore AdminJS routes from OpenAPI validation
     // @ts-ignore - ajvOptions is valid in express-openapi-validator 5.x but sometimes has type conflicts

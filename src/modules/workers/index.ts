@@ -1,7 +1,7 @@
 import { mediaWorker } from './media.worker';
 import { logger } from '../../shared/logger/logger';
 import express from 'express';
-import { env } from '../../shared/config/env';
+import { config } from '../../config';
 
 export const startWorkers = () => {
   logger.info('Starting background workers...');
@@ -34,7 +34,7 @@ export const startWorkersGracefully = () => {
   startWorkers();
 
   // Health check server for Worker process
-  if (env.IS_WORKER) {
+  if (config.worker.isWorker) {
     const healthApp = express();
     healthApp.get('/health', async (req, res) => {
       const { redisQueue } = await import('../../shared/redis/redis');
@@ -70,7 +70,7 @@ export const startWorkersGracefully = () => {
         services
       });
     });
-    const port = env.PORT || 3001;
+    const port = config.server.port || 3001;
     healthApp.listen(port, () => {
       logger.info(`Worker health check server running on port ${port}`);
     });

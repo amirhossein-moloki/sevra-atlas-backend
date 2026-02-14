@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { ApiFailure } from '../utils/response';
-import { env } from '../config/env';
+import { config } from '../../config';
 import { logger } from '../logger/logger';
 
 type NormalizedError = {
@@ -122,7 +122,7 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
 
   // Only include details in non-production for debugging.
   // In production, we strictly omit details to prevent information leakage (e.g. Prisma metadata).
-  const includeDetails = env.NODE_ENV !== 'production' && env.NODE_ENV !== 'test';
+  const includeDetails = !config.isProduction && !config.isTest;
 
   const body: ApiFailure = {
     success: false,

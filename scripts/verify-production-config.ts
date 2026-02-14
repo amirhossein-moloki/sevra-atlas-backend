@@ -1,6 +1,6 @@
 import { prisma } from '../src/shared/db/prisma';
 import { redis } from '../src/shared/redis/redis';
-import { env } from '../src/shared/config/env';
+import { config } from '../src/config';
 
 async function verify() {
   console.log('🔍 Starting Production Readiness Check...');
@@ -54,9 +54,9 @@ async function verify() {
 
   // 4. Check SMS Provider
   console.log('\n4. Checking SMS Provider...');
-  console.log(`Current Provider: ${env.SMS_PROVIDER}`);
-  if (env.SMS_PROVIDER === 'kavenegar') {
-    if (!env.SMS_API_KEY || env.SMS_API_KEY === 'mock-key') {
+  console.log(`Current Provider: ${config.sms.provider}`);
+  if (config.sms.provider === 'kavenegar') {
+    if (!config.sms.apiKey || config.sms.apiKey === 'mock-key') {
       console.warn('⚠️ SMS_PROVIDER is set to kavenegar but SMS_API_KEY is missing or mock.');
     } else {
       console.log('✅ Kavenegar API Key is set.');
@@ -67,14 +67,18 @@ async function verify() {
 
   // 5. Check Storage Provider
   console.log('\n5. Checking Storage Provider...');
-  console.log(`Current Provider: ${env.STORAGE_PROVIDER}`);
-  if (env.STORAGE_PROVIDER === 's3') {
-    const requiredS3 = ['S3_ACCESS_KEY', 'S3_SECRET_KEY', 'S3_BUCKET', 'S3_REGION'];
-    for (const key of requiredS3) {
-      if (!(env as any)[key]) {
-        console.error(`❌ S3 is enabled but ${key} is missing.`);
-        failed = true;
-      }
+  console.log(`Current Provider: ${config.storage.provider}`);
+  if (config.storage.provider === 's3') {
+    const s3 = config.storage.s3;
+    const missingS3 = [];
+    if (!s3.accessKey) missingS3.push('S3_ACCESS_KEY');
+    if (!s3.secretKey) missingS3.push('S3_SECRET_KEY');
+    if (!s3.bucket) missingS3.push('S3_BUCKET');
+    if (!s3.region) missingS3.push('S3_REGION');
+
+    for (const key of missingS3) {
+      console.error(`❌ S3 is enabled but ${key} is missing.`);
+      failed = true;
     }
     if (!failed) {
       console.log('✅ S3 configuration is present.');

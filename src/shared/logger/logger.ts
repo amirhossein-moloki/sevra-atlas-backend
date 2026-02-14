@@ -1,14 +1,14 @@
 import pino from 'pino';
-import { env } from '../config/env';
+import { config } from '../../config';
 import { getRequestId } from '../utils/context';
 
 export const logger = pino({
-  level: env.NODE_ENV === 'development' ? 'debug' : 'info',
+  level: config.logging.level,
   mixin() {
     const requestId = getRequestId();
     return requestId ? { requestId } : {};
   },
-  transport: env.NODE_ENV === 'development' ? {
+  transport: config.isDevelopment ? {
     target: 'pino-pretty',
     options: {
       colorize: true,

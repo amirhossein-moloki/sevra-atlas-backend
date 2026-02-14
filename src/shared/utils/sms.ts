@@ -1,5 +1,5 @@
 import { Smsir } from 'sms-typescript';
-import { env } from '../../shared/config/env';
+import { config } from '../../config';
 
 export interface ISmsProvider {
   sendOtp(phoneNumber: string, code: string): Promise<void>;
@@ -78,14 +78,14 @@ export class SmsirProvider implements ISmsProvider {
 }
 
 const getSmsProvider = (): ISmsProvider => {
-  switch (env.SMS_PROVIDER) {
+  switch (config.sms.provider) {
     case 'kavenegar':
-      return new KavenegarSmsProvider(env.SMS_API_KEY || '');
+      return new KavenegarSmsProvider(config.sms.apiKey || '');
     case 'smsir':
       return new SmsirProvider(
-        env.SMSIR_API_KEY || '',
-        env.SMSIR_LINE_NUMBER || 0,
-        env.SMSIR_TEMPLATE_ID || 0
+        config.sms.smsir.apiKey || '',
+        config.sms.smsir.lineNumber || 0,
+        config.sms.smsir.templateId || 0
       );
     default:
       return new MockSmsProvider();

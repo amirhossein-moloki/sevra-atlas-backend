@@ -6,7 +6,7 @@ import { MediaStatus, Media } from '@prisma/client';
 import sharp from 'sharp';
 import crypto from 'crypto';
 import path from 'path';
-import { env } from '../../shared/config/env';
+import { config } from '../../config';
 import { processImage } from '../../shared/utils/image';
 import { secureFileKey } from '../../shared/utils/file';
 
@@ -71,7 +71,7 @@ export class MediaService {
 
     const baseStorageKey = secureFileKey(file.originalname);
 
-    if (!env.ENABLE_ASYNC_WORKERS) {
+    if (!config.worker.enableAsync) {
       // SYNC MODE (Rollout Phase 0/1)
       const { original, variants } = await processImage(file.buffer);
       const originalUrl = await this.storage.save(baseStorageKey, file.buffer, file.mimetype);

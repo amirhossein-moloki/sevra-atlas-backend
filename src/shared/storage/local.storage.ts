@@ -2,11 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { StorageProvider } from './storage.provider';
 import { safeResolve } from '../utils/file';
+import { config } from '../../config';
 
 export class LocalStorageProvider implements StorageProvider {
   private uploadDir: string;
 
-  constructor(uploadDir = 'uploads') {
+  constructor(uploadDir = config.storage.uploadDir) {
     this.uploadDir = path.resolve(process.cwd(), uploadDir);
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -24,8 +25,8 @@ export class LocalStorageProvider implements StorageProvider {
     await fs.promises.writeFile(filePath, buffer);
 
     // In a real development environment, we'd return a URL that the server handles.
-    // For now, we'll return a path that starts with /uploads/
-    return `/uploads/${key}`;
+    // For now, we'll return a path that starts with the upload dir
+    return `/${config.storage.uploadDir}/${key}`;
   }
 
   async get(key: string): Promise<Buffer | null> {

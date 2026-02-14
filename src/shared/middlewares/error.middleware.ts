@@ -120,7 +120,9 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
     logger.warn(logData, `Operational Error: ${normalized.message}`);
   }
 
-  const includeDetails = !isServerError || env.NODE_ENV !== 'production';
+  // Only include details in production for non-server errors if they are not potentially sensitive
+  // For now, let's be strict: details only in non-production
+  const includeDetails = env.NODE_ENV !== 'production';
 
   const body: ApiFailure = {
     success: false,

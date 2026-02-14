@@ -110,9 +110,20 @@ export class AdminService {
   }
 
   private async getDailyStats(table: string, column: string, from: Date, to: Date, deletedColumn?: string) {
-    // We use a safer approach for dynamic table/column names in queryRaw by using Prisma.sql
-    // but here we know the table/column names are internal and safe.
-    // Note: PostgreSQL identifiers are case-sensitive when quoted.
+    // Whitelist for dynamic table and column names to prevent SQL injection
+    const allowedTables = ['users_user', 'Salon', 'Artist', 'Review', 'blog_post'];
+    const allowedColumns = ['createdAt', 'published_at', 'deletedAt'];
+
+    if (!allowedTables.includes(table)) {
+      throw new Error(`Unauthorized table access: ${table}`);
+    }
+    if (!allowedColumns.includes(column)) {
+      throw new Error(`Unauthorized column access: ${column}`);
+    }
+    if (deletedColumn && !allowedColumns.includes(deletedColumn)) {
+      throw new Error(`Unauthorized deleted column access: ${deletedColumn}`);
+    }
+
     const deletedFilter = deletedColumn ? `AND "${deletedColumn}" IS NULL` : '';
     const data = await prisma.$queryRawUnsafe<any[]>(`
       SELECT DATE_TRUNC('day', "${column}") as date, COUNT(*)::int as count

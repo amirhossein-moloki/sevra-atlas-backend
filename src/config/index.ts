@@ -37,7 +37,7 @@ const envSchema = z.object({
   S3_SECRET_KEY: z.string().optional(),
   S3_BUCKET: z.string().optional(),
   S3_PUBLIC_URL: z.string().optional(),
-  SESSION_SECRET: z.string().default('a-very-secret-key-for-adminjs-sessions'),
+  SESSION_SECRET: z.string(),
   IS_WORKER: z.coerce.boolean().default(false),
   ENABLE_ASYNC_WORKERS: z.coerce.boolean().default(true),
   DOMAIN: z.string().optional(),

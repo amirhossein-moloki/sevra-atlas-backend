@@ -7,30 +7,31 @@ import { UserRole, EntityType, PostStatus } from '@prisma/client';
 describe('SEO Flow E2E', () => {
   let adminToken: string;
 
-  beforeAll(async () => {
-    adminToken = generateAccessToken({ sub: '1', role: UserRole.ADMIN });
+  let adminId: bigint;
 
-    // We try to ensure admin user exists, but this might fail if no DB
-    try {
-        await prisma.user.upsert({
-            where: { id: BigInt(1) },
-            update: { role: UserRole.ADMIN, isActive: true },
-            create: {
-              id: BigInt(1),
-              username: 'admin',
-              phoneNumber: '+989000000001',
-              firstName: 'Admin',
-              lastName: 'User',
-              email: 'admin@test.com',
-              isStaff: true,
-              isActive: true,
-              role: UserRole.ADMIN,
-              referralCode: 'ADMIN1'
-            }
-          });
-    } catch (e) {
-        console.warn('Could not connect to DB for test setup, tests might fail');
-    }
+  beforeAll(async () => {
+    // We try to ensure admin user exists
+    const admin = await prisma.user.upsert({
+      where: { phoneNumber: '+989000000001' },
+      update: { role: UserRole.ADMIN, isActive: true },
+      create: {
+        username: 'admin_seo',
+        phoneNumber: '+989000000001',
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin_seo@test.com',
+        isStaff: true,
+        isActive: true,
+        role: UserRole.ADMIN,
+        referralCode: 'ADMINSEO'
+      }
+    });
+    adminId = admin.id;
+    adminToken = generateAccessToken({ sub: adminId.toString(), role: UserRole.ADMIN });
+  });
+
+  afterAll(async () => {
+    await prisma.user.deleteMany({ where: { id: adminId } });
   });
 
   it('should handle slug change for a Salon correctly', async () => {
@@ -42,7 +43,7 @@ describe('SEO Flow E2E', () => {
       data: {
         name: 'Test Salon',
         slug: oldSlug,
-        owners: { connect: { id: BigInt(1) } }
+        owners: { connect: { id: adminId } }
       }
     });
 
@@ -89,9 +90,9 @@ describe('SEO Flow E2E', () => {
       const newSlug = 'new-post-slug-' + Date.now();
 
       await prisma.authorProfile.upsert({
-          where: { userId: BigInt(1) },
+          where: { userId: adminId },
           update: {},
-          create: { userId: BigInt(1), displayName: 'Admin Author', bio: 'Bio' }
+          create: { userId: adminId, displayName: 'Admin Author', bio: 'Bio' }
       });
 
       const post = await prisma.post.create({
@@ -100,7 +101,7 @@ describe('SEO Flow E2E', () => {
               slug: oldSlug,
               excerpt: 'Excerpt',
               content: 'Content',
-              authorId: BigInt(1),
+              authorId: adminId,
               status: PostStatus.published
           }
       });

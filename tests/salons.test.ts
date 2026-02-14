@@ -3,16 +3,76 @@ import app from '../src/app';
 import { prisma } from '../src/shared/db/prisma';
 import { generateAccessToken } from '../src/shared/auth/jwt';
 import { UserRole } from '@prisma/client';
+import { generateUniquePhone, generateUniqueUsername } from './test-utils';
 
 describe('Salons & Permissions', () => {
   let adminToken: string;
   let salonToken: string;
   let userToken: string;
+  let salonOwnerId: bigint;
 
   beforeAll(async () => {
-    adminToken = generateAccessToken({ sub: '1', role: UserRole.ADMIN });
-    salonToken = generateAccessToken({ sub: '2', role: UserRole.SALON });
-    userToken = generateAccessToken({ sub: '3', role: UserRole.USER });
+    // Setup Admin
+    const admin = await prisma.user.upsert({
+      where: { phoneNumber: '+989000000001' },
+      update: { role: UserRole.ADMIN },
+      create: {
+        phoneNumber: '+989000000001',
+        username: 'admin_test',
+        firstName: 'Admin',
+        lastName: 'Test',
+        email: 'admin@test.com',
+        isStaff: true,
+        isActive: true,
+        role: UserRole.ADMIN,
+        referralCode: 'ADMIN1'
+      }
+    });
+    adminToken = generateAccessToken({ sub: admin.id.toString(), role: UserRole.ADMIN });
+
+    // Setup User
+    const user = await prisma.user.upsert({
+      where: { phoneNumber: '+989000000002' },
+      update: { role: UserRole.USER },
+      create: {
+        phoneNumber: '+989000000002',
+        username: 'user_test',
+        firstName: 'User',
+        lastName: 'Test',
+        email: 'user@test.com',
+        isStaff: false,
+        isActive: true,
+        role: UserRole.USER,
+        referralCode: 'USER1'
+      }
+    });
+    userToken = generateAccessToken({ sub: user.id.toString(), role: UserRole.USER });
+
+    // Setup Salon Owner
+    const phone = generateUniquePhone();
+    const salonOwner = await prisma.user.create({
+      data: {
+        phoneNumber: phone,
+        username: generateUniqueUsername('owner'),
+        firstName: 'Salon',
+        lastName: 'Owner',
+        email: `owner_${Date.now()}@test.com`,
+        isStaff: false,
+        isActive: true,
+        role: UserRole.SALON,
+        referralCode: 'SALON' + Date.now().toString().slice(-5)
+      }
+    });
+    salonOwnerId = salonOwner.id;
+    salonToken = generateAccessToken({ sub: salonOwner.id.toString(), role: UserRole.SALON });
+  });
+
+  afterAll(async () => {
+    await prisma.salon.deleteMany({ where: { primaryOwnerId: salonOwnerId } });
+    await prisma.user.deleteMany({
+      where: { phoneNumber: { in: ['+989000000001', '+989000000002'] } }
+    });
+    await prisma.user.deleteMany({ where: { id: salonOwnerId } });
   });
 
   it('should list salons', async () => {
@@ -31,18 +91,16 @@ describe('Salons & Permissions', () => {
   });
 
   it('should allow salon owner to create salon', async () => {
-    // We mock the user in DB because of requireAuth logic
-    await prisma.user.upsert({
-      where: { id: BigInt(2) },
-      update: { isActive: true, role: UserRole.SALON },
-      create: { id: BigInt(2), username: 'salon_owner', phoneNumber: '+989000000000', firstName: 'Salon', lastName: 'Owner', email: 'salon@test.com', isStaff: false, isActive: true, role: UserRole.SALON, referralCode: 'SALON1' }
-    });
-
     const res = await request(app)
       .post('/api/v1/salons')
       .set('Authorization', `Bearer ${salonToken}`)
-      .send({ name: 'Test Salon', slug: 'test-salon' });
+      .send({
+        name: 'Test Salon',
+        slug: 'test-salon-' + Date.now(),
+        cityId: '1' // Assuming city 1 exists or use a valid ID
+      });
 
     expect(res.status).toBe(201);
+    expect(res.body.data.name).toBe('Test Salon');
   });
 });

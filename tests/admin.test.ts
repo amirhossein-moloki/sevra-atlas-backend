@@ -9,62 +9,70 @@ describe('Admin Endpoints Stability', () => {
   let moderatorToken: string;
   let userToken: string;
 
+  let adminId: bigint;
+  let moderatorId: bigint;
+  let userId: bigint;
+
   beforeAll(async () => {
     // Create users if they don't exist
-    await prisma.user.upsert({
-      where: { id: BigInt(100) },
+    const admin = await prisma.user.upsert({
+      where: { phoneNumber: '+989000000100' },
       update: { role: UserRole.ADMIN, isActive: true },
       create: {
-        id: BigInt(100),
-        username: 'admin',
+        username: 'admin_adm',
         phoneNumber: '+989000000100',
         firstName: 'Admin',
         lastName: 'User',
-        email: 'admin@test.com',
+        email: 'admin_adm@test.com',
         isStaff: true,
         isActive: true,
         role: UserRole.ADMIN,
-        referralCode: 'ADMIN1'
+        referralCode: 'ADMINADM'
       }
     });
+    adminId = admin.id;
 
-    await prisma.user.upsert({
-      where: { id: BigInt(101) },
+    const mod = await prisma.user.upsert({
+      where: { phoneNumber: '+989000000101' },
       update: { role: UserRole.MODERATOR, isActive: true },
       create: {
-        id: BigInt(101),
-        username: 'moderator',
+        username: 'moderator_adm',
         phoneNumber: '+989000000101',
         firstName: 'Mod',
         lastName: 'User',
-        email: 'mod@test.com',
+        email: 'mod_adm@test.com',
         isStaff: true,
         isActive: true,
         role: UserRole.MODERATOR,
-        referralCode: 'MOD1'
+        referralCode: 'MODADM'
       }
     });
+    moderatorId = mod.id;
 
-    await prisma.user.upsert({
-        where: { id: BigInt(102) },
+    const user = await prisma.user.upsert({
+        where: { phoneNumber: '+989000000102' },
         update: { role: UserRole.USER, isActive: true },
         create: {
-          id: BigInt(102),
-          username: 'regular_user',
+          username: 'regular_user_adm',
           phoneNumber: '+989000000102',
           firstName: 'Regular',
           lastName: 'User',
-          email: 'user@test.com',
+          email: 'user_adm@test.com',
           isStaff: false,
           isActive: true,
           role: UserRole.USER,
-          referralCode: 'USER1'
+          referralCode: 'USERADM'
         }
       });
+    userId = user.id;
 
-    adminToken = generateAccessToken({ sub: '100', role: UserRole.ADMIN });
-    moderatorToken = generateAccessToken({ sub: '101', role: UserRole.MODERATOR });
-    userToken = generateAccessToken({ sub: '102', role: UserRole.USER });
+    adminToken = generateAccessToken({ sub: adminId.toString(), role: UserRole.ADMIN });
+    moderatorToken = generateAccessToken({ sub: moderatorId.toString(), role: UserRole.MODERATOR });
+    userToken = generateAccessToken({ sub: userId.toString(), role: UserRole.USER });
+  });
+
+  afterAll(async () => {
+    await prisma.user.deleteMany({ where: { id: { in: [adminId, moderatorId, userId] } } });
   });
 
   describe('SEO Meta Management', () => {
@@ -140,14 +148,14 @@ describe('Admin Endpoints Stability', () => {
           name: 'Verification Test Salon',
           slug: 'ver-test-salon-' + Date.now(),
           status: AccountStatus.ACTIVE,
-          owners: { connect: { id: BigInt(102) } }
+          owners: { connect: { id: userId } }
         }
       });
       salonId = salon.id;
 
       const vReq = await prisma.verificationRequest.create({
         data: {
-          requestedById: BigInt(102),
+          requestedById: userId,
           salonId: salon.id,
           status: VerificationStatus.PENDING,
           notes: 'Test request'
@@ -197,7 +205,7 @@ describe('Admin Endpoints Stability', () => {
           .set('Authorization', `Bearer ${userToken}`)
           .send({
             targetType: 'SALON',
-            targetId: Number(otherSalon.id),
+            targetId: otherSalon.id.toString(),
             documents: []
           });
 
@@ -210,7 +218,7 @@ describe('Admin Endpoints Stability', () => {
                 name: 'Duplicate Test Salon',
                 slug: 'dup-test-salon-' + Date.now(),
                 status: AccountStatus.ACTIVE,
-                owners: { connect: { id: BigInt(102) } }
+                owners: { connect: { id: userId } }
             }
         });
 
@@ -220,7 +228,7 @@ describe('Admin Endpoints Stability', () => {
           .set('Authorization', `Bearer ${userToken}`)
           .send({
             targetType: 'SALON',
-            targetId: Number(salon.id),
+            targetId: salon.id.toString(),
             documents: []
           });
 
@@ -230,7 +238,7 @@ describe('Admin Endpoints Stability', () => {
           .set('Authorization', `Bearer ${userToken}`)
           .send({
             targetType: 'SALON',
-            targetId: Number(salon.id),
+            targetId: salon.id.toString(),
             documents: []
           });
 

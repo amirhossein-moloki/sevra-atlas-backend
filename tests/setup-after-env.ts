@@ -17,12 +17,22 @@ if (fs.existsSync(openapiPath)) {
 afterAll(async () => {
   // Global cleanup to prevent open handles in tests
   try {
-    // Force close workers and queues to ensure clean exit in tests
+    // 1. Close workers and queues
     await mediaWorker.close(true);
     await mediaQueue.close();
+
+    // 2. Clear all pending timers/intervals if possible (Jest handles this mostly but ioredis/bullmq might have some)
+
+    // 3. Disconnect Database
     await prisma.$disconnect();
+
+    // 4. Close Redis connections last
     await closeRedisConnections(true);
+
+    // Give it a small window for everything to settle
+    await new Promise(resolve => setTimeout(resolve, 500));
   } catch (error) {
     // Silent fail in teardown
+    console.error('Error during global teardown:', error);
   }
 });

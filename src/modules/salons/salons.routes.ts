@@ -116,7 +116,7 @@ registry.registerPath({
   }
 });
 router.patch(
-  '/:id',
+  '/:id(\\d+)',
   requireAuth(),
   validate(updateSalonSchema),
   controller.updateSalon
@@ -137,7 +137,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id',
+  '/:id(\\d+)',
   requireAuth(),
   controller.deleteSalon
 );
@@ -160,7 +160,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/services',
+  '/:id(\\d+)/services',
   requireAuth(),
   validate(assignServicesSchema),
   controller.assignServices
@@ -184,7 +184,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id/services/:serviceId',
+  '/:id(\\d+)/services/:serviceId(\\d+)',
   requireAuth(),
   controller.removeService
 );
@@ -209,7 +209,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/avatar',
+  '/:id(\\d+)/avatar',
   requireAuth(),
   validate(setMediaSchema),
   controller.setAvatar
@@ -235,7 +235,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/cover',
+  '/:id(\\d+)/cover',
   requireAuth(),
   validate(setMediaSchema),
   controller.setCover
@@ -261,7 +261,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/gallery',
+  '/:id(\\d+)/gallery',
   requireAuth(),
   validate(setMediaSchema),
   controller.addGallery
@@ -285,7 +285,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/artists',
+  '/:id(\\d+)/artists',
   requireAuth(),
   validate(linkArtistSchema),
   controller.linkArtist
@@ -309,7 +309,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id/artists/:artistId',
+  '/:id(\\d+)/artists/:artistId(\\d+)',
   requireAuth(),
   controller.unlinkArtist
 );

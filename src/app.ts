@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import 'express-async-errors';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -63,11 +63,11 @@ const adminCSP = helmet({
 });
 
 // Apply CSP conditionally: strict by default, relaxed for /backoffice
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.path.startsWith('/backoffice')) {
-    adminCSP(req, res, next);
+    (adminCSP as any)(req, res, next);
   } else {
-    strictCSP(req, res, next);
+    (strictCSP as any)(req, res, next);
   }
 });
 app.use(cors({
@@ -75,7 +75,7 @@ app.use(cors({
   methods: config.cors.allowedMethods,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
   credentials: config.cors.allowCredentials,
-}));
+}) as RequestHandler);
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

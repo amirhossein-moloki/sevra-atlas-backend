@@ -3,8 +3,15 @@ import { ApiError } from '../../../shared/errors/ApiError';
 import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
 import { handleSlugChange, initSeoMeta } from '../../../shared/utils/seo';
 import { isStaff, isAdmin } from '../../../shared/auth/roles';
+import { pickAllowedFields } from '../../../shared/utils/object';
 
 export class PostsService {
+  private readonly allowedFields = [
+    'title', 'slug', 'excerpt', 'content', 'visibility', 'canonical_url',
+    'seo_title', 'seo_description', 'category_id', 'series_id',
+    'cover_media_id', 'og_image_id', 'tag_ids'
+  ] as const;
+
   async listPosts(query: any, user?: any) {
     const {
       page = 1, pageSize = 10, q, ordering,
@@ -125,6 +132,7 @@ export class PostsService {
   }
 
   async createPost(data: any, authorUserId: bigint, isAdminUser: boolean = false) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]);
     const authorProfile = await prisma.authorProfile.findUnique({ where: { userId: authorUserId } });
     if (!authorProfile) throw new ApiError(403, 'User does not have an author profile');
 
@@ -134,23 +142,23 @@ export class PostsService {
     return prisma.$transaction(async (tx) => {
       const post = await tx.post.create({
         data: {
-          title: data.title,
-          slug: data.slug,
-          excerpt: data.excerpt,
-          content: data.content,
-          visibility: data.visibility,
+          title: safeData.title,
+          slug: safeData.slug,
+          excerpt: safeData.excerpt,
+          content: safeData.content,
+          visibility: safeData.visibility,
           isHot: isAdminUser ? data.is_hot : false, // Only admin can set hot
-          canonicalUrl: data.canonical_url,
-          seoTitle: data.seo_title,
-          seoDescription: data.seo_description,
+          canonicalUrl: safeData.canonical_url,
+          seoTitle: safeData.seo_title,
+          seoDescription: safeData.seo_description,
           ...publication,
           authorId: authorUserId,
-          categoryId: data.category_id ? BigInt(data.category_id) : undefined,
-          seriesId: data.series_id ? BigInt(data.series_id) : undefined,
-          coverMediaId: data.cover_media_id ? BigInt(data.cover_media_id) : undefined,
-          ogImageId: data.og_image_id ? BigInt(data.og_image_id) : undefined,
-          tags: tag_ids ? {
-            create: tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
+          categoryId: safeData.category_id ? BigInt(safeData.category_id) : undefined,
+          seriesId: safeData.series_id ? BigInt(safeData.series_id) : undefined,
+          coverMediaId: safeData.cover_media_id ? BigInt(safeData.cover_media_id) : undefined,
+          ogImageId: safeData.og_image_id ? BigInt(safeData.og_image_id) : undefined,
+          tags: safeData.tag_ids ? {
+            create: safeData.tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
           } : undefined
         }
       });
@@ -162,6 +170,7 @@ export class PostsService {
   }
 
   async updatePost(slug: string, data: any, user: any) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]);
     const post = await prisma.post.findUnique({ where: { slug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
@@ -173,30 +182,30 @@ export class PostsService {
     const publication = this.handlePublicationDate(data.status || post.status, data.publish_at);
 
     return prisma.$transaction(async (tx) => {
-      if (data.slug && data.slug !== post.slug) {
-        await handleSlugChange(EntityType.BLOG_POST, post.id, post.slug, data.slug, '/blog/post', tx);
+      if (safeData.slug && safeData.slug !== post.slug) {
+        await handleSlugChange(EntityType.BLOG_POST, post.id, post.slug, safeData.slug, '/blog/post', tx);
       }
 
       const updatedPost = await tx.post.update({
         where: { id: post.id },
         data: {
-          title: data.title,
-          slug: data.slug,
-          excerpt: data.excerpt,
-          content: data.content,
-          visibility: data.visibility,
+          title: safeData.title,
+          slug: safeData.slug,
+          excerpt: safeData.excerpt,
+          content: safeData.content,
+          visibility: safeData.visibility,
           isHot: isAdminUser ? data.is_hot : post.isHot,
-          canonicalUrl: data.canonical_url,
-          seoTitle: data.seo_title,
-          seoDescription: data.seo_description,
+          canonicalUrl: safeData.canonical_url,
+          seoTitle: safeData.seo_title,
+          seoDescription: safeData.seo_description,
           ...publication,
-          categoryId: data.category_id ? BigInt(data.category_id) : undefined,
-          seriesId: data.series_id ? BigInt(data.series_id) : undefined,
-          coverMediaId: data.cover_media_id ? BigInt(data.cover_media_id) : undefined,
-          ogImageId: data.og_image_id ? BigInt(data.og_image_id) : undefined,
-          tags: tag_ids ? {
+          categoryId: safeData.category_id ? BigInt(safeData.category_id) : undefined,
+          seriesId: safeData.series_id ? BigInt(safeData.series_id) : undefined,
+          coverMediaId: safeData.cover_media_id ? BigInt(safeData.cover_media_id) : undefined,
+          ogImageId: safeData.og_image_id ? BigInt(safeData.og_image_id) : undefined,
+          tags: safeData.tag_ids ? {
             deleteMany: {},
-            create: tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
+            create: safeData.tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
           } : undefined
         }
       });

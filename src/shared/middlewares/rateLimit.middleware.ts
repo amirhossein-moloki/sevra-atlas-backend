@@ -20,7 +20,9 @@ export const rateLimit = (
       }
 
       if (current > limit) {
-        throw new ApiError(429, 'Too many requests, please try again later');
+        const error = new ApiError(429, 'Too many requests, please try again later');
+        (error as any).code = 'TOO_MANY_REQUESTS';
+        throw error;
       }
     } catch (error) {
       if (error instanceof ApiError) {

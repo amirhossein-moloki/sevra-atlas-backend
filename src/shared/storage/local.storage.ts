@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { StorageProvider } from './storage.provider';
+import { safeResolve } from '../utils/file';
 
 export class LocalStorageProvider implements StorageProvider {
   private uploadDir: string;
@@ -13,7 +14,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async save(key: string, buffer: Buffer, mime: string): Promise<string> {
-    const filePath = path.join(this.uploadDir, key);
+    const filePath = safeResolve(this.uploadDir, key);
     const dir = path.dirname(filePath);
 
     if (!fs.existsSync(dir)) {
@@ -28,13 +29,13 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async get(key: string): Promise<Buffer | null> {
-    const filePath = path.join(this.uploadDir, key);
+    const filePath = safeResolve(this.uploadDir, key);
     if (!fs.existsSync(filePath)) return null;
     return fs.promises.readFile(filePath);
   }
 
   async delete(key: string): Promise<void> {
-    const filePath = path.join(this.uploadDir, key);
+    const filePath = safeResolve(this.uploadDir, key);
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
     }

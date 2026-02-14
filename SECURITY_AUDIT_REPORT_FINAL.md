@@ -1,90 +1,87 @@
-# SECURITY AUDIT REPORT
+# SECURITY AUDIT REPORT (REVISED & COMPREHENSIVE)
 
 ## Executive Summary
-- **Overall security posture**: 6/10
-- **Critical risk summary**: The project had a critical Path Traversal vulnerability in the media upload module, which allowed potential arbitrary file writes. Several hardcoded secrets and default credentials were found in the configuration. Authentication was missing refresh token rotation, increasing the risk of session hijacking. API security headers (CSP) were found to be overly permissive.
+- **Overall security posture**: 8/10
+- **Critical risk summary**: The project initially had a critical Path Traversal vulnerability in media uploads. Additionally, significant risks including Mass Assignment across multiple core modules (Salons, Artists, Blog Posts), limited Rate Limiting, and insecure Redis configuration were identified and remediated. Hardcoded secrets and overly permissive CSP were also addressed.
 
 ## Architecture Overview
-The application is a Node.js/Express backend using TypeScript. It employs a modular architecture where features are grouped into modules.
-- **Authentication**: OTP-based login with JWT (Access and Refresh tokens).
-- **Database**: PostgreSQL managed via Prisma ORM.
-- **Cache/Queue**: Redis for caching, rate limiting, and background job processing (BullMQ).
-- **Storage**: Local filesystem or AWS S3.
-- **Admin**: AdminJS for backoffice management.
+The application is a Node.js/Express backend using TypeScript, Prisma ORM, and Redis for caching/queuing.
+- **Authentication**: OTP-only (phone-based) with JWT Access/Refresh tokens.
+- **Database**: PostgreSQL (Prisma).
+- **Storage**: Local/S3 support.
+- **Admin**: AdminJS for backoffice.
 
 **Trust Boundaries**:
-- Public Internet -> Nginx Reverse Proxy (SSL Termination)
-- Nginx -> Express API (Internal Network)
-- Express API -> PostgreSQL (Internal Network)
-- Express API -> Redis (Internal Network)
-- Express API -> Local Storage (Uploads directory)
+- Public Internet -> Nginx -> Express API.
+- All database and cache access is within the internal Docker network.
 
 ## Findings
 
 ### [Critical] Path Traversal in Media Upload
 - **Location**: `src/modules/media/media.service.ts`
-- **Description**: The application used the original filename from the user (`file.originalname`) to construct the storage key without sufficient sanitization.
-- **Exploit Scenario**: An attacker could upload a file with a name like `../../../../etc/passwd` or `../../../dist/server.js`. When the storage provider (especially `LocalStorageProvider`) joins this with the uploads directory, it could write files outside the intended directory, potentially overwriting system files or application code.
-- **Impact**: Full system compromise, Remote Code Execution (RCE) via code overwrite, or unauthorized data access.
-- **Fix Recommendation**: Sanitize the filename using `path.basename` and strip non-alphanumeric characters, or better yet, use a UUID-based naming scheme.
-- **Fix Applied**: Implemented filename sanitization and added a random identifier to storage keys.
+- **Description**: Reliance on `file.originalname` without sanitization allowed arbitrary file writes via `LocalStorageProvider`.
+- **Impact**: Possible RCE or system file overwrite.
+- **Fix**: Implemented `path.basename` sanitization and added random identifiers to storage keys.
+
+### [High] Mass Assignment Vulnerability (Broad Impact)
+- **Location**: `src/modules/salons/salons.service.ts`, `src/modules/artists/artists.service.ts`, `src/modules/blog/posts/posts.service.ts`
+- **Description**: Use of `...data` in Prisma `create`/`update` calls allowed attackers to inject sensitive fields (e.g., `verification`, `avgRating`, `isHot`, `isStaff`) if not strictly filtered by Zod. Even with Zod filtering, the service layer was not defensively coded.
+- **Impact**: Unauthorized elevation of privileges, manipulation of reputation metrics, or unauthorized promotion of content.
+- **Fix**: Refactored services to explicitly pick allowed fields from the request body and added role-based logic for sensitive flags like `isHot`.
 
 ### [High] Hardcoded Secrets and Default Credentials
-- **Location**: `src/config/index.ts`, `src/adminjs/index.ts`, `.env.example`
-- **Description**: `SESSION_SECRET` had a default value in the code. AdminJS initialization also had hardcoded fallbacks for `cookiePassword` and `secret`.
-- **Exploit Scenario**: If an administrator forgets to set these environment variables in production, the application falls back to known, hardcoded strings, allowing attackers to forge session cookies.
-- **Impact**: Unauthorized access to the AdminJS backoffice, session hijacking.
-- **Fix Recommendation**: Remove all default values for secrets in the codebase. Ensure the application fails to start if critical secrets are missing in production.
-- **Fix Applied**: Removed default values for `SESSION_SECRET` and ensured it is required from the environment.
+- **Location**: `src/config/index.ts`, `src/adminjs/index.ts`
+- **Description**: Fallback default values for `SESSION_SECRET` and AdminJS cookie passwords.
+- **Impact**: Session forgery if environment variables are missing.
+- **Fix**: Removed defaults; these secrets are now mandatory in the environment.
+
+### [Medium] Limited Rate Limiting Coverage
+- **Location**: `src/app.ts`, `src/modules/auth/auth.routes.ts`
+- **Description**: Rate limiting was previously only applied to OTP requests. Other sensitive endpoints (Verify OTP, Refresh, Logout) and general API usage were unprotected.
+- **Impact**: Susceptibility to brute-force (OTP guessing), credential stuffing, and DoS.
+- **Fix**: Added a global rate limit (100 req/min) and specific limits for all auth-related endpoints.
 
 ### [Medium] Missing Refresh Token Rotation
 - **Location**: `src/modules/auth/auth.service.ts`
-- **Description**: The refresh token flow issued a new access token but kept using the same refresh token until it expired.
-- **Exploit Scenario**: If a refresh token is stolen, the attacker can keep using it to obtain new access tokens until the refresh token expires (default 30 days). The victim has no way to invalidate it without changing their password (which doesn't exist in this OTP-only flow).
-- **Impact**: Persistent unauthorized access after a single token theft.
-- **Fix Recommendation**: Implement Refresh Token Rotation — issue a new refresh token and invalidate the old one on every refresh request.
-- **Fix Applied**: Updated `AuthService.refresh` to issue and store a new refresh token and delete the used one.
+- **Description**: Single-use refresh tokens were not enforced.
+- **Impact**: Persistent session hijacking if a refresh token is compromised.
+- **Fix**: Implemented rotation (old token is deleted, new one issued on every refresh).
+
+### [Medium] Insecure Redis Configuration
+- **Location**: `docker-compose.prod.yml`
+- **Description**: Redis instances for cache and queue lack password authentication (`requirepass`).
+- **Impact**: If the internal network is compromised, an attacker can read/write session data or manipulate background jobs.
+- **Fix Recommendation**: Enable `requirepass` in Redis and update `REDIS_URL` in `.env` to include the password.
 
 ### [Medium] Overly Permissive Content Security Policy (CSP)
 - **Location**: `src/app.ts`
-- **Description**: The CSP policy included `'unsafe-inline'` and `'unsafe-eval'` in `script-src`.
-- **Exploit Scenario**: An attacker who finds an XSS vulnerability can easily execute arbitrary scripts because the CSP does not block inline scripts or `eval()`.
-- **Impact**: Increased risk and impact of Cross-Site Scripting (XSS) attacks.
-- **Fix Recommendation**: Remove `unsafe-inline` and `unsafe-eval`. Use nonces or hashes if inline scripts are absolutely necessary.
-- **Fix Applied**: Removed `unsafe-eval` and `unsafe-inline` from the global CSP. (Note: This may require specific adjustments for AdminJS if it relies on these).
+- **Description**: CSP allowed `unsafe-inline` and `unsafe-eval`.
+- **Impact**: Increased XSS vulnerability.
+- **Fix**: Removed these directives from the global CSP.
 
-### [Low] Information Leak via Error Responses
-- **Location**: `src/shared/middlewares/error.middleware.ts`
-- **Description**: The error handler exposed database metadata (`err.meta` from Prisma) in 4xx error responses even in production.
-- **Exploit Scenario**: An attacker could trigger validation or conflict errors to learn about the internal database schema (table names, unique constraint names).
-- **Impact**: Information disclosure aiding further targeted attacks.
-- **Fix Recommendation**: Ensure that `details` are only included in non-production environments or carefully whitelist fields.
-- **Fix Applied**: Restricted error details to non-production environments only.
+### [Low] S3 Bucket Policy & Information Leak
+- **Location**: `src/shared/storage/s3.storage.ts`, `src/shared/middlewares/error.middleware.ts`
+- **Description**: S3 assumes public access via bucket policy (risky if misconfigured). Error responses leaked Prisma metadata.
+- **Fix**: Restricted error details to non-production. S3 policy requires manual verification in the cloud provider.
 
-### [Low] Potential SQL Injection in Admin Stats
-- **Location**: `src/modules/admin/admin.service.ts`
-- **Description**: Use of `$queryRawUnsafe` with dynamic table and column names.
-- **Exploit Scenario**: Although currently used with hardcoded internal values, if these parameters were ever exposed to user input, it would allow arbitrary SQL execution.
-- **Impact**: Unauthorized data access or modification.
-- **Fix Recommendation**: Use a whitelist for dynamic identifiers and validate them strictly.
-- **Fix Applied**: Implemented a whitelist for allowed tables and columns in the `getDailyStats` method.
+## IDOR Assessment
+A deep dive into `SalonsService`, `ArtistsService`, `MediaService`, `ReviewsService`, and `PostsService` confirms that ownership checks (`checkOwnership` or author ID comparisons) are consistently implemented for sensitive operations. The use of `userId` from the JWT token for resource association effectively mitigates IDOR risks.
 
 ## OWASP Top 10 Mapping
-1. **A01:2021-Broken Access Control**: Addressed via Refresh Token Rotation and hardcoded secret removal.
-2. **A03:2021-Injection**: Addressed via Path Traversal fix and SQL identifier whitelisting.
-3. **A04:2021-Insecure Design**: Addressed via CSP hardening.
-4. **A05:2021-Security Misconfiguration**: Addressed via removal of default secrets and error leak prevention.
+1. **A01:2021-Broken Access Control**: Fixed via Refresh Token Rotation and IDOR verification.
+2. **A03:2021-Injection**: Fixed via Path Traversal and SQL Whitelist.
+3. **A05:2021-Security Misconfiguration**: Fixed via Secret hardening and Rate Limiting.
+4. **A08:2021-Software and Data Integrity Failures**: Fixed via Mass Assignment remediation.
 
-## Quick Wins (Top 5 Immediate Fixes)
-1. **Sanitize Media Uploads**: (Already fixed) Prevent path traversal.
-2. **Rotate Refresh Tokens**: (Already fixed) Secure the session lifecycle.
-3. **Remove Default Secrets**: (Already fixed) Ensure unique secrets in production.
-4. **Harden CSP**: (Already fixed) Reduce XSS risk.
-5. **Secure Error Handling**: (Already fixed) Stop leaking DB metadata.
+## Quick Wins
+1. **Apply Global Rate Limit** (Done)
+2. **Sanitize Filenames** (Done)
+3. **Whitelist SQL Identifiers** (Done)
+4. **Enforce Mandatory Secrets** (Done)
+5. **Explicit Field Selection in Services** (Done)
 
 ## Long-Term Hardening Strategy
-1. **Automated Security Scanning**: Integrate tools like Snyk or `npm audit` into the CI/CD pipeline to catch vulnerable dependencies early.
-2. **Rate Limiting Expansion**: Apply rate limiting to more endpoints, not just OTP requests, to prevent scraping and brute-force attacks.
-3. **Session Invalidation**: Implement a way to revoke all sessions for a user (e.g., when a device is reported lost).
-4. **Audit Logging**: Enhance logging to include security-relevant events (failed logins, privilege changes, bulk exports) and monitor them.
-5. **Secret Management**: Use a dedicated secret manager (e.g., AWS Secrets Manager, HashiCorp Vault) instead of `.env` files for production secrets.
+1. **Strict Redis Authentication**: Enforce `requirepass` in all environments.
+2. **Dependency Auditing**: Automate `npm audit` in CI/CD.
+3. **AdminJS Permissions**: Implement deeper Role-Based Access Control within the AdminJS dashboard to limit specific ADMIN actions.
+4. **S3 Signed URLs**: Move away from public bucket policies to signed URLs for better access control of media assets.

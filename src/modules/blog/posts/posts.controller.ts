@@ -16,7 +16,8 @@ export class PostsController {
   }
 
   async createPost(req: AuthRequest, res: Response) {
-    const result = await postsService.createPost(req.body, req.user!.id);
+    const isAdminUser = req.user?.role === 'ADMIN';
+    const result = await postsService.createPost(req.body, req.user!.id, isAdminUser);
     res.status(201).json(result);
   }
 

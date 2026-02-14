@@ -85,11 +85,16 @@ export class ArtistsService {
     return prisma.$transaction(async (tx) => {
       const artist = await tx.artist.create({
         data: {
-          ...data,
+          fullName: data.fullName,
+          slug: data.slug,
+          summary: data.summary,
+          bio: data.bio,
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
           cityId: data.cityId ? BigInt(data.cityId) : undefined,
           neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
+          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
+          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
       await initSeoMeta(EntityType.ARTIST, artist.id, artist.fullName, tx);
@@ -125,7 +130,10 @@ export class ArtistsService {
       const updatedArtist = await tx.artist.update({
         where: { id },
         data: {
-          ...data,
+          fullName: data.fullName,
+          slug: data.slug,
+          summary: data.summary,
+          bio: data.bio,
           cityId: data.cityId ? BigInt(data.cityId) : undefined,
           neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
           avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
@@ -262,7 +270,14 @@ export class ArtistsService {
     const updated = await prisma.artistCertification.update({
       where: { id: certId },
       data: {
-        ...data,
+        title: data.title,
+        issuer: data.issuer,
+        issuerSlug: data.issuerSlug,
+        category: data.category,
+        level: data.level,
+        credentialId: data.credentialId,
+        credentialUrl: data.credentialUrl,
+        mediaId: data.mediaId ? BigInt(data.mediaId) : undefined,
         issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },

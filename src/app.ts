@@ -9,6 +9,7 @@ import { logger } from './shared/logger/logger';
 import { errorHandler } from './shared/middlewares/error.middleware';
 import { requestIdMiddleware } from './shared/middlewares/requestId.middleware';
 import { responseMiddleware } from './shared/middlewares/response.middleware';
+import { rateLimit } from './shared/middlewares/rateLimit.middleware';
 import './types/express';
 import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
@@ -38,6 +39,9 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Global Rate Limit
+app.use(rateLimit('global', 100, 60)); // 100 requests per minute per IP
 
 app.use(requestIdMiddleware);
 app.use(

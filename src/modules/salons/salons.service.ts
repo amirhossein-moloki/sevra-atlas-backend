@@ -87,12 +87,26 @@ export class SalonsService {
     return prisma.$transaction(async (tx) => {
       const salon = await tx.salon.create({
         data: {
-          ...data,
+          name: data.name,
+          slug: data.slug,
+          summary: data.summary,
+          description: data.description,
+          phone: data.phone,
+          instagram: data.instagram,
+          website: data.website,
+          addressLine: data.addressLine,
+          postalCode: data.postalCode,
+          lat: data.lat,
+          lng: data.lng,
+          isWomenOnly: data.isWomenOnly,
+          priceTier: data.priceTier,
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
           cityId: data.cityId ? BigInt(data.cityId) : undefined,
           neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
           provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
+          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
+          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
       await initSeoMeta(EntityType.SALON, salon.id, salon.name, tx);
@@ -128,7 +142,19 @@ export class SalonsService {
       const updatedSalon = await tx.salon.update({
         where: { id },
         data: {
-          ...data,
+          name: data.name,
+          slug: data.slug,
+          summary: data.summary,
+          description: data.description,
+          phone: data.phone,
+          instagram: data.instagram,
+          website: data.website,
+          addressLine: data.addressLine,
+          postalCode: data.postalCode,
+          lat: data.lat,
+          lng: data.lng,
+          isWomenOnly: data.isWomenOnly,
+          priceTier: data.priceTier,
           cityId: data.cityId ? BigInt(data.cityId) : undefined,
           neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
           provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,

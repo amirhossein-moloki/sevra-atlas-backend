@@ -1,7 +1,7 @@
 import type { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import type { AdminJSOptions } from 'adminjs';
-import { env } from '../shared/config/env';
+import { config } from '../config';
 
 /**
  * Initializes AdminJS and attaches it to the express app.
@@ -83,7 +83,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 return null;
             },
             cookieName: 'adminjs',
-            cookiePassword: env.SESSION_SECRET,
+            cookiePassword: config.admin.cookiePassword,
         };
 
         const router = AdminJSExpress.buildAuthenticatedRouter(
@@ -93,10 +93,10 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
             {
                 resave: false,
                 saveUninitialized: false,
-                secret: env.SESSION_SECRET,
+                secret: config.admin.sessionSecret,
                 cookie: {
                     httpOnly: true,
-                    secure: env.NODE_ENV === 'production',
+                    secure: config.isProduction,
                 },
             }
         );

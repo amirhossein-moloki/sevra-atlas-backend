@@ -3,7 +3,7 @@ import { AuthController } from './auth.controller';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { requestOtpSchema, verifyOtpSchema, refreshTokenSchema, authResponseSchema } from './auth.validators';
 import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
-import { env } from '../../shared/config/env';
+import { config } from '../../config';
 import { requireAuth } from '../../shared/middlewares/auth.middleware';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 
@@ -42,7 +42,7 @@ registry.registerPath({
 
 router.post(
   '/otp/request',
-  rateLimit('otp_request', env.OTP_RATE_LIMIT_PER_IP, 60),
+  rateLimit('otp_request', config.auth.otp.rateLimitPerIp, 60),
   validate(requestOtpSchema),
   controller.requestOtp
 );

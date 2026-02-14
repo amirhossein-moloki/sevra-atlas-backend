@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { env } from '../config/env';
+import { config } from '../../config';
 
 export interface TokenPayload {
   sub: string;
@@ -7,17 +7,17 @@ export interface TokenPayload {
 }
 
 export const generateAccessToken = (payload: TokenPayload) => {
-  return jwt.sign(payload, env.JWT_ACCESS_SECRET, { expiresIn: env.JWT_ACCESS_TTL });
+  return jwt.sign(payload, config.auth.jwt.accessSecret, { expiresIn: config.auth.jwt.accessTtl });
 };
 
 export const generateRefreshToken = (payload: TokenPayload) => {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: env.JWT_REFRESH_TTL });
+  return jwt.sign(payload, config.auth.jwt.refreshSecret, { expiresIn: config.auth.jwt.refreshTtl });
 };
 
 export const verifyAccessToken = (token: string): TokenPayload => {
-  return jwt.verify(token, env.JWT_ACCESS_SECRET) as TokenPayload;
+  return jwt.verify(token, config.auth.jwt.accessSecret) as TokenPayload;
 };
 
 export const verifyRefreshToken = (token: string): TokenPayload => {
-  return jwt.verify(token, env.JWT_REFRESH_SECRET) as TokenPayload;
+  return jwt.verify(token, config.auth.jwt.refreshSecret) as TokenPayload;
 };

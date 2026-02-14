@@ -1,6 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { StorageProvider } from './storage.provider';
-import { env } from '../config/env';
+import { config } from '../../config';
 
 export class S3StorageProvider implements StorageProvider {
   private client: S3Client;
@@ -8,22 +8,22 @@ export class S3StorageProvider implements StorageProvider {
   private publicUrl?: string;
 
   constructor() {
-    if (!env.S3_ACCESS_KEY || !env.S3_SECRET_KEY || !env.S3_BUCKET || !env.S3_REGION) {
+    if (!config.storage.s3.accessKey || !config.storage.s3.secretKey || !config.storage.s3.bucket || !config.storage.s3.region) {
       throw new Error('S3 storage provider is missing required configuration');
     }
 
     this.client = new S3Client({
-      endpoint: env.S3_ENDPOINT,
-      region: env.S3_REGION,
+      endpoint: config.storage.s3.endpoint,
+      region: config.storage.s3.region,
       credentials: {
-        accessKeyId: env.S3_ACCESS_KEY,
-        secretAccessKey: env.S3_SECRET_KEY,
+        accessKeyId: config.storage.s3.accessKey,
+        secretAccessKey: config.storage.s3.secretKey,
       },
-      forcePathStyle: !!env.S3_ENDPOINT, // Often needed for custom S3-compatible providers like Minio or Liara
+      forcePathStyle: !!config.storage.s3.endpoint, // Often needed for custom S3-compatible providers like Minio or Liara
     });
 
-    this.bucket = env.S3_BUCKET;
-    this.publicUrl = env.S3_PUBLIC_URL;
+    this.bucket = config.storage.s3.bucket;
+    this.publicUrl = config.storage.s3.publicUrl;
   }
 
   /**
@@ -47,7 +47,7 @@ export class S3StorageProvider implements StorageProvider {
     }
 
     // Default S3 URL format
-    return `https://${this.bucket}.s3.${env.S3_REGION}.amazonaws.com/${key}`;
+    return `https://${this.bucket}.s3.${config.storage.s3.region}.amazonaws.com/${key}`;
   }
 
   async get(key: string): Promise<Buffer | null> {

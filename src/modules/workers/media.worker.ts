@@ -3,6 +3,7 @@ import os from 'os';
 import { redisQueue } from '../../shared/redis/redis';
 import { prisma } from '../../shared/db/prisma';
 import { processImage } from '../../shared/utils/image';
+import { config } from '../../config';
 import { getStorageProvider } from '../../shared/storage';
 import { MediaStatus } from '@prisma/client';
 import { logger } from '../../shared/logger/logger';
@@ -75,9 +76,9 @@ export const mediaWorker = new Worker('media', async (job: Job) => {
 }, {
   connection: redisQueue,
   // Adaptive concurrency: 1 worker per 2 cores for CPU-heavy Sharp tasks, minimum 1
-  concurrency: Math.max(1, Math.floor(os.cpus().length / 2)),
+  concurrency: config.worker.concurrency || Math.max(1, Math.floor(os.cpus().length / 2)),
   limiter: {
-    max: 10,
-    duration: 1000
+    max: config.worker.limitMax,
+    duration: config.worker.limitDuration,
   }
 });

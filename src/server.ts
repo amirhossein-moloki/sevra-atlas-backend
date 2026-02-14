@@ -1,5 +1,5 @@
 import app from './app';
-import { env } from './shared/config/env';
+import { config, printConfigSummary } from './config';
 import { logger } from './shared/logger/logger';
 import { prisma } from './shared/db/prisma';
 import { startWorkers } from './modules/workers';
@@ -7,6 +7,7 @@ import { initAdminJS } from './adminjs';
 
 async function start() {
   try {
+    printConfigSummary();
     await prisma.$connect();
     logger.info('Connected to Database');
 
@@ -18,16 +19,16 @@ async function start() {
 
     let server: any;
 
-    if (env.IS_WORKER) {
+    if (config.worker.isWorker) {
       const { startWorkersGracefully } = await import('./modules/workers');
       startWorkersGracefully();
       logger.info('Worker process started');
     } else {
-      server = app.listen(env.PORT, () => {
-        logger.info(`Server is running on port ${env.PORT} in ${env.NODE_ENV} mode`);
-        logger.info(`API Documentation: http://localhost:${env.PORT}/api-docs`);
+      server = app.listen(config.server.port, () => {
+        logger.info(`Server is running on port ${config.server.port} in ${config.env} mode`);
+        logger.info(`API Documentation: http://localhost:${config.server.port}/api-docs`);
         if (adminJs) {
-            logger.info(`AdminJS Panel: http://localhost:${env.PORT}${adminJs.options.rootPath}`);
+            logger.info(`AdminJS Panel: http://localhost:${config.server.port}${adminJs.options.rootPath}`);
         }
       });
     }
@@ -43,7 +44,7 @@ async function start() {
       }
 
       // If we had workers started in the same process, we should stop them too
-      if (env.IS_WORKER) {
+      if (config.worker.isWorker) {
         const { stopWorkers } = await import('./modules/workers');
         await stopWorkers();
         logger.info('Workers stopped.');

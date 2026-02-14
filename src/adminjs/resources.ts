@@ -2,6 +2,7 @@ import { ResourceOptions } from 'adminjs';
 import { prisma } from '../shared/db/prisma';
 import bcrypt from 'bcrypt';
 import sanitizeHtml from 'sanitize-html';
+import { config } from '../config';
 import { COMPONENTS } from './component-loader';
 
 const sanitizeOptions = {
@@ -29,7 +30,7 @@ export const userResource = {
       new: {
         before: async (request: any) => {
           if (request.payload.password) {
-            request.payload.password = await bcrypt.hash(request.payload.password, 12);
+            request.payload.password = await bcrypt.hash(request.payload.password, config.security.bcryptRounds);
           }
           return request;
         },
@@ -37,7 +38,7 @@ export const userResource = {
       edit: {
         before: async (request: any) => {
           if (request.payload.password) {
-            request.payload.password = await bcrypt.hash(request.payload.password, 12);
+            request.payload.password = await bcrypt.hash(request.payload.password, config.security.bcryptRounds);
           } else {
             delete request.payload.password;
           }

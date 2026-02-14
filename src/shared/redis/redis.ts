@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { env } from '../config/env';
+import { config } from '../../config';
 import { logger } from '../logger/logger';
 
 const redisConfig = {
@@ -9,15 +9,17 @@ const redisConfig = {
 };
 
 // Cache Redis (Used for generic caching, rate limiting)
-export const redisCache = new Redis(env.REDIS_URL, {
+export const redisCache = new Redis(config.redis.url, {
   ...redisConfig,
+  password: config.redis.password,
   maxRetriesPerRequest: 1,
   enableOfflineQueue: false,
 });
 
 // Queue Redis (Dedicated for BullMQ)
-export const redisQueue = new Redis(env.REDIS_QUEUE_URL || env.REDIS_URL, {
+export const redisQueue = new Redis(config.redis.queueUrl, {
   ...redisConfig,
+  password: config.redis.password,
 });
 
 redisCache.on('connect', () => logger.info('Connected to Redis Cache'));

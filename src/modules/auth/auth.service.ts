@@ -1,7 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { redis } from '../../shared/redis/redis';
 import { RedisFallback } from '../../shared/redis/redis-fallback';
-import { env } from '../../shared/config/env';
+import { config } from '../../config';
 import { smsProvider } from '../../shared/utils/sms';
 import { ApiError } from '../../shared/errors/ApiError';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../shared/auth/jwt';
@@ -13,14 +13,14 @@ export class AuthService {
   async requestOtp(phoneNumber: string, ip?: string, userAgent?: string) {
     const code = crypto.randomInt(100000, 1000000).toString();
     const redisKey = `otp:${phoneNumber}`;
-    const expiresAt = new Date(Date.now() + env.OTP_TTL_SECONDS * 1000);
+    const expiresAt = new Date(Date.now() + config.auth.otp.ttl * 1000);
 
     // Use Redis with DB fallback
     await RedisFallback.execute(
       'requestOtp',
       async () => {
-        await redis.set(redisKey, code, 'EX', env.OTP_TTL_SECONDS);
-        await redis.set(`${redisKey}:attempts`, 0, 'EX', env.OTP_TTL_SECONDS);
+        await redis.set(redisKey, code, 'EX', config.auth.otp.ttl);
+        await redis.set(`${redisKey}:attempts`, 0, 'EX', config.auth.otp.ttl);
         // Also clear any DB fallback record to keep it clean if Redis is working
         await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
       },
@@ -70,7 +70,7 @@ export class AuthService {
       throw new ApiError(400, 'OTP expired or not requested');
     }
 
-    if (attempts >= env.OTP_MAX_ATTEMPTS) {
+    if (attempts >= config.auth.otp.maxAttempts) {
       throw new ApiError(400, 'Too many failed attempts');
     }
 
@@ -130,13 +130,13 @@ export class AuthService {
     const refreshToken = generateRefreshToken(payload);
 
     // Store refresh token in Redis AND DB for fallback
-    const expiresAt = new Date(Date.now() + env.JWT_REFRESH_TTL * 1000);
+    const expiresAt = new Date(Date.now() + config.auth.jwt.refreshTtl * 1000);
 
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
     await RedisFallback.tryReady(
       'storeRefreshToken',
-      () => redis.set(`refresh_token:${user!.id}:${tokenHash}`, '1', 'EX', env.JWT_REFRESH_TTL),
+      () => redis.set(`refresh_token:${user!.id}:${tokenHash}`, '1', 'EX', config.auth.jwt.refreshTtl),
       null
     );
 
@@ -209,7 +209,7 @@ export class AuthService {
       const newRefreshTokenHash = crypto.createHash('sha256').update(newRefreshToken).digest('hex');
 
       // Rotate Atomically in DB
-      const expiresAt = new Date(Date.now() + env.JWT_REFRESH_TTL * 1000);
+      const expiresAt = new Date(Date.now() + config.auth.jwt.refreshTtl * 1000);
 
       await prisma.$transaction([
         prisma.refreshToken.create({
@@ -222,7 +222,7 @@ export class AuthService {
       await RedisFallback.tryReady(
         'rotateRefreshTokenRedis',
         async () => {
-          await redis.set(`refresh_token:${user!.id}:${newRefreshTokenHash}`, '1', 'EX', env.JWT_REFRESH_TTL);
+          await redis.set(`refresh_token:${user!.id}:${newRefreshTokenHash}`, '1', 'EX', config.auth.jwt.refreshTtl);
           await redis.del(redisKey);
         },
         null

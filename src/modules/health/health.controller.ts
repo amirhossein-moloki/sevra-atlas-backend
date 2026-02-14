@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../shared/db/prisma';
 import { redisCache, redisQueue } from '../../shared/redis/redis';
-import { env } from '../../shared/config/env';
+import { config } from '../../config';
 
 interface HealthStatus {
   status: 'OK' | 'ERROR';
@@ -23,7 +23,7 @@ export class HealthController {
     const health: HealthStatus = {
       status: 'OK',
       timestamp: new Date().toISOString(),
-      environment: env.NODE_ENV,
+      environment: config.env,
       services: {
         database: 'UNKNOWN',
         redis_cache: 'UNKNOWN',

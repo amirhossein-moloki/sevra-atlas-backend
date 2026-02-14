@@ -6,13 +6,14 @@ import { createMediaSchema, updateMediaSchema } from './media.validators';
 import multer from 'multer';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 import { MediaSchema } from '../../shared/openapi/schemas';
+import { config } from '../../config';
 
 const router = Router();
 const controller = new MediaController();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: config.storage.maxUploadSize,
   },
 });
 

@@ -183,8 +183,43 @@ export class AuthService {
         throw new ApiError(401, 'Refresh token invalid or expired');
       }
 
-      const newAccessToken = generateAccessToken({ sub: payload.sub, role: payload.role });
-      return { accessToken: newAccessToken, expiresIn: env.JWT_ACCESS_TTL };
+      const user = await prisma.user.findUnique({
+        where: { id: BigInt(payload.sub) },
+      });
+
+      if (!user || !user.isActive) {
+        throw new ApiError(401, 'User not found or inactive');
+      }
+
+      // Success! Now rotate.
+      const newPayload = { sub: user.id.toString(), role: user.role };
+      const newAccessToken = generateAccessToken(newPayload);
+      const newRefreshToken = generateRefreshToken(newPayload);
+
+      // Store new one
+      const expiresAt = new Date(Date.now() + env.JWT_REFRESH_TTL * 1000);
+      await RedisFallback.tryReady(
+        'storeRefreshToken',
+        () => redis.set(`refresh_token:${user.id}:${newRefreshToken}`, '1', 'EX', env.JWT_REFRESH_TTL),
+        null
+      );
+      await prisma.refreshToken.create({
+        data: { userId: user.id, token: newRefreshToken, expiresAt },
+      });
+
+      // Delete old one
+      await RedisFallback.tryReady('delOldRefreshToken', () => redis.del(redisKey), null);
+      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        user: {
+          id: user.id.toString(),
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+        },
+      };
     } catch (error) {
       if (error instanceof ApiError) throw error;
       throw new ApiError(401, 'Invalid refresh token');

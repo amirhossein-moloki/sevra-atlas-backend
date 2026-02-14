@@ -53,7 +53,7 @@ describe('MediaService', () => {
       const result = await mediaService.uploadAndOptimize(mockFile, BigInt(1));
 
       // If ENABLE_ASYNC_WORKERS is true (default), it returns a pending status
-      if ('status' in result && result.status === 'PENDING') {
+      if ('status' in result && 'mediaId' in result && result.status === 'PENDING') {
         expect(result.mediaId).toBeDefined();
         expect(result.url).toBeDefined();
       } else if ('variants' in result) {

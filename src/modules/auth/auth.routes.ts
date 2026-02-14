@@ -75,6 +75,7 @@ registry.registerPath({
 
 router.post(
   '/otp/verify',
+  rateLimit('otp_verify', 10, 60),
   validate(verifyOtpSchema),
   controller.verifyOtp
 );
@@ -107,6 +108,7 @@ registry.registerPath({
 
 router.post(
   '/refresh',
+  rateLimit('refresh', 30, 60),
   validate(refreshTokenSchema),
   controller.refresh
 );
@@ -136,6 +138,7 @@ registry.registerPath({
 router.post(
   '/logout',
   requireAuth(),
+  rateLimit('logout', 20, 60),
   validate(refreshTokenSchema),
   controller.logout
 );

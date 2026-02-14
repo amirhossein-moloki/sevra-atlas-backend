@@ -124,11 +124,9 @@ export class PostsService {
     return post;
   }
 
-  async createPost(data: any, authorUserId: bigint) {
+  async createPost(data: any, authorUserId: bigint, isAdminUser: boolean = false) {
     const authorProfile = await prisma.authorProfile.findUnique({ where: { userId: authorUserId } });
     if (!authorProfile) throw new ApiError(403, 'User does not have an author profile');
-
-    const { tag_ids, ...postData } = data;
 
     // Handle publication date logic
     const publication = this.handlePublicationDate(data.status, data.publish_at);
@@ -136,7 +134,15 @@ export class PostsService {
     return prisma.$transaction(async (tx) => {
       const post = await tx.post.create({
         data: {
-          ...postData,
+          title: data.title,
+          slug: data.slug,
+          excerpt: data.excerpt,
+          content: data.content,
+          visibility: data.visibility,
+          isHot: isAdminUser ? data.is_hot : false, // Only admin can set hot
+          canonicalUrl: data.canonical_url,
+          seoTitle: data.seo_title,
+          seoDescription: data.seo_description,
           ...publication,
           authorId: authorUserId,
           categoryId: data.category_id ? BigInt(data.category_id) : undefined,
@@ -159,11 +165,11 @@ export class PostsService {
     const post = await prisma.post.findUnique({ where: { slug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
+    const isAdminUser = isAdmin(user.role);
     if (!isStaff(user.role) && post.authorId !== user.id) {
       throw new ApiError(403, 'Forbidden');
     }
 
-    const { tag_ids, ...postData } = data;
     const publication = this.handlePublicationDate(data.status || post.status, data.publish_at);
 
     return prisma.$transaction(async (tx) => {
@@ -174,7 +180,15 @@ export class PostsService {
       const updatedPost = await tx.post.update({
         where: { id: post.id },
         data: {
-          ...postData,
+          title: data.title,
+          slug: data.slug,
+          excerpt: data.excerpt,
+          content: data.content,
+          visibility: data.visibility,
+          isHot: isAdminUser ? data.is_hot : post.isHot,
+          canonicalUrl: data.canonical_url,
+          seoTitle: data.seo_title,
+          seoDescription: data.seo_description,
           ...publication,
           categoryId: data.category_id ? BigInt(data.category_id) : undefined,
           seriesId: data.series_id ? BigInt(data.series_id) : undefined,

@@ -9,6 +9,7 @@ import { logger } from './shared/logger/logger';
 import { errorHandler } from './shared/middlewares/error.middleware';
 import { requestIdMiddleware } from './shared/middlewares/requestId.middleware';
 import { responseMiddleware } from './shared/middlewares/response.middleware';
+import { rateLimit } from './shared/middlewares/rateLimit.middleware';
 import './types/express';
 import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
@@ -26,7 +27,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'", "https://cdn.jsdelivr.net"], // Removed unsafe-inline and unsafe-eval
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://cdn.jsdelivr.net"],
@@ -38,6 +39,9 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Global Rate Limit
+app.use(rateLimit('global', 100, 60)); // 100 requests per minute per IP
 
 app.use(requestIdMiddleware);
 app.use(

@@ -4,6 +4,8 @@ import { getStorageProvider } from '../../shared/storage';
 import { mediaQueue, MEDIA_JOBS } from '../../shared/queues/media.queue';
 import { MediaStatus, Media } from '@prisma/client';
 import sharp from 'sharp';
+import crypto from 'crypto';
+import path from 'path';
 import { env } from '../../shared/config/env';
 import { processImage } from '../../shared/utils/image';
 
@@ -67,7 +69,12 @@ export class MediaService {
     }
 
     const timestamp = Date.now();
-    const baseStorageKey = `${timestamp}-${file.originalname}`;
+    const ext = path.extname(file.originalname);
+    const sanitizedBaseName = path.basename(file.originalname, ext)
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .substring(0, 100); // Limit length
+    const randomId = crypto.randomBytes(4).toString('hex');
+    const baseStorageKey = `${timestamp}-${randomId}-${sanitizedBaseName}${ext}`;
 
     if (!env.ENABLE_ASYNC_WORKERS) {
       // SYNC MODE (Rollout Phase 0/1)

@@ -54,39 +54,52 @@ export class CacheService {
     ttlSeconds: number,
     options: { staleWhileRevalidate?: number } = {}
   ): Promise<T> {
-    const cached = await this.get<{ data: T; expiresAt: number }>(key);
-    const now = Date.now();
-
-    if (cached) {
-      const isStale = now > cached.expiresAt;
-      if (!isStale) {
-        return cached.data;
-      }
-
-      // If stale but within stale-while-revalidate window
-      if (options.staleWhileRevalidate && now < cached.expiresAt + (options.staleWhileRevalidate * 1000)) {
-        // Background revalidation
-        this.backgroundRevalidate(key, fn, ttlSeconds);
-        return cached.data;
-      }
-    }
-
-    // Cache miss or fully expired - Stampede protection using a lock
-    const lockKey = `lock:${key}`;
-    const acquired = await redis.set(this.PREFIX + lockKey, '1', 'EX', 10, 'NX');
-
-    if (!acquired) {
-      // Someone else is fetching, wait a bit and try cache again
-      await new Promise(resolve => setTimeout(resolve, 200));
-      return this.wrap(key, fn, ttlSeconds, options);
-    }
-
     try {
-      const freshData = await fn();
-      await this.set(key, { data: freshData, expiresAt: now + (ttlSeconds * 1000) }, ttlSeconds + (options.staleWhileRevalidate || 0));
-      return freshData;
-    } finally {
-      await redis.del(this.PREFIX + lockKey);
+      const cached = await this.get<{ data: T; expiresAt: number }>(key);
+      const now = Date.now();
+
+      if (cached) {
+        const isStale = now > cached.expiresAt;
+        if (!isStale) {
+          return cached.data;
+        }
+
+        // If stale but within stale-while-revalidate window
+        if (options.staleWhileRevalidate && now < cached.expiresAt + (options.staleWhileRevalidate * 1000)) {
+          // Background revalidation
+          this.backgroundRevalidate(key, fn, ttlSeconds);
+          return cached.data;
+        }
+      }
+
+      // Cache miss or fully expired - Stampede protection using a lock
+      const lockKey = `lock:${key}`;
+      let acquired = false;
+      try {
+        const res = await redis.set(this.PREFIX + lockKey, '1', 'EX', 10, 'NX');
+        acquired = res === 'OK';
+      } catch (lockError) {
+        logger.error(`Cache lock acquisition error for key ${key}:`, lockError);
+        // If we can't acquire lock due to Redis error, just fall back to origin function
+        return await fn();
+      }
+
+      if (!acquired) {
+        // Someone else is fetching, wait a bit and try cache again
+        await new Promise(resolve => setTimeout(resolve, 200));
+        return this.wrap(key, fn, ttlSeconds, options);
+      }
+
+      try {
+        const freshData = await fn();
+        await this.set(key, { data: freshData, expiresAt: now + (ttlSeconds * 1000) }, ttlSeconds + (options.staleWhileRevalidate || 0));
+        return freshData;
+      } finally {
+        await redis.del(this.PREFIX + lockKey).catch(() => {});
+      }
+    } catch (error) {
+      logger.error(`Cache wrap error for key ${key}, falling back to origin:`, error);
+      return await fn();
     }
   }
 

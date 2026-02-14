@@ -1,6 +1,7 @@
 import { AuthService } from '../src/modules/auth/auth.service';
 import { redis } from '../src/shared/redis/redis';
 import { prisma } from '../src/shared/db/prisma';
+import crypto from 'crypto';
 
 jest.mock('../src/shared/redis/redis', () => ({
   redis: {
@@ -31,6 +32,7 @@ jest.mock('../src/shared/db/prisma', () => ({
       findUnique: jest.fn(),
       deleteMany: jest.fn(),
     },
+    $transaction: jest.fn((promises) => Promise.all(promises)),
   },
 }));
 
@@ -92,29 +94,39 @@ describe('AuthService Fallback', () => {
 
   it('should fallback to DB when Redis fails during Token Refresh', async () => {
     (redis.get as jest.Mock).mockRejectedValue(new Error('Redis down'));
+    const token = 'some_token';
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
     (prisma.refreshToken.findUnique as jest.Mock).mockResolvedValue({
-      token: 'valid_refresh_token',
+      token: tokenHash,
       expiresAt: new Date(Date.now() + 10000),
       userId: BigInt(1),
     });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      id: BigInt(1),
+      isActive: true,
+      role: 'USER',
+    });
 
-    const result = await authService.refresh('some_token');
+    const result = await authService.refresh(token);
 
     expect(result.accessToken).toBe('mock_access_token');
     expect(prisma.refreshToken.findUnique).toHaveBeenCalledWith({
-      where: { token: 'some_token' }
+      where: { token: tokenHash }
     });
   });
 
   it('should fallback to DB during logout', async () => {
     (redis.del as jest.Mock).mockRejectedValue(new Error('Redis down'));
+    const token = 'some_token';
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     (prisma.refreshToken.deleteMany as jest.Mock).mockResolvedValue({ count: 1 });
 
-    await authService.logout('1', 'some_token');
+    await authService.logout('1', token);
 
     expect(redis.del).toHaveBeenCalled();
     expect(prisma.refreshToken.deleteMany).toHaveBeenCalledWith({
-      where: { token: 'some_token' }
+      where: { token: tokenHash }
     });
   });
 });

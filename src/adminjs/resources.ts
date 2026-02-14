@@ -1,4 +1,4 @@
-import { ResourceOptions } from 'adminjs';
+import { ActionRequest, ResourceOptions } from 'adminjs';
 import { prisma } from '../shared/db/prisma';
 import bcrypt from 'bcrypt';
 import sanitizeHtml from 'sanitize-html';
@@ -28,18 +28,18 @@ export const userResource = {
     },
     actions: {
       new: {
-        before: async (request: any) => {
-          if (request.payload.password) {
+        before: async (request: ActionRequest) => {
+          if (request.payload?.password) {
             request.payload.password = await bcrypt.hash(request.payload.password, config.security.bcryptRounds);
           }
           return request;
         },
       },
       edit: {
-        before: async (request: any) => {
-          if (request.payload.password) {
+        before: async (request: ActionRequest) => {
+          if (request.payload?.password) {
             request.payload.password = await bcrypt.hash(request.payload.password, config.security.bcryptRounds);
-          } else {
+          } else if (request.payload) {
             delete request.payload.password;
           }
           return request;
@@ -63,16 +63,16 @@ export const postResource = {
     },
     actions: {
       new: {
-        before: async (request: any) => {
-          if (request.payload.content) {
+        before: async (request: ActionRequest) => {
+          if (request.payload?.content) {
             request.payload.content = sanitizeHtml(request.payload.content, sanitizeOptions);
           }
           return request;
         },
       },
       edit: {
-        before: async (request: any) => {
-          if (request.payload.content) {
+        before: async (request: ActionRequest) => {
+          if (request.payload?.content) {
             request.payload.content = sanitizeHtml(request.payload.content, sanitizeOptions);
           }
           return request;
@@ -96,16 +96,16 @@ export const pageResource = {
     },
     actions: {
       new: {
-        before: async (request: any) => {
-          if (request.payload.content) {
+        before: async (request: ActionRequest) => {
+          if (request.payload?.content) {
             request.payload.content = sanitizeHtml(request.payload.content, sanitizeOptions);
           }
           return request;
         },
       },
       edit: {
-        before: async (request: any) => {
-          if (request.payload.content) {
+        before: async (request: ActionRequest) => {
+          if (request.payload?.content) {
             request.payload.content = sanitizeHtml(request.payload.content, sanitizeOptions);
           }
           return request;

@@ -1,3 +1,4 @@
+/// <reference path="../types/adminjs.d.ts" />
 import type { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import type { AdminJSOptions } from 'adminjs';
@@ -11,23 +12,20 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
     console.log('Initializing AdminJS...');
     try {
         const { default: AdminJS } = await import('adminjs');
-        // @ts-ignore
         const { default: AdminJSExpress } = await import('@adminjs/express');
-        // @ts-ignore
         const { Resource, Database } = await import('@adminjs/prisma');
-        // @ts-ignore
         const resources = await import('./resources.js');
-        // @ts-ignore
         const { componentLoader } = await import('./component-loader.js');
 
         AdminJS.registerAdapter({ Resource, Database });
 
         // Prisma 5 metadata extraction helper
-        const dmmf = (prisma as any)._runtimeDataModel || (prisma as any)._baseDmmf;
+        const prismaAny = prisma as any;
+        const dmmf = prismaAny._runtimeDataModel || prismaAny._baseDmmf;
         const models = dmmf?.models || (dmmf?.datamodel?.models ?
-            Object.fromEntries(dmmf.datamodel.models.map((m: any) => [m.name, m])) : {});
+            Object.fromEntries((dmmf.datamodel.models as { name: string, fields: any }[]).map((m) => [m.name, m])) : {});
 
-        const getModelResource = (modelName: string, options: any) => {
+        const getModelResource = (modelName: string, options: Record<string, unknown>) => {
             const modelMetadata = models[modelName];
             if (!modelMetadata) {
                 console.warn(`Model metadata for ${modelName} not found in Prisma DMMF`);

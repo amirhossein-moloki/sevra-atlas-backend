@@ -33,7 +33,11 @@ export class AuthController {
 
   async logout(req: Request, res: Response) {
     const { refreshToken } = req.body;
-    const result = await authService.logout((req as any).user.id.toString(), refreshToken);
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.fail('UNAUTHORIZED', 'User not found in session', 401);
+    }
+    const result = await authService.logout(userId.toString(), refreshToken);
     res.json(result);
   }
 }

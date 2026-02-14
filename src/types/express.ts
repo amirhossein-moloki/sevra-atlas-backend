@@ -14,7 +14,10 @@ declare global {
       salonId?: string;
       requestId?: string;
       rawBody?: Buffer;
-      user?: any; // Support existing code that uses req.user
+      user?: {
+        id: bigint;
+        role: UserRole;
+      };
     }
 
     export interface Response {

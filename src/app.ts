@@ -14,6 +14,7 @@ import './types/express';
 import routes from './routes';
 import swaggerUi from 'swagger-ui-express';
 import * as OpenApiValidator from 'express-openapi-validator';
+import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import { generateOpenApiSpec } from './shared/openapi/generator';
 import { config } from './config';
 
@@ -65,9 +66,9 @@ const adminCSP = helmet({
 // Apply CSP conditionally: strict by default, relaxed for /backoffice
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.path.startsWith('/backoffice')) {
-    (adminCSP as any)(req, res, next);
+    adminCSP(req, res, next);
   } else {
-    (strictCSP as any)(req, res, next);
+    strictCSP(req, res, next);
   }
 });
 app.use(cors({
@@ -75,7 +76,7 @@ app.use(cors({
   methods: config.cors.allowedMethods,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
   credentials: config.cors.allowCredentials,
-}) as RequestHandler);
+}));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -87,7 +88,15 @@ app.use(requestIdMiddleware);
 app.use(
   pinoHttp({
     logger,
-    genReqId: (req: any) => req.requestId || req.headers['x-request-id'] || `req-${Date.now()}`,
+    genReqId: (req) => {
+      if ('requestId' in req && typeof req.requestId === 'string') {
+        return req.requestId;
+      }
+      const xRequestId = req.headers['x-request-id'];
+      if (typeof xRequestId === 'string') return xRequestId;
+      if (Array.isArray(xRequestId)) return xRequestId[0];
+      return `req-${Date.now()}`;
+    },
   })
 );
 app.use(responseMiddleware);
@@ -107,16 +116,17 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // OpenAPI Validation
 app.use(
   OpenApiValidator.middleware({
-    apiSpec: swaggerSpec as any,
-    validateRequests: true,
-    validateResponses: !config.isTest, // Disable response validation in tests for speed and stability
+    apiSpec: swaggerSpec as OpenAPIV3.DocumentV3,
+    validateRequests: {
+      allErrors: true,
+      coerceTypes: true,
+    },
+    validateResponses: config.isTest ? false : {
+      allErrors: true,
+      coerceTypes: true,
+    },
     ignoreUndocumented: false,
     ignorePaths: /^\/backoffice/, // Ignore AdminJS routes from OpenAPI validation
-    // @ts-ignore - ajvOptions is valid in express-openapi-validator 5.x but sometimes has type conflicts
-    ajvOptions: {
-      allErrors: true,
-      strict: false, // Less strict to handle some zod-to-openapi quirks
-    },
   })
 );
 

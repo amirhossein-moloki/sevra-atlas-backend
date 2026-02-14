@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { serialize } from './serialize';
 
 export type PaginationMeta = {
@@ -30,11 +30,11 @@ export type ApiFailure = {
   meta?: ApiMeta;
 };
 
-function getRequestId(req: any): string | undefined {
-  return req.id ?? req.requestId ?? req.context?.requestId;
+function getRequestId(req: Request): string | undefined {
+  return req.requestId;
 }
 
-const withMeta = (req: any, meta?: Omit<ApiMeta, 'requestId'>): ApiMeta | undefined => {
+const withMeta = (req: Request, meta?: Omit<ApiMeta, 'requestId'>): ApiMeta | undefined => {
   const requestId = getRequestId(req);
   const merged: ApiMeta = { ...(meta ?? {}), requestId };
   if (!merged.requestId && !merged.pagination) return undefined;

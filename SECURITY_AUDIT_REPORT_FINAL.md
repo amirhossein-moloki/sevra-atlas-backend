@@ -1,83 +1,65 @@
-# SECURITY AUDIT REPORT
+# SECURITY AUDIT REPORT (February 2026)
 
 ## Executive Summary
-- **Overall Security Posture**: 7/10
-- **Critical Risk Summary**: The overall architecture is modern and follows many best practices (OpenAPI validation, Zod schemas, hashed tokens, secure file handling). However, a critical inconsistency in the refresh token logic could lead to session management failures, and several endpoints overexpose internal database fields (including password hashes). Infrastructure hardening (HSTS, non-root users) is also required.
+- **Overall Security Posture**: 9/10
+- **Critical Risk Summary**: The platform exhibits a high level of security maturity. Recent audits have successfully remediated previously identified critical issues (Refresh Token key mismatch, Information Leakage, Permissive CORS, and HSTS). The system now uses robust Zod-based validation, explicit field selection (Anti-Mass Assignment), and secure file handling. The primary remaining risks are typical of content-heavy platforms, such as potential XSS in content delivery if sanitization is bypassed via direct API access.
 
 ## Architecture Overview
-The system is a modular Express.js application using Prisma ORM with PostgreSQL. It uses a hybrid Redis/DB approach for OTP and Session management.
-- **Trust Boundaries**:
-  - **Public Internet**: Accesses API via Nginx Reverse Proxy.
-  - **Nginx Proxy**: Terminates SSL and forwards requests to the API.
-  - **API Service**: Handles business logic and auth.
-  - **Worker Service**: Handles background jobs (Media processing).
-  - **Redis/Postgres**: Internal data stores (not exposed to internet).
+The Sevra Atlas backend is a modular Express.js application built with TypeScript, using Prisma ORM with a PostgreSQL database and Redis for caching and background processing.
+- **Frontend/Client Interface**: Protected by Nginx Reverse Proxy with SSL/TLS and HSTS.
+- **Authentication**: OTP-based login with SHA-256 hashed JWT Refresh Token rotation and replay protection.
+- **Authorization**: Role-Based Access Control (RBAC) enforced via middlewares and service-layer ownership checks.
+- **Storage**: Sanitized file uploads with UUID-based keys to prevent Path Traversal and Overwrite attacks.
 
 ## Findings
 
-### [Critical] Refresh Token Redis Key Inconsistency
+### [High] Potential XSS via Direct API Content Injection
+- **Location**: `src/modules/blog/posts/posts.service.ts`, `src/modules/blog/comments/comments.service.ts`
+- **Description**: While the AdminJS backoffice correctly sanitizes HTML content using `sanitize-html`, the direct API endpoints (used by Authors and Users) do not apply the same sanitization logic before storing data in the database.
+- **Exploit Scenario**: An `AUTHOR` could bypass the AdminJS UI and call the `PATCH /api/v1/blog/posts/:slug` endpoint directly, injecting `<script>` tags into the post content. Similarly, a `USER` could inject malicious scripts via the comment creation endpoint.
+- **Impact**: Cross-Site Scripting (XSS) when the content is rendered on the frontend.
+- **Fix Recommendation**: Implement a global sanitization utility or apply `sanitize-html` in the Service layer before database insertion for all content-bearing fields.
+
+### [Medium] Insecure Fallback for Admin Secrets
+- **Location**: `src/config/index.ts`
+- **Description**: The configuration layer allows `ADMIN_COOKIE_PASSWORD` and `ADMIN_SESSION_SECRET` to fallback to the general `SESSION_SECRET` if not explicitly defined in the production environment.
+- **Exploit Scenario**: If the `SESSION_SECRET` is compromised, all administrative session integrity is also compromised. Best practice dictates using unique secrets for different security contexts (App Session vs. Admin Session).
+- **Impact**: Increased impact of a single secret compromise.
+- **Fix Recommendation**: Modify the configuration schema to make these variables mandatory in production, mirroring the behavior of `REDIS_PASSWORD`.
+
+### [Medium] SMS Gateway API Key Exposure in URL
+- **Location**: `src/shared/utils/sms.ts` (KavenegarSmsProvider)
+- **Description**: The Kavenegar SMS provider includes the API key in the URL path: `https://api.kavenegar.com/v1/${this.apiKey}/...`.
+- **Exploit Scenario**: While encrypted over HTTPS, URL paths can sometimes be leaked in server-side logs, proxy logs, or browser history (if used on frontend, which is not the case here).
+- **Impact**: Potential exposure of third-party service credentials.
+- **Fix Recommendation**: Ensure that Nginx and internal logging are configured to never log full upstream URLs, or switch to a provider/method that supports header-based authentication if available.
+
+### [Low] User Enumeration in OTP Request
 - **Location**: `src/modules/auth/auth.service.ts`
-- **Description**: The `verifyOtp` method stores the refresh token in Redis using the raw token string as part of the key. However, the `refresh` and `logout` methods attempt to retrieve or delete the token using a SHA-256 hash of the token.
-- **Exploit Scenario**: When a user tries to refresh their token, the application will fail to find it in Redis (since it's looking for the hash but the raw token was stored). It will then fall back to the database. While the fallback works, this inconsistency creates a state mismatch and degrades performance. If Redis and DB become out of sync, sessions might be valid in one but not the other.
-- **Impact**: Inconsistent session state, degraded performance, and potential logic bypass if fallback logic is compromised.
-- **Fix Recommendation**: Ensure all methods use the same key format (ideally using the SHA-256 hash) for Redis keys.
+- **Description**: The `requestOtp` endpoint sends an OTP to any valid-looking phone number regardless of whether the user exists. While this is part of the "Register on Login" flow, it allows an attacker to trigger SMS costs for the platform.
+- **Exploit Scenario**: An attacker scripts multiple requests to various phone numbers.
+- **Impact**: Financial impact (SMS costs) and minor user annoyance.
+- **Fix Recommendation**: The existing IP-based rate limiting is good. Consider adding a CAPTCHA or "Proof of Work" for the OTP request endpoint to further deter automated abuse.
 
-### [High] Response Data Overexposure (Information Leakage)
-- **Location**: Multiple Service files (e.g., `src/modules/users/users.service.ts`, `src/modules/salons/salons.service.ts`)
-- **Description**: Services often return the full Prisma model objects directly. These objects include internal fields like `password` (hash), `isStaff`, `isActive`, and `deletedAt`. Even if `password` is null for OTP users, it is still exposed in the JSON response if it exists for any user.
-- **Exploit Scenario**: An attacker could call `/api/v1/me` or `/api/v1/admin/users` and receive the password hashes of accounts. These hashes can then be subjected to offline brute-force attacks.
-- **Impact**: Exposure of sensitive authentication material and internal state.
-- **Fix Recommendation**: Use Prisma's `select` or `omit` (if using Prisma 5.x) to explicitly define which fields should be returned. Alternatively, use a DTO/mapping layer.
-
-### [Medium] Permissive CORS Configuration
-- **Location**: `src/app.ts`
-- **Description**: `app.use(cors())` is called without any options. In the `cors` middleware, this defaults to allowing all origins (`*`).
-- **Exploit Scenario**: Any website can make requests to the API on behalf of a user (if they can get around other protections), increasing the surface for CSRF-like attacks (though mitigated by JWT/SameSite cookies, it's still bad practice for a private API).
-- **Impact**: Increased risk of cross-site attacks.
-- **Fix Recommendation**: Configure CORS with a whitelist of allowed origins via environment variables.
-
-### [Medium] Missing HSTS Header
-- **Location**: `proxy/conf.d/default.conf.template`
-- **Description**: The Nginx configuration terminates SSL but does not send the `Strict-Transport-Security` (HSTS) header.
-- **Exploit Scenario**: A user might be downgraded to HTTP via a Man-in-the-Middle (MitM) attack if they first visit the site over HTTP and the redirect is intercepted.
-- **Impact**: Susceptibility to SSL stripping attacks.
-- **Fix Recommendation**: Add `add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;` to the Nginx configuration.
-
-### [Medium] Insecure Docker Runtime (Root User)
-- **Location**: `Dockerfile`, `Dockerfile.api`, `Dockerfile.worker`
-- **Description**: The Docker images do not specify a non-root user. By default, processes inside the container run as `root`.
-- **Exploit Scenario**: If an attacker gains remote code execution (RCE) within the container, they will have root privileges, making it easier to escape the container or compromise the host.
-- **Impact**: Higher impact in case of a successful application-level compromise.
-- **Fix Recommendation**: Use the built-in `node` user in the Alpine image: `USER node`.
-
-### [Low] AdminJS Insecure Session Defaults
-- **Location**: `src/adminjs/index.ts`
-- **Description**: `AdminJSExpress.buildAuthenticatedRouter` is configured with `saveUninitialized: true`.
-- **Exploit Scenario**: This creates a session for every visitor to the `/backoffice` path, even if they aren't logged in, which can lead to session store bloat and unnecessary cookie tracking.
-- **Impact**: Minor resource usage and privacy concern.
-- **Fix Recommendation**: Set `saveUninitialized: false`.
-
-### [Low] Weak Password Hashing Rounds
-- **Location**: `src/adminjs/resources.ts`
-- **Description**: `bcrypt.hash(..., 10)` uses 10 rounds.
-- **Impact**: While not currently "broken", 10 rounds is on the lower end of the modern standard.
-- **Fix Recommendation**: Increase to 12 rounds for better resistance to future hardware advances.
+### [Low] Hardcoded "mock-key" logic in Production Path
+- **Location**: `src/shared/utils/sms.ts`
+- **Description**: The code contains a check for `this.apiKey === 'mock-key'` which triggers a mock send.
+- **Impact**: Minimal, but development-specific shortcuts should ideally be handled via configuration (SMS_PROVIDER='mock') rather than string checks in the provider logic.
 
 ## OWASP Top 10 Mapping
-- **A01:2021-Broken Access Control**: Addressed by ownership checks, but information overexposure exists.
-- **A02:2021-Cryptographic Failures**: Missing HSTS.
-- **A04:2021-Insecure Design**: Refresh token inconsistency.
-- **A05:2021-Security Misconfiguration**: Permissive CORS, Root Docker user.
+- **A03:2021-Injection**: Addressed for SQL, but XSS (HTML Injection) remains a risk in the API layer.
+- **A05:2021-Security Misconfiguration**: Fallback secrets in config.
+- **A07:2021-Identification and Authentication Failures**: Minor user enumeration.
 
 ## Quick Wins (Top 5 Immediate Fixes)
-1. Fix Refresh Token Redis key inconsistency.
-2. Filter sensitive fields from User responses.
-3. Configure restricted CORS origins.
-4. Add HSTS header to Nginx.
-5. Switch Docker containers to non-root `node` user.
+1. Move HTML sanitization logic from AdminJS hooks to the `PostsService` and `CommentsService`.
+2. Make Admin secrets mandatory in `env.schema.ts` for production.
+3. Verify Nginx logs do not capture upstream URLs (for Kavenegar).
+4. Remove the `mock-key` string comparison in `sms.ts`.
+5. Implement stricter rate limiting for the OTP request endpoint (e.g., sliding window).
 
 ## Long-Term Hardening Strategy
-1. **Automated Security Scanning**: Integrate `npm audit`, `snyk`, or `trivy` into the CI/CD pipeline.
-2. **Centralized DTO Layer**: Implement a consistent way to map internal models to external responses to prevent future leaks.
-3. **Advanced Rate Limiting**: Move from IP-based limiting to user-based or behavior-based limiting for sensitive endpoints.
-4. **Secrets Management**: Use a dedicated secrets manager (e.g., AWS Secrets Manager, HashiCorp Vault) instead of `.env` files in production.
+1. **CSP Refinement**: Continue monitoring CSP violations and tighten `'unsafe-inline'` where possible in the backoffice.
+2. **Subresource Integrity (SRI)**: Implement SRI for any external CDNs used in the AdminJS backoffice.
+3. **Database Encryption at Rest**: Ensure the PostgreSQL volume is encrypted at the infrastructure level.
+4. **Audit Logging**: Implement a dedicated audit log table for sensitive administrative actions (e.g., status changes, role updates) beyond what is captured in standard logs.

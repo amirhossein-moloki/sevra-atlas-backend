@@ -1,0 +1,5632 @@
+{
+  "info": {
+    "_postman_id": "sevra-atlas-api-1771057655169",
+    "name": "Sevra Atlas API",
+    "description": "Postman Collection for Sevra Atlas API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /api/v1/auth/otp/request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/otp/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "otp",
+                "request"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Request OTP code",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"09123456789\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/auth/otp/verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/otp/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "otp",
+                "verify"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Verify OTP and login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"09123456789\",\n  \"code\": \"123456\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.accessToken) {",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.accessToken);",
+                  "    console.log(\"Token stored in collection variable 'token'\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/auth/refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Refresh access token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Logout user",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET /api/v1/me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Get current user profile"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/me",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Update current user profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"string\",\n  \"lastName\": \"string\",\n  \"bio\": \"string\",\n  \"cityId\": 0,\n  \"gender\": \"FEMALE\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/me/follows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/follows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me",
+                "follows"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Get my follows"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/me/saves",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/saves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me",
+                "saves"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Get my saved items"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/admin/users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "string",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "string",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "string",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ],
+              "variable": []
+            },
+            "description": "List all users (Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/admin/users/:id/role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/:id/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":id",
+                "role"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update user role (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"USER\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/admin/users/:id/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":id",
+                "status"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update user status (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Geo",
+      "item": [
+        {
+          "name": "GET /api/v1/geo/provinces",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/provinces",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "provinces"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List all provinces"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/geo/provinces",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/provinces",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "provinces"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a province (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameFa\": \"string\",\n  \"nameEn\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/geo/provinces/:slug/cities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/provinces/:slug/cities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "provinces",
+                ":slug",
+                "cities"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "List cities of a province"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/geo/cities/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/cities/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "cities",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get city details"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/geo/cities/:slug/neighborhoods",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/cities/:slug/neighborhoods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "cities",
+                ":slug",
+                "neighborhoods"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "List neighborhoods of a city"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/geo/cities",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/cities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "cities"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a city (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provinceId\": \"string\",\n  \"nameFa\": \"string\",\n  \"nameEn\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/geo/neighborhoods",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/neighborhoods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "neighborhoods"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a neighborhood (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cityId\": \"string\",\n  \"nameFa\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/geo/cities/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/cities/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "cities",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update a city (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"string\",\n  \"provinceId\": \"string\",\n  \"nameFa\": \"string\",\n  \"nameEn\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/geo/neighborhoods/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/geo/neighborhoods/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "geo",
+                "neighborhoods",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update a neighborhood (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"string\",\n  \"cityId\": \"string\",\n  \"nameFa\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "GET /api/v1/services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "services"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List all service categories and their services"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/services",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "services"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a service (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 0,\n  \"nameFa\": \"string\",\n  \"slug\": \"string\",\n  \"description\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/services/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/services/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "services",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get service details"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/services/categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/services/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "services",
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a service category (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameFa\": \"string\",\n  \"slug\": \"string\",\n  \"order\": 0\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/services/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "services",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update a service (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 0,\n  \"nameFa\": \"string\",\n  \"slug\": \"string\",\n  \"description\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/services/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "services",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete a service (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "item": [
+        {
+          "name": "GET /api/v1/media",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List all media (Staff)"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/media",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Register a media item manually",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://example.com/image.jpg\",\n  \"storageKey\": \"string\",\n  \"type\": \"string\",\n  \"mime\": \"string\",\n  \"sizeBytes\": 0,\n  \"width\": 0,\n  \"height\": 0,\n  \"duration\": 0,\n  \"altText\": \"\",\n  \"title\": \"\",\n  \"kind\": \"AVATAR\",\n  \"entityType\": \"SALON\",\n  \"entityId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/media/upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                "upload"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Upload and optimize an image",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/media/:id/status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                ":id",
+                "status"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Check media processing status"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/media/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get media details"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/media/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update media metadata",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"altText\": \"string\",\n  \"title\": \"string\",\n  \"kind\": \"AVATAR\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/media/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete media"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/media/:id/download",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/media/:id/download",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                ":id",
+                "download"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Download media file"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "SEO",
+      "item": [
+        {
+          "name": "GET /api/v1/seo/redirects/resolve",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/seo/redirects/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "seo",
+                "redirects",
+                "resolve"
+              ],
+              "query": [
+                {
+                  "key": "path",
+                  "value": "string",
+                  "description": "",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Resolve a redirect"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/seo/meta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/seo/meta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "seo",
+                "meta"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Set SEO meta for an entity (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entityType\": \"SALON\",\n  \"entityId\": \"string\",\n  \"title\": \"string\",\n  \"description\": \"string\",\n  \"canonicalMode\": \"SELF\",\n  \"canonicalUrl\": \"string\",\n  \"robots\": \"INDEX_FOLLOW\",\n  \"ogTitle\": \"string\",\n  \"ogDescription\": \"string\",\n  \"ogImageMediaId\": \"string\",\n  \"twitterTitle\": \"string\",\n  \"twitterDesc\": \"string\",\n  \"twitterImageMediaId\": \"string\",\n  \"h1\": \"string\",\n  \"breadcrumbLabel\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/seo/redirects",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/seo/redirects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "seo",
+                "redirects"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a redirect rule (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromPath\": \"string\",\n  \"toPath\": \"string\",\n  \"type\": \"PERMANENT_301\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/seo/sitemap/rebuild",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/seo/sitemap/rebuild",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "seo",
+                "sitemap",
+                "rebuild"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Rebuild sitemap (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Salons",
+      "item": [
+        {
+          "name": "GET /api/v1/salons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "string",
+                  "description": "Search term for name, summary or description",
+                  "disabled": true
+                },
+                {
+                  "key": "province",
+                  "value": "string",
+                  "description": "Province slug",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "string",
+                  "description": "City slug",
+                  "disabled": true
+                },
+                {
+                  "key": "neighborhood",
+                  "value": "string",
+                  "description": "Neighborhood slug",
+                  "disabled": true
+                },
+                {
+                  "key": "service",
+                  "value": "string",
+                  "description": "Service slug",
+                  "disabled": true
+                },
+                {
+                  "key": "verified",
+                  "value": "true",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minRating",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minReviewCount",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "womenOnly",
+                  "value": "true",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "priceTier",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "rating",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                }
+              ],
+              "variable": []
+            },
+            "description": "List all salons"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/salons",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a salon",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Beauty Palace\",\n  \"slug\": \"beauty-palace\",\n  \"summary\": \"string\",\n  \"description\": \"string\",\n  \"phone\": \"string\",\n  \"cityId\": \"string\",\n  \"neighborhoodId\": \"string\",\n  \"addressLine\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/salons/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get salon by slug"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/salons/:slug/reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:slug/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":slug",
+                "reviews"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get salon reviews"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/salons/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update a salon",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\",\n  \"summary\": \"string\",\n  \"description\": \"string\",\n  \"phone\": \"string\",\n  \"instagram\": \"string\",\n  \"website\": \"string\",\n  \"cityId\": 0,\n  \"neighborhoodId\": 0,\n  \"addressLine\": \"string\",\n  \"postalCode\": \"string\",\n  \"lat\": 0,\n  \"lng\": 0,\n  \"isWomenOnly\": true,\n  \"priceTier\": 0,\n  \"avatarMediaId\": \"string\",\n  \"coverMediaId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/salons/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete a salon"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/salons/:id/services",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/services",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "services"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Assign services to salon",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"services\": [\n    {\n      \"serviceId\": 0,\n      \"notes\": \"string\"\n    }\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/salons/:id/services/:serviceId",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/services/:serviceId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "services",
+                ":serviceId"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                },
+                {
+                  "key": "serviceId",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Remove service from salon"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/salons/:id/avatar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "avatar"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Set salon avatar",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/salons/:id/cover",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "cover"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Set salon cover",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"string\",\n  \"mediaIds\": [\n    \"string\"\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/salons/:id/gallery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/gallery",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "gallery"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Add to salon gallery",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"string\",\n  \"mediaIds\": [\n    \"string\"\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/salons/:id/artists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/artists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "artists"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Link artist to salon",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"artistId\": 0,\n  \"roleTitle\": \"string\",\n  \"isActive\": true,\n  \"startedAt\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/salons/:id/artists/:artistId",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/salons/:id/artists/:artistId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salons",
+                ":id",
+                "artists",
+                ":artistId"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                },
+                {
+                  "key": "artistId",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Unlink artist from salon"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Artists",
+      "item": [
+        {
+          "name": "GET /api/v1/artists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "string",
+                  "description": "Search term for name, summary or bio",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "string",
+                  "description": "City slug",
+                  "disabled": true
+                },
+                {
+                  "key": "neighborhood",
+                  "value": "string",
+                  "description": "Neighborhood slug",
+                  "disabled": true
+                },
+                {
+                  "key": "specialty",
+                  "value": "string",
+                  "description": "Specialty slug",
+                  "disabled": true
+                },
+                {
+                  "key": "verified",
+                  "value": "true",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minRating",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minReviewCount",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "rating",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                }
+              ],
+              "variable": []
+            },
+            "description": "List all artists"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/artists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create an artist",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"string\",\n  \"slug\": \"string\",\n  \"summary\": \"string\",\n  \"bio\": \"string\",\n  \"phone\": \"string\",\n  \"instagram\": \"string\",\n  \"website\": \"string\",\n  \"cityId\": 0,\n  \"neighborhoodId\": 0\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/artists/specialties",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/specialties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                "specialties"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List artist specialties"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/artists/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get artist by slug"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/artists/:slug/reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:slug/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":slug",
+                "reviews"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get artist reviews"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/artists/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update an artist",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"string\",\n  \"slug\": \"string\",\n  \"summary\": \"string\",\n  \"bio\": \"string\",\n  \"phone\": \"string\",\n  \"instagram\": \"string\",\n  \"website\": \"string\",\n  \"cityId\": 0,\n  \"neighborhoodId\": 0,\n  \"avatarMediaId\": \"string\",\n  \"coverMediaId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/artists/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete an artist"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/artists/:id/avatar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "avatar"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Set artist avatar",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/artists/:id/cover",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "cover"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Set artist cover",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"string\",\n  \"mediaIds\": [\n    \"string\"\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/artists/:id/gallery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/gallery",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "gallery"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Add to artist gallery",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaId\": \"string\",\n  \"mediaIds\": [\n    \"string\"\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/artists/:id/certifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/certifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "certifications"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Add certification to artist",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"string\",\n  \"issuer\": \"string\",\n  \"issuerSlug\": \"string\",\n  \"category\": \"string\",\n  \"level\": \"string\",\n  \"issuedAt\": \"string\",\n  \"expiresAt\": \"string\",\n  \"credentialId\": \"string\",\n  \"credentialUrl\": \"string\",\n  \"mediaId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/artists/:id/certifications/:certId",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/certifications/:certId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "certifications",
+                ":certId"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                },
+                {
+                  "key": "certId",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update artist certification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"string\",\n  \"issuer\": \"string\",\n  \"issuerSlug\": \"string\",\n  \"category\": \"string\",\n  \"level\": \"string\",\n  \"issuedAt\": \"string\",\n  \"expiresAt\": \"string\",\n  \"credentialId\": \"string\",\n  \"credentialUrl\": \"string\",\n  \"mediaId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/artists/:id/certifications/:certId",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/certifications/:certId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "certifications",
+                ":certId"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                },
+                {
+                  "key": "certId",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete artist certification"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/artists/:id/certifications/:certId/verify",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/certifications/:certId/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "certifications",
+                ":certId",
+                "verify"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                },
+                {
+                  "key": "certId",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Verify artist certification (Staff)"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/artists/:id/specialties",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/artists/:id/specialties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "artists",
+                ":id",
+                "specialties"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Assign specialties to artist",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialtyIds\": [\n    0\n  ],\n  \"mode\": \"replace\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Specialties",
+      "item": [
+        {
+          "name": "GET /api/v1/specialties",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/specialties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "specialties"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List all specialties"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/specialties",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/specialties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "specialties"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a specialty (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/specialties/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/specialties/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "specialties",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update a specialty (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/specialties/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/specialties/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "specialties",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete a specialty (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Posts",
+      "item": [
+        {
+          "name": "GET /api/v1/blog/posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "string",
+                  "description": "Search in title, content and excerpt",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "string",
+                  "description": "Category slug",
+                  "disabled": true
+                },
+                {
+                  "key": "tag",
+                  "value": "string",
+                  "description": "Tag slug or comma separated slugs",
+                  "disabled": true
+                },
+                {
+                  "key": "author",
+                  "value": "string",
+                  "description": "Author ID or username",
+                  "disabled": true
+                },
+                {
+                  "key": "series",
+                  "value": "string",
+                  "description": "Series slug",
+                  "disabled": true
+                },
+                {
+                  "key": "is_hot",
+                  "value": "true",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "ordering",
+                  "value": "string",
+                  "description": "Sort field (prefix with - for desc)",
+                  "disabled": true
+                },
+                {
+                  "key": "published_after",
+                  "value": "2026-02-14T08:27:35.171Z",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "published_before",
+                  "value": "2026-02-14T08:27:35.171Z",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "visibility",
+                  "value": "public",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "string",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                }
+              ],
+              "variable": []
+            },
+            "description": "List blog posts"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/posts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a blog post (Author/Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Awesome Post\",\n  \"excerpt\": \"Summary of the post\",\n  \"content\": \"<p>Content here...</p>\",\n  \"status\": \"draft\",\n  \"visibility\": \"public\",\n  \"is_hot\": true,\n  \"slug\": \"my-awesome-post\",\n  \"canonical_url\": \"https://example.com/image.jpg\",\n  \"seo_title\": \"string\",\n  \"seo_description\": \"string\",\n  \"category_id\": 0,\n  \"tag_ids\": [\n    0\n  ],\n  \"cover_media_id\": 0,\n  \"og_image_id\": 0,\n  \"series_id\": 0,\n  \"publish_at\": \"2026-02-14T08:27:35.171Z\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/posts/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get blog post by slug"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/posts/:slug",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update a blog post (Author/Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Awesome Post\",\n  \"excerpt\": \"Summary of the post\",\n  \"content\": \"<p>Content here...</p>\",\n  \"status\": \"draft\",\n  \"visibility\": \"public\",\n  \"is_hot\": true,\n  \"slug\": \"my-awesome-post\",\n  \"canonical_url\": \"https://example.com/image.jpg\",\n  \"seo_title\": \"string\",\n  \"seo_description\": \"string\",\n  \"category_id\": 0,\n  \"tag_ids\": [\n    0\n  ],\n  \"cover_media_id\": 0,\n  \"og_image_id\": 0,\n  \"series_id\": 0,\n  \"publish_at\": \"2026-02-14T08:27:35.171Z\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/posts/:slug",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete a blog post (Author/Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/posts/slug/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/slug/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                "slug",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get blog post by slug (Legacy compatibility)"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/posts/:slug/similar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug/similar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug",
+                "similar"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get similar posts"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/posts/:slug/same-category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug/same-category",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug",
+                "same-category"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get posts in the same category"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/posts/:slug/related",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug/related",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug",
+                "related"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get related posts"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/posts/:slug/comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug",
+                "comments"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "List comments for a post"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/posts/:slug/comments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug",
+                "comments"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Create a comment for a post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"string\",\n  \"parentId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/posts/:slug/publish",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/:slug/publish",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "posts",
+                ":slug",
+                "publish"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Publish a blog post (Author/Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "POST /api/v1/reviews",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"SALON\",\n  \"targetId\": \"string\",\n  \"rating\": 0,\n  \"title\": \"string\",\n  \"body\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/reviews/:id/vote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/:id/vote",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews",
+                ":id",
+                "vote"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Vote on a review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLike\": true\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/reviews/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete a review"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Follows",
+      "item": [
+        {
+          "name": "POST /api/v1/follow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/follow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "follow"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Follow an entity",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetId\": \"string\",\n  \"targetType\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/follow",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/follow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "follow"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Unfollow an entity",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetId\": \"string\",\n  \"targetType\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/follow/me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/follow/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "follow",
+                "me"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Get my follows"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Saves",
+      "item": [
+        {
+          "name": "POST /api/v1/save",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "save"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Save an entity",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetId\": \"string\",\n  \"targetType\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/save",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "save"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Unsave an entity",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetId\": \"string\",\n  \"targetType\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/save/me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/save/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "save",
+                "me"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Get my saved items"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "POST /api/v1/reports",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create a report",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"SALON\",\n  \"targetId\": 0,\n  \"reason\": \"string\",\n  \"details\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List reports (Staff)"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/reports/:id/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                ":id",
+                "status"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update report status (Staff)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OPEN\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "item": [
+        {
+          "name": "POST /api/v1/verification/request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/verification/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "verification",
+                "request"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Request verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"SALON\",\n  \"targetId\": 0,\n  \"notes\": \"string\",\n  \"documents\": [\n    {\n      \"label\": \"string\",\n      \"mediaId\": \"string\"\n    }\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/verification/requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/verification/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "verification",
+                "requests"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List verification requests (Staff)"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/verification/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/verification/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "verification",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Review verification request (Staff)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"NONE\",\n  \"notes\": \"string\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "GET /api/v1/admin/dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Get admin dashboard summary"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/admin/stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-02-14T08:27:35.172Z",
+                  "description": "",
+                  "disabled": false
+                },
+                {
+                  "key": "to",
+                  "value": "2026-02-14T08:27:35.172Z",
+                  "description": "",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Get time-series stats"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/admin/taxonomy/blog/categories/reorder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/taxonomy/blog/categories/reorder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "taxonomy",
+                "blog",
+                "categories",
+                "reorder"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Reorder blog categories (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"id\": \"string\",\n      \"order\": 0\n    }\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/admin/taxonomy/services/categories/reorder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/taxonomy/services/categories/reorder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "taxonomy",
+                "services",
+                "categories",
+                "reorder"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Reorder service categories (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"id\": \"string\",\n      \"order\": 0\n    }\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/admin/taxonomy/artists/specialties/reorder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/taxonomy/artists/specialties/reorder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "taxonomy",
+                "artists",
+                "specialties",
+                "reorder"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Reorder specialties (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"id\": \"string\",\n      \"order\": 0\n    }\n  ]\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/admin/salons/:id/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/salons/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "salons",
+                ":id",
+                "status"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update salon status (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/admin/artists/:id/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/artists/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "artists",
+                ":id",
+                "status"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update artist status (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/admin/queues/health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/queues/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "queues",
+                "health"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Check all background queues health (Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/admin/jobs/:queue/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/jobs/:queue/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "jobs",
+                ":queue",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "queue",
+                  "value": "string",
+                  "description": ""
+                },
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Check background job status (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /api/v1/health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Check system health"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/health/ready",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Check if system is ready to handle requests"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "GET /api/v1/search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "string",
+                  "description": "Search term",
+                  "disabled": false
+                }
+              ],
+              "variable": []
+            },
+            "description": "Global search across salons, artists and blog posts"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Taxonomy",
+      "item": [
+        {
+          "name": "GET /api/v1/blog/taxonomy/categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List categories"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/taxonomy/categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create category (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\",\n  \"parentId\": \"string\",\n  \"description\": \"\",\n  \"order\": 0\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/taxonomy/categories/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "categories",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get category by ID"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/taxonomy/categories/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "categories",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update category (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\",\n  \"parentId\": \"string\",\n  \"description\": \"\",\n  \"order\": 0\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/taxonomy/categories/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "categories",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete category (Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/taxonomy/tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/tags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "tags"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List tags"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/taxonomy/tags",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/tags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "tags"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create tag (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\",\n  \"description\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/taxonomy/tags/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/tags/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "tags",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get tag by ID"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/taxonomy/tags/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/tags/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "tags",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update tag (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"slug\": \"string\",\n  \"description\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/taxonomy/tags/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/tags/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "tags",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete tag (Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/taxonomy/series",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/series",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "series"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List series"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/taxonomy/series",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/series",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "series"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create series (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"string\",\n  \"slug\": \"string\",\n  \"description\": \"\",\n  \"orderStrategy\": \"manual\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/taxonomy/series/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/series/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "series",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get series by ID"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/taxonomy/series/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/series/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "series",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update series (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"string\",\n  \"slug\": \"string\",\n  \"description\": \"\",\n  \"orderStrategy\": \"manual\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/taxonomy/series/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/taxonomy/series/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "taxonomy",
+                "series",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete series (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Misc",
+      "item": [
+        {
+          "name": "GET /api/v1/blog/misc/revisions/:postId",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/revisions/:postId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "revisions",
+                ":postId"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "List post revisions"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/misc/reactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/reactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "reactions"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Add reaction to post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reaction\": \"string\",\n  \"contentTypeId\": 0,\n  \"objectId\": 0\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/misc/pages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/pages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "pages"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List pages"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/misc/pages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/pages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "pages"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create page (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"string\",\n  \"title\": \"string\",\n  \"content\": \"string\",\n  \"status\": \"draft\",\n  \"seoTitle\": \"\",\n  \"seoDescription\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/misc/pages/:slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/pages/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "pages",
+                ":slug"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get page by slug"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/misc/pages/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/pages/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "pages",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update page (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"string\",\n  \"title\": \"string\",\n  \"content\": \"string\",\n  \"status\": \"draft\",\n  \"seoTitle\": \"\",\n  \"seoDescription\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/misc/pages/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/pages/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "pages",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete page (Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/misc/menus/:location",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menus/:location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menus",
+                ":location"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "location",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get menu by location"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/misc/menus",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menus",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menus"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create menu (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"location\": \"header\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/misc/menus/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menus/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menus",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update menu (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"location\": \"header\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/misc/menus/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menus/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menus",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete menu (Admin)"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/misc/menu-items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menu-items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menu-items"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create menu item (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menuId\": \"string\",\n  \"parentId\": \"string\",\n  \"label\": \"string\",\n  \"url\": \"string\",\n  \"order\": 0,\n  \"targetBlank\": false\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/misc/menu-items/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menu-items/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menu-items",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update menu item (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": \"string\",\n  \"label\": \"string\",\n  \"url\": \"string\",\n  \"order\": 0,\n  \"targetBlank\": false\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/misc/menu-items/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/misc/menu-items/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "misc",
+                "menu-items",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete menu item (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Authors",
+      "item": [
+        {
+          "name": "GET /api/v1/blog/authors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/authors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "authors"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List authors"
+          },
+          "event": []
+        },
+        {
+          "name": "POST /api/v1/blog/authors",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/authors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "authors"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "Create author (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"string\",\n  \"displayName\": \"string\",\n  \"bio\": \"string\",\n  \"avatarId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "GET /api/v1/blog/authors/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/authors/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "authors",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Get author by ID"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/authors/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/authors/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "authors",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update author (Admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"string\",\n  \"bio\": \"string\",\n  \"avatarId\": \"string\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/authors/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/authors/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "authors",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete author (Admin)"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Comments",
+      "item": [
+        {
+          "name": "GET /api/v1/blog/comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "comments"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "description": "List all comments"
+          },
+          "event": []
+        },
+        {
+          "name": "PATCH /api/v1/blog/comments/:id/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/comments/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "comments",
+                ":id",
+                "status"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Update comment status (Staff)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"pending\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "DELETE /api/v1/blog/comments/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/comments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blog",
+                "comments",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "string",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delete comment (Admin)"
+          },
+          "event": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "REPLACE_ME",
+      "type": "string"
+    }
+  ]
+}

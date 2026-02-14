@@ -12,7 +12,6 @@ declare global {
         actorType?: any;
       };
       salonId?: string;
-      id?: string;
       requestId?: string;
       rawBody?: Buffer;
       user?: any; // Support existing code that uses req.user

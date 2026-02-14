@@ -1,8 +1,8 @@
+import { Server } from 'http';
 import app from './app';
 import { config, printConfigSummary } from './config';
 import { logger } from './shared/logger/logger';
 import { prisma } from './shared/db/prisma';
-import { startWorkers } from './modules/workers';
 import { initAdminJS } from './adminjs';
 
 async function start() {
@@ -17,7 +17,7 @@ async function start() {
         logger.info(`AdminJS Backoffice mounted at ${adminJs.options.rootPath}`);
     }
 
-    let server: any;
+    let server: Server | undefined;
 
     if (config.worker.isWorker) {
       const { startWorkersGracefully } = await import('./modules/workers');

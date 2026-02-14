@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { z } from 'zod';
 import { envSchema } from './env.schema';
 import { parseList } from './parse';
 
@@ -22,7 +23,8 @@ if (!_env.success) {
   }
 }
 
-const envData = _env.success ? _env.data : ({} as any);
+type EnvData = z.infer<typeof envSchema>;
+const envData = _env.success ? _env.data : {} as EnvData;
 
 // Extra production checks for missing secrets
 if (nodeEnv === 'production') {
@@ -41,16 +43,19 @@ if (nodeEnv === 'production') {
   }
 }
 
+type Redactable = { [key: string]: string | number | boolean | null | undefined | Redactable | (string | number | boolean | null | undefined | Redactable)[] };
+
 /**
  * Redacts sensitive values from a configuration object for logging.
  */
-function redactConfig(obj: any): any {
+function redactConfig(obj: Redactable): Redactable {
   const redacted = { ...obj };
   const sensitiveKeys = ['secret', 'password', 'key', 'url', 'token'];
 
   for (const key in redacted) {
-    if (typeof redacted[key] === 'object' && redacted[key] !== null && !Array.isArray(redacted[key])) {
-      redacted[key] = redactConfig(redacted[key]);
+    const value = redacted[key];
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      redacted[key] = redactConfig(value);
     } else if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk))) {
       redacted[key] = '[REDACTED]';
     }

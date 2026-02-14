@@ -4,6 +4,7 @@ import httpStatus from 'http-status';
 import { ApiFailure } from '../utils/response';
 import { config } from '../../config';
 import { logger } from '../logger/logger';
+import { ApiError } from '../errors/ApiError';
 
 type NormalizedError = {
   status: number;
@@ -13,13 +14,12 @@ type NormalizedError = {
 };
 
 function getRequestId(req: Request): string | undefined {
-  const anyReq = req as any;
-  return anyReq.id ?? anyReq.requestId ?? anyReq.context?.requestId;
+  return req.requestId;
 }
 
-function normalizeError(err: any): NormalizedError {
+function normalizeError(err: unknown): NormalizedError {
   // 1) AppError (custom)
-  if (err.isOperational) {
+  if (err instanceof ApiError) {
     return {
       status: err.statusCode,
       code: err.code || 'APP_ERROR',
@@ -56,7 +56,7 @@ function normalizeError(err: any): NormalizedError {
   }
 
   // 3) Postgres exclusion constraint (booking overlap)
-  if (err.code === '23P01' && err.message?.includes('Booking_no_overlap_active')) {
+  if (err && typeof err === 'object' && 'code' in err && err.code === '23P01' && 'message' in err && typeof err.message === 'string' && err.message.includes('Booking_no_overlap_active')) {
     return {
       status: 409,
       code: 'BOOKING_OVERLAP',
@@ -65,28 +65,33 @@ function normalizeError(err: any): NormalizedError {
   }
 
   // 4) Zod validation
-  if (err?.name === 'ZodError') {
+  if (err && typeof err === 'object' && 'name' in err && err.name === 'ZodError') {
+    const error = err as any;
     return {
       status: 400,
       code: 'VALIDATION_ERROR',
       message: 'Invalid request payload.',
-      details: err.errors ?? err.issues ?? err,
+      details: error.errors ?? error.issues ?? error,
     };
   }
 
   // 5) http-errors like
-  if (typeof err?.status === 'number' || typeof err?.statusCode === 'number') {
-    const status = err.status ?? err.statusCode;
-    const statusText = (httpStatus as any)[status] as string | undefined;
-    const code =
-      err.code ?? (statusText ? (statusText as string).replace(/\s+/g, '_').toUpperCase() : 'HTTP_ERROR');
+  if (err && typeof err === 'object') {
+    const error = err as Record<string, unknown>;
+    const status = (typeof error.status === 'number' ? error.status : (typeof error.statusCode === 'number' ? error.statusCode : undefined));
 
-    return {
-      status,
-      code,
-      message: err.message ?? statusText ?? 'Request failed.',
-      details: err.details,
-    };
+    if (status) {
+      const statusText = httpStatus[status as keyof typeof httpStatus] as string | undefined;
+      const code =
+        (typeof error.code === 'string' ? error.code : (statusText ? statusText.replace(/\s+/g, '_').toUpperCase() : 'HTTP_ERROR'));
+
+      return {
+        status,
+        code,
+        message: typeof error.message === 'string' ? error.message : (statusText ?? 'Request failed.'),
+        details: error.details,
+      };
+    }
   }
 
   // 6) default
@@ -97,7 +102,7 @@ function normalizeError(err: any): NormalizedError {
   };
 }
 
-export function errorHandler(err: any, req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   const requestId = getRequestId(req);
   const normalized = normalizeError(err);
 

@@ -3,21 +3,21 @@ import * as responseUtils from '../utils/response';
 import { serialize } from '../utils/serialize';
 
 export function responseMiddleware(req: Request, res: Response, next: NextFunction) {
-  const originalJson = res.json;
+  const originalJson = res.json.bind(res);
 
-  // @ts-ignore - Patching res.json to ensure all responses follow the envelope pattern
-  res.json = function (body: any) {
+  res.json = function (body: unknown): Response {
     const isSuccess = res.statusCode >= 200 && res.statusCode < 300;
     const isAlreadyWrapped = body && typeof body === 'object' && 'success' in body;
 
-    if (isSuccess && !isAlreadyWrapped && body !== undefined) {
-      let data = body;
-      let meta: any = { requestId: (req as any).requestId };
+    if (isSuccess && !isAlreadyWrapped && body !== undefined && body !== null) {
+      let data: unknown = body;
+      let meta: responseUtils.ApiMeta = { requestId: req.requestId };
 
       // Flatten paginated responses
-      if (body && typeof body === 'object' && 'data' in body && 'meta' in body) {
-        data = body.data;
-        meta = { pagination: body.meta, ...meta };
+      if (typeof body === 'object' && 'data' in body && 'meta' in body) {
+        const bodyObj = body as Record<string, unknown>;
+        data = bodyObj.data;
+        meta = { pagination: bodyObj.meta as responseUtils.PaginationMeta, ...meta };
       }
 
       return originalJson.call(this, {

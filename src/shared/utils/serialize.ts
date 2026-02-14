@@ -1,15 +1,18 @@
-export const serialize = (obj: any): any => {
+export const serialize = (obj: unknown): any => {
   if (!obj) return null;
   if (Array.isArray(obj)) return obj.map(o => serialize(o));
 
-  const res = { ...obj };
+  if (typeof obj !== 'object' || obj === null) return obj;
+
+  const res = { ...obj } as Record<string, unknown>;
   for (const key in res) {
-    if (typeof res[key] === 'bigint') {
-      res[key] = res[key].toString();
-    } else if (res[key] instanceof Date) {
-      res[key] = res[key].toISOString();
-    } else if (typeof res[key] === 'object' && res[key] !== null) {
-      res[key] = serialize(res[key]);
+    const value = res[key];
+    if (typeof value === 'bigint') {
+      res[key] = value.toString();
+    } else if (value instanceof Date) {
+      res[key] = value.toISOString();
+    } else if (typeof value === 'object' && value !== null) {
+      res[key] = serialize(value);
     }
   }
   return res;

@@ -1,8 +1,9 @@
 import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { BasePropertyProps } from 'adminjs'
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
     return null
   }
@@ -50,9 +51,9 @@ const MenuBar = ({ editor }: { editor: any }) => {
   )
 }
 
-const RichTextEditor = (props: any) => {
+const RichTextEditor: React.FC<BasePropertyProps> = (props) => {
   const { property, record, onChange } = props
-  const value = record.params[property.name]
+  const value = record?.params[property.name]
 
   const editor = useEditor({
     extensions: [
@@ -60,7 +61,9 @@ const RichTextEditor = (props: any) => {
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
-      onChange(property.name, editor.getHTML())
+      if (onChange) {
+        onChange(property.name, editor.getHTML())
+      }
     },
   })
 

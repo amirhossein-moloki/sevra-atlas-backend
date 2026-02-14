@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { ArtistsService } from './artists.service';
-import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { isAdmin } from '../../shared/auth/roles';
 
 const artistsService = new ArtistsService();
@@ -36,12 +35,12 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async createArtist(req: AuthRequest, res: Response) {
+  async createArtist(req: Request, res: Response) {
     const result = await artistsService.createArtist(req.body, req.user!.id);
     res.status(201).json(result);
   }
 
-  async updateArtist(req: AuthRequest, res: Response) {
+  async updateArtist(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateArtist(
       BigInt(req.params.id),
@@ -52,7 +51,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async deleteArtist(req: AuthRequest, res: Response) {
+  async deleteArtist(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteArtist(
       BigInt(req.params.id),
@@ -62,7 +61,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async setAvatar(req: AuthRequest, res: Response) {
+  async setAvatar(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
@@ -74,7 +73,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async setCover(req: AuthRequest, res: Response) {
+  async setCover(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
@@ -86,7 +85,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async addGallery(req: AuthRequest, res: Response) {
+  async addGallery(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       BigInt(req.params.id),
@@ -98,7 +97,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async addCertification(req: AuthRequest, res: Response) {
+  async addCertification(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.addCertification(
       BigInt(req.params.id),
@@ -109,7 +108,7 @@ export class ArtistsController {
     res.status(201).json(result);
   }
 
-  async updateCertification(req: AuthRequest, res: Response) {
+  async updateCertification(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateCertification(
       BigInt(req.params.certId),
@@ -120,7 +119,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async deleteCertification(req: AuthRequest, res: Response) {
+  async deleteCertification(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteCertification(
       BigInt(req.params.certId),
@@ -130,7 +129,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async verifyCertification(req: AuthRequest, res: Response) {
+  async verifyCertification(req: Request, res: Response) {
     const result = await artistsService.verifyCertification(
       BigInt(req.params.certId),
       req.body.isVerified,
@@ -139,7 +138,7 @@ export class ArtistsController {
     res.json(result);
   }
 
-  async assignSpecialties(req: AuthRequest, res: Response) {
+  async assignSpecialties(req: Request, res: Response) {
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
     const result = await artistsService.assignSpecialties(

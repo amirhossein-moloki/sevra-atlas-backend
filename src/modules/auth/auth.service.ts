@@ -138,10 +138,12 @@ export class AuthService {
       null
     );
 
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
     await prisma.refreshToken.create({
       data: {
         userId: user.id,
-        token: refreshToken,
+        token: tokenHash,
         expiresAt,
       },
     });
@@ -160,7 +162,8 @@ export class AuthService {
   async refresh(refreshToken: string) {
     try {
       const payload = verifyRefreshToken(refreshToken);
-      const redisKey = `refresh_token:${payload.sub}:${refreshToken}`;
+      const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const redisKey = `refresh_token:${payload.sub}:${tokenHash}`;
 
       let exists = false;
 
@@ -174,17 +177,25 @@ export class AuthService {
       // If not in Redis or Redis failed, check DB
       if (!exists) {
         const tokenRecord = await prisma.refreshToken.findUnique({
-          where: { token: refreshToken },
+          where: { token: tokenHash },
         });
         exists = !!tokenRecord && tokenRecord.expiresAt > new Date();
       }
 
+      const userId = BigInt(payload.sub);
+
       if (!exists) {
+        // REPLAY PROTECTION: If the token is valid but not in our store, it might have been reused.
+        // We revoke all sessions for this user as a precaution.
+        logger.warn(`Potential refresh token reuse detected for user ${userId}. Revoking all sessions.`);
+        await prisma.refreshToken.deleteMany({ where: { userId } });
+        // We could also clear all refresh_token:* keys in Redis for this user if we had a way to list them easily,
+        // but deleting from DB is the primary source of truth for fallback.
         throw new ApiError(401, 'Refresh token invalid or expired');
       }
 
       const user = await prisma.user.findUnique({
-        where: { id: BigInt(payload.sub) },
+        where: { id: userId },
       });
 
       if (!user || !user.isActive) {
@@ -195,21 +206,27 @@ export class AuthService {
       const newPayload = { sub: user.id.toString(), role: user.role };
       const newAccessToken = generateAccessToken(newPayload);
       const newRefreshToken = generateRefreshToken(newPayload);
+      const newRefreshTokenHash = crypto.createHash('sha256').update(newRefreshToken).digest('hex');
 
-      // Store new one
+      // Rotate Atomically in DB
       const expiresAt = new Date(Date.now() + env.JWT_REFRESH_TTL * 1000);
+
+      await prisma.$transaction([
+        prisma.refreshToken.create({
+          data: { userId: user.id, token: newRefreshTokenHash, expiresAt },
+        }),
+        prisma.refreshToken.deleteMany({ where: { token: tokenHash } }),
+      ]);
+
+      // Update Redis
       await RedisFallback.tryReady(
-        'storeRefreshToken',
-        () => redis.set(`refresh_token:${user.id}:${newRefreshToken}`, '1', 'EX', env.JWT_REFRESH_TTL),
+        'rotateRefreshTokenRedis',
+        async () => {
+          await redis.set(`refresh_token:${user!.id}:${newRefreshTokenHash}`, '1', 'EX', env.JWT_REFRESH_TTL);
+          await redis.del(redisKey);
+        },
         null
       );
-      await prisma.refreshToken.create({
-        data: { userId: user.id, token: newRefreshToken, expiresAt },
-      });
-
-      // Delete old one
-      await RedisFallback.tryReady('delOldRefreshToken', () => redis.del(redisKey), null);
-      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
 
       return {
         accessToken: newAccessToken,
@@ -227,11 +244,12 @@ export class AuthService {
   }
 
   async logout(userId: string, refreshToken: string) {
-    const redisKey = `refresh_token:${userId}:${refreshToken}`;
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    const redisKey = `refresh_token:${userId}:${tokenHash}`;
 
     await RedisFallback.tryReady('logoutRedis', () => redis.del(redisKey), null);
     await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
+      where: { token: tokenHash },
     });
 
     return { ok: true };

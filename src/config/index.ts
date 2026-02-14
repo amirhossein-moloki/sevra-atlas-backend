@@ -17,6 +17,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   REDIS_URL: z.string(),
   REDIS_QUEUE_URL: z.string().optional(),
+  REDIS_PASSWORD: z.string().optional(),
   JWT_ACCESS_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
   JWT_ACCESS_TTL: z.coerce.number().default(900),
@@ -52,6 +53,14 @@ if (!_env.success) {
   console.error('❌ Invalid environment variables:', JSON.stringify(_env.error.format(), null, 2));
   // In production, we want to fail fast
   if (nodeEnv === 'production') {
+    process.exit(1);
+  }
+}
+
+// Extra production checks
+if (nodeEnv === 'production' && _env.success) {
+  if (!_env.data.REDIS_PASSWORD) {
+    console.error('❌ REDIS_PASSWORD is required in production');
     process.exit(1);
   }
 }

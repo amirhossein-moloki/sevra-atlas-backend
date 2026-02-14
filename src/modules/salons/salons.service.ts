@@ -4,8 +4,15 @@ import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
+import { pickAllowedFields } from '../../shared/utils/object';
 
 export class SalonsService {
+  private readonly allowedFields = [
+    'name', 'slug', 'summary', 'description', 'phone', 'instagram', 'website',
+    'addressLine', 'postalCode', 'lat', 'lng', 'isWomenOnly', 'priceTier',
+    'cityId', 'neighborhoodId', 'provinceId', 'avatarMediaId', 'coverMediaId'
+  ] as const;
+
   async getSalons(filters: any) {
     const cacheKey = CacheKeys.SALONS_LIST(JSON.stringify(filters));
 
@@ -84,29 +91,19 @@ export class SalonsService {
   }
 
   async createSalon(data: any, userId: bigint) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+
     return prisma.$transaction(async (tx) => {
       const salon = await tx.salon.create({
         data: {
-          name: data.name,
-          slug: data.slug,
-          summary: data.summary,
-          description: data.description,
-          phone: data.phone,
-          instagram: data.instagram,
-          website: data.website,
-          addressLine: data.addressLine,
-          postalCode: data.postalCode,
-          lat: data.lat,
-          lng: data.lng,
-          isWomenOnly: data.isWomenOnly,
-          priceTier: data.priceTier,
+          ...safeData,
+          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
+          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
+          provinceId: safeData.provinceId ? BigInt(safeData.provinceId) : undefined,
+          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
+          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
-          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
-          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
       await initSeoMeta(EntityType.SALON, salon.id, salon.name, tx);
@@ -132,34 +129,24 @@ export class SalonsService {
   }
 
   async updateSalon(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+
     return prisma.$transaction(async (tx) => {
       const salon = await this.checkOwnership(tx, id, userId, isAdmin);
 
-      if (data.slug && data.slug !== salon.slug) {
-        await handleSlugChange(EntityType.SALON, id, salon.slug, data.slug, '/atlas/salon', tx);
+      if (safeData.slug && safeData.slug !== salon.slug) {
+        await handleSlugChange(EntityType.SALON, id, salon.slug, safeData.slug, '/atlas/salon', tx);
       }
 
       const updatedSalon = await tx.salon.update({
         where: { id },
         data: {
-          name: data.name,
-          slug: data.slug,
-          summary: data.summary,
-          description: data.description,
-          phone: data.phone,
-          instagram: data.instagram,
-          website: data.website,
-          addressLine: data.addressLine,
-          postalCode: data.postalCode,
-          lat: data.lat,
-          lng: data.lng,
-          isWomenOnly: data.isWomenOnly,
-          priceTier: data.priceTier,
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          provinceId: data.provinceId ? BigInt(data.provinceId) : undefined,
-          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
-          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
+          ...safeData,
+          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
+          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
+          provinceId: safeData.provinceId ? BigInt(safeData.provinceId) : undefined,
+          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
+          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
         },
       });
 

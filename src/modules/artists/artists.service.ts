@@ -4,8 +4,14 @@ import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
 import { EntityType, AccountStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
+import { pickAllowedFields } from '../../shared/utils/object';
 
 export class ArtistsService {
+  private readonly allowedFields = [
+    'fullName', 'slug', 'summary', 'bio', 'phone', 'instagram', 'website',
+    'cityId', 'neighborhoodId', 'avatarMediaId', 'coverMediaId'
+  ] as const;
+
   async getArtists(filters: any) {
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
@@ -82,19 +88,18 @@ export class ArtistsService {
   }
 
   async createArtist(data: any, userId: bigint) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+
     return prisma.$transaction(async (tx) => {
       const artist = await tx.artist.create({
         data: {
-          fullName: data.fullName,
-          slug: data.slug,
-          summary: data.summary,
-          bio: data.bio,
+          ...safeData,
+          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
+          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
+          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
+          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
-          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
         },
       });
       await initSeoMeta(EntityType.ARTIST, artist.id, artist.fullName, tx);
@@ -120,24 +125,23 @@ export class ArtistsService {
   }
 
   async updateArtist(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+
     return prisma.$transaction(async (tx) => {
       const artist = await this.checkOwnership(tx, id, userId, isAdmin);
 
-      if (data.slug && data.slug !== artist.slug) {
-        await handleSlugChange(EntityType.ARTIST, id, artist.slug, data.slug, '/atlas/artist', tx);
+      if (safeData.slug && safeData.slug !== artist.slug) {
+        await handleSlugChange(EntityType.ARTIST, id, artist.slug, safeData.slug, '/atlas/artist', tx);
       }
 
       const updatedArtist = await tx.artist.update({
         where: { id },
         data: {
-          fullName: data.fullName,
-          slug: data.slug,
-          summary: data.summary,
-          bio: data.bio,
-          cityId: data.cityId ? BigInt(data.cityId) : undefined,
-          neighborhoodId: data.neighborhoodId ? BigInt(data.neighborhoodId) : undefined,
-          avatarMediaId: data.avatarMediaId ? BigInt(data.avatarMediaId) : undefined,
-          coverMediaId: data.coverMediaId ? BigInt(data.coverMediaId) : undefined,
+          ...safeData,
+          cityId: safeData.cityId ? BigInt(safeData.cityId) : undefined,
+          neighborhoodId: safeData.neighborhoodId ? BigInt(safeData.neighborhoodId) : undefined,
+          avatarMediaId: safeData.avatarMediaId ? BigInt(safeData.avatarMediaId) : undefined,
+          coverMediaId: safeData.coverMediaId ? BigInt(safeData.coverMediaId) : undefined,
         },
       });
 
@@ -317,14 +321,16 @@ export class ArtistsService {
   }
 
   async createSpecialty(data: any) {
-    const specialty = await prisma.specialty.create({ data });
+    const safeData = pickAllowedFields(data, ['nameFa', 'slug', 'order']);
+    const specialty = await prisma.specialty.create({ data: safeData });
     return specialty;
   }
 
   async updateSpecialty(id: bigint, data: any) {
+    const safeData = pickAllowedFields(data, ['nameFa', 'slug', 'order']);
     const specialty = await prisma.specialty.update({
       where: { id },
-      data,
+      data: safeData,
     });
     return specialty;
   }

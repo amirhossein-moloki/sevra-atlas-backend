@@ -26,6 +26,12 @@ export class S3StorageProvider implements StorageProvider {
     this.publicUrl = env.S3_PUBLIC_URL;
   }
 
+  /**
+   * Saves a file to S3.
+   * NOTE: Current implementation assumes public bucket policy for access.
+   * TODO: Implement Cloudfront/S3 Signed URLs for better security of private assets.
+   * Requires cloud-side verification of bucket policies.
+   */
   async save(key: string, buffer: Buffer, mime: string): Promise<string> {
     await this.client.send(
       new PutObjectCommand({
@@ -33,8 +39,6 @@ export class S3StorageProvider implements StorageProvider {
         Key: key,
         Body: buffer,
         ContentType: mime,
-        // ACL: 'public-read', // Deprecated in some S3 providers, better to use bucket policies or signed URLs.
-        // But for a simple implementation, we assume public access is managed via bucket policy.
       })
     );
 

@@ -23,18 +23,43 @@ if (env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-app.use(helmet({
+// Strict CSP for Public API
+const strictCSP = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://cdn.jsdelivr.net"], // Removed unsafe-inline and unsafe-eval
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+});
+
+// Relaxed CSP for AdminJS (Backoffice)
+const adminCSP = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://cdn.jsdelivr.net"],
       connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
     },
   },
-}));
+});
+
+// Apply CSP conditionally: strict by default, relaxed for /backoffice
+app.use((req, res, next) => {
+  if (req.path.startsWith('/backoffice')) {
+    adminCSP(req, res, next);
+  } else {
+    strictCSP(req, res, next);
+  }
+});
 app.use(cors());
 app.use(compression());
 app.use(express.json());

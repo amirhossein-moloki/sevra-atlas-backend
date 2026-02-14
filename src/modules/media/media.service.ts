@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import path from 'path';
 import { env } from '../../shared/config/env';
 import { processImage } from '../../shared/utils/image';
+import { secureFileKey } from '../../shared/utils/file';
 
 export type UploadResult = Media | {
   message: string;
@@ -68,13 +69,7 @@ export class MediaService {
       throw new ApiError(400, 'Only image files are supported for optimization');
     }
 
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    const sanitizedBaseName = path.basename(file.originalname, ext)
-      .replace(/[^a-zA-Z0-9]/g, '_')
-      .substring(0, 100); // Limit length
-    const randomId = crypto.randomBytes(4).toString('hex');
-    const baseStorageKey = `${timestamp}-${randomId}-${sanitizedBaseName}${ext}`;
+    const baseStorageKey = secureFileKey(file.originalname);
 
     if (!env.ENABLE_ASYNC_WORKERS) {
       // SYNC MODE (Rollout Phase 0/1)

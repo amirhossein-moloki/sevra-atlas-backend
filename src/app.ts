@@ -60,7 +60,12 @@ app.use((req, res, next) => {
     strictCSP(req, res, next);
   }
 });
-app.use(cors());
+app.use(cors({
+  origin: env.ALLOWED_ORIGINS === '*' ? '*' : env.ALLOWED_ORIGINS.split(',').map(s => s.trim()),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+  credentials: true,
+}));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

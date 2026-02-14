@@ -32,9 +32,6 @@ WORKDIR /app
 # Install curl for healthchecks
 RUN apk add --no-cache curl
 
-# Create non-root user for security
-RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
-
 # Copy only necessary files from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
@@ -42,12 +39,12 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
 # Create and set permissions for uploads directory
-RUN mkdir -p uploads && chown -R nodejs:nodejs /app/uploads
+RUN mkdir -p uploads && chown -R node:node /app/uploads
 
-# Ensure the app directory is owned by nodejs
-RUN chown -R nodejs:nodejs /app
+# Ensure the app directory is owned by node
+RUN chown -R node:node /app
 
-USER nodejs
+USER node
 
 EXPOSE 3000
 

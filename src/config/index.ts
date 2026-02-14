@@ -43,6 +43,7 @@ const envSchema = z.object({
   ENABLE_ASYNC_WORKERS: z.coerce.boolean().default(true),
   DOMAIN: z.string().optional(),
   EMAIL: z.string().optional(),
+  ALLOWED_ORIGINS: z.string().default('*'),
 });
 
 export type Config = z.infer<typeof envSchema>;

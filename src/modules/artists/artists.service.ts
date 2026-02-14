@@ -12,6 +12,28 @@ export class ArtistsService {
     'cityId', 'neighborhoodId', 'avatarMediaId', 'coverMediaId'
   ] as const;
 
+  private readonly publicArtistFields = {
+    id: true,
+    fullName: true,
+    slug: true,
+    summary: true,
+    bio: true,
+    phone: true,
+    instagram: true,
+    website: true,
+    avgRating: true,
+    reviewCount: true,
+    verification: true,
+    status: true,
+    cityId: true,
+    neighborhoodId: true,
+    avatarMediaId: true,
+    coverMediaId: true,
+    seoMetaId: true,
+    createdAt: true,
+    updatedAt: true,
+  };
+
   async getArtists(filters: any) {
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
@@ -48,10 +70,15 @@ export class ArtistsService {
     const [data, total] = await Promise.all([
       prisma.artist.findMany({
         where,
+        select: {
+          ...this.publicArtistFields,
+          avatar: true,
+          city: true,
+          neighborhood: true,
+        },
         orderBy,
         skip,
         take: limit,
-        include: { avatar: true, city: true, neighborhood: true },
       }),
       prisma.artist.count({ where }),
     ]);
@@ -67,7 +94,8 @@ export class ArtistsService {
     return CacheService.wrap(CacheKeys.ARTIST_DETAIL(slug), async () => {
       const artist = await prisma.artist.findFirst({
       where: { slug, deletedAt: null },
-      include: {
+      select: {
+        ...this.publicArtistFields,
         avatar: true,
         cover: true,
         city: true,

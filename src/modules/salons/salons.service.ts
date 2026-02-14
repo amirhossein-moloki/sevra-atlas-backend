@@ -13,6 +13,35 @@ export class SalonsService {
     'cityId', 'neighborhoodId', 'provinceId', 'avatarMediaId', 'coverMediaId'
   ] as const;
 
+  private readonly publicSalonFields = {
+    id: true,
+    name: true,
+    slug: true,
+    summary: true,
+    description: true,
+    phone: true,
+    instagram: true,
+    website: true,
+    addressLine: true,
+    postalCode: true,
+    lat: true,
+    lng: true,
+    isWomenOnly: true,
+    priceTier: true,
+    avgRating: true,
+    reviewCount: true,
+    verification: true,
+    status: true,
+    cityId: true,
+    neighborhoodId: true,
+    provinceId: true,
+    avatarMediaId: true,
+    coverMediaId: true,
+    seoMetaId: true,
+    createdAt: true,
+    updatedAt: true,
+  };
+
   async getSalons(filters: any) {
     const cacheKey = CacheKeys.SALONS_LIST(JSON.stringify(filters));
 
@@ -52,10 +81,15 @@ export class SalonsService {
     const [data, total] = await Promise.all([
       prisma.salon.findMany({
         where,
+        select: {
+          ...this.publicSalonFields,
+          avatar: true,
+          city: true,
+          neighborhood: true,
+        },
         orderBy,
         skip,
         take: limit,
-        include: { avatar: true, city: true, neighborhood: true },
       }),
       prisma.salon.count({ where }),
     ]);
@@ -71,7 +105,8 @@ export class SalonsService {
     return CacheService.wrap(CacheKeys.SALON_DETAIL(slug), async () => {
       const salon = await prisma.salon.findFirst({
       where: { slug, deletedAt: null },
-      include: {
+      select: {
+        ...this.publicSalonFields,
         avatar: true,
         cover: true,
         city: true,
@@ -79,6 +114,7 @@ export class SalonsService {
         services: { include: { service: true } },
         salonArtists: { include: { artist: true } },
         seoMeta: true,
+        openingHours: true,
       },
     });
 

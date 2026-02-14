@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { BlogMiscService } from './misc.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { MenuLocation } from '@prisma/client';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const blogMiscService = new BlogMiscService();
 
@@ -37,12 +38,14 @@ export class BlogMiscController {
   }
 
   async updatePage(req: Request, res: Response) {
-    const result = await blogMiscService.updatePage(BigInt(req.params.id), req.body);
+    const id = safeBigInt(req.params.id);
+    const result = await blogMiscService.updatePage(id, req.body);
     res.json(result);
   }
 
   async deletePage(req: Request, res: Response) {
-    const result = await blogMiscService.deletePage(BigInt(req.params.id));
+    const id = safeBigInt(req.params.id);
+    const result = await blogMiscService.deletePage(id);
     res.json(result);
   }
 
@@ -52,12 +55,14 @@ export class BlogMiscController {
   }
 
   async updateMenu(req: Request, res: Response) {
-    const result = await blogMiscService.updateMenu(BigInt(req.params.id), req.body);
+    const id = safeBigInt(req.params.id);
+    const result = await blogMiscService.updateMenu(id, req.body);
     res.json(result);
   }
 
   async deleteMenu(req: Request, res: Response) {
-    const result = await blogMiscService.deleteMenu(BigInt(req.params.id));
+    const id = safeBigInt(req.params.id);
+    const result = await blogMiscService.deleteMenu(id);
     res.json(result);
   }
 
@@ -67,12 +72,14 @@ export class BlogMiscController {
   }
 
   async updateMenuItem(req: Request, res: Response) {
-    const result = await blogMiscService.updateMenuItem(BigInt(req.params.id), req.body);
+    const id = safeBigInt(req.params.id);
+    const result = await blogMiscService.updateMenuItem(id, req.body);
     res.json(result);
   }
 
   async deleteMenuItem(req: Request, res: Response) {
-    const result = await blogMiscService.deleteMenuItem(BigInt(req.params.id));
+    const id = safeBigInt(req.params.id);
+    const result = await blogMiscService.deleteMenuItem(id);
     res.json(result);
   }
 }

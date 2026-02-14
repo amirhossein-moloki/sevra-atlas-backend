@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { VerificationService } from './verification.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const verificationService = new VerificationService();
 
@@ -16,7 +17,8 @@ export class VerificationController {
   }
 
   async reviewRequest(req: AuthRequest, res: Response) {
-    const result = await verificationService.reviewRequest(BigInt(req.params.id), req.body, req.user!.id);
+    const id = safeBigInt(req.params.id);
+    const result = await verificationService.reviewRequest(id, req.body, req.user!.id);
     res.json(result);
   }
 }

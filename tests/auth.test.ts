@@ -9,8 +9,7 @@ describe('Auth Module', () => {
   });
 
   afterAll(async () => {
-    await redis.quit();
-    await prisma.$disconnect();
+    // Global cleanup handled in setup-after-env.ts
   });
 
   it('should request OTP successfully', async () => {
@@ -19,7 +18,7 @@ describe('Auth Module', () => {
       .send({ phoneNumber: '+989123456789' });
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe('OTP sent successfully');
+    expect(res.body.data.message).toBe('OTP sent successfully');
   });
 
   it('should fail to verify with invalid code', async () => {

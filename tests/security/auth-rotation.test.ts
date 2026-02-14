@@ -41,28 +41,40 @@ describe('AuthService Rotation & Replay Protection', () => {
     const oldToken = 'old-token';
     const oldHash = crypto.createHash('sha256').update(oldToken).digest('hex');
 
-    redisMock.get.mockResolvedValue('1');
+    redisMock.get.mockResolvedValue(null); // Force check DB
+    prismaMock.refreshToken.findUnique.mockResolvedValue({
+        token: oldHash,
+        expiresAt: new Date(Date.now() + 10000),
+        userId: BigInt(1)
+    });
     prismaMock.user.findUnique.mockResolvedValue({ id: BigInt(1), isActive: true, role: 'USER' });
     prismaMock.$transaction.mockResolvedValue([]);
 
     const result = await authService.refresh(oldToken);
 
     expect(result.refreshToken).toBe('new-refresh-token');
+    expect(prismaMock.refreshToken.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { token: oldHash } })
+    );
     expect(prismaMock.$transaction).toHaveBeenCalled();
-    // Verify hashing (the first call to transaction would be the create with new hash)
-    const transactionArg = prismaMock.$transaction.mock.calls[0][0];
-    // Check if one of the calls is prisma.refreshToken.create
-    // This is a bit hard with mockDeep and transaction array, but we can check if tokens are NOT plaintext
   });
 
   it('should trigger replay protection if valid token is not in store', async () => {
     const oldToken = 'old-token'; // Validly signed but not in DB
+    const oldHash = crypto.createHash('sha256').update(oldToken).digest('hex');
 
     redisMock.get.mockResolvedValue(null);
     prismaMock.refreshToken.findUnique.mockResolvedValue(null);
 
     await expect(authService.refresh(oldToken))
       .rejects.toThrow('Refresh token invalid or expired');
+
+    // Verify that we checked for the HASHED token even in failure case
+    expect(prismaMock.refreshToken.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { token: oldHash }
+      })
+    );
 
     // Should have deleted all tokens for that user
     expect(prismaMock.refreshToken.deleteMany).toHaveBeenCalledWith(

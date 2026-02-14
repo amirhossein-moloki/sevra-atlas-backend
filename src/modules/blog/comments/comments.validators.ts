@@ -9,6 +9,9 @@ export const createCommentSchema = z.object({
 });
 
 export const updateCommentStatusSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/),
+  }),
   body: z.object({
     status: z.nativeEnum(CommentStatus),
   }),

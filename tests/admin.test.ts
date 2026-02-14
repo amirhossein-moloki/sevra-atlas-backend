@@ -111,7 +111,7 @@ describe('Admin Endpoints Stability', () => {
             title: 'SEO Title'
           });
 
-        expect(res.status).toBe(500); // Because we throw Error which becomes 500 in global handler
+        expect(res.status).toBe(404);
     });
   });
 
@@ -123,10 +123,10 @@ describe('Admin Endpoints Stability', () => {
         .send({});
 
       expect(res.status).toBe(200);
-      expect(res.body.rebuilt).toBeGreaterThanOrEqual(0);
+      expect(res.body.data.rebuilt).toBeGreaterThanOrEqual(0);
 
       const count = await prisma.sitemapUrl.count();
-      expect(count).toBe(res.body.rebuilt);
+      expect(count).toBe(res.body.data.rebuilt);
     });
   });
 
@@ -175,7 +175,7 @@ describe('Admin Endpoints Stability', () => {
         });
 
       expect(res.status).toBe(200);
-      expect(res.body.status).toBe(VerificationStatus.VERIFIED);
+      expect(res.body.data.status).toBe(VerificationStatus.VERIFIED);
 
       const salon = await prisma.salon.findUnique({
           where: { id: salonId }

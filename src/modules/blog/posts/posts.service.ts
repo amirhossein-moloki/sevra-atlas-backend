@@ -4,6 +4,7 @@ import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client
 import { handleSlugChange, initSeoMeta } from '../../../shared/utils/seo';
 import { isStaff, isAdmin } from '../../../shared/auth/roles';
 import { pickAllowedFields } from '../../../shared/utils/object';
+import { safeBigInt } from '../../../shared/utils/bigint';
 
 export class PostsService {
   private readonly allowedFields = [
@@ -59,7 +60,7 @@ export class PostsService {
     if (visibility) where.visibility = visibility as PostVisibility;
     if (author) {
       if (!isNaN(Number(author))) {
-        where.authorId = BigInt(author);
+        where.authorId = safeBigInt(author, 'author');
       } else {
         where.author = { user: { username: author } };
       }
@@ -153,12 +154,12 @@ export class PostsService {
           seoDescription: safeData.seo_description,
           ...publication,
           authorId: authorUserId,
-          categoryId: safeData.category_id ? BigInt(safeData.category_id) : undefined,
-          seriesId: safeData.series_id ? BigInt(safeData.series_id) : undefined,
-          coverMediaId: safeData.cover_media_id ? BigInt(safeData.cover_media_id) : undefined,
-          ogImageId: safeData.og_image_id ? BigInt(safeData.og_image_id) : undefined,
+          categoryId: safeData.category_id ? safeBigInt(safeData.category_id, 'category_id') : undefined,
+          seriesId: safeData.series_id ? safeBigInt(safeData.series_id, 'series_id') : undefined,
+          coverMediaId: safeData.cover_media_id ? safeBigInt(safeData.cover_media_id, 'cover_media_id') : undefined,
+          ogImageId: safeData.og_image_id ? safeBigInt(safeData.og_image_id, 'og_image_id') : undefined,
           tags: safeData.tag_ids ? {
-            create: safeData.tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
+            create: safeData.tag_ids.map((id: number) => ({ tagId: safeBigInt(id, 'tag_id') }))
           } : undefined
         }
       });
@@ -199,13 +200,13 @@ export class PostsService {
           seoTitle: safeData.seo_title,
           seoDescription: safeData.seo_description,
           ...publication,
-          categoryId: safeData.category_id ? BigInt(safeData.category_id) : undefined,
-          seriesId: safeData.series_id ? BigInt(safeData.series_id) : undefined,
-          coverMediaId: safeData.cover_media_id ? BigInt(safeData.cover_media_id) : undefined,
-          ogImageId: safeData.og_image_id ? BigInt(safeData.og_image_id) : undefined,
+          categoryId: safeData.category_id ? safeBigInt(safeData.category_id, 'category_id') : undefined,
+          seriesId: safeData.series_id ? safeBigInt(safeData.series_id, 'series_id') : undefined,
+          coverMediaId: safeData.cover_media_id ? safeBigInt(safeData.cover_media_id, 'cover_media_id') : undefined,
+          ogImageId: safeData.og_image_id ? safeBigInt(safeData.og_image_id, 'og_image_id') : undefined,
           tags: safeData.tag_ids ? {
             deleteMany: {},
-            create: safeData.tag_ids.map((id: number) => ({ tagId: BigInt(id) }))
+            create: safeData.tag_ids.map((id: number) => ({ tagId: safeBigInt(id, 'tag_id') }))
           } : undefined
         }
       });

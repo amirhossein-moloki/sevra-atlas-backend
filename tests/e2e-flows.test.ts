@@ -30,9 +30,7 @@ describe('Critical Business Flows E2E', () => {
   });
 
   afterAll(async () => {
-    // Cleanup and disconnect
-    await redis.quit();
-    await prisma.$disconnect();
+    // Global cleanup handled in setup-after-env.ts
   });
 
   describe('Flow 1: Authentication Lifecycle (OTP → Auth → Refresh)', () => {
@@ -54,7 +52,7 @@ describe('Critical Business Flows E2E', () => {
 
       expect(reqRes.status).toBe(200);
       expect(reqRes).toSatisfyApiSpec();
-      expect(reqRes.body.message).toBe('OTP sent successfully');
+      expect(reqRes.body.data.message).toBe('OTP sent successfully');
 
       // 2. Retrieve OTP from persistence (simulating the side-effect check)
       let otpCode: string | null = await redis.get(`otp:${phoneNumber}`);
@@ -71,11 +69,11 @@ describe('Critical Business Flows E2E', () => {
 
       expect(verifyRes.status).toBe(200);
       expect(verifyRes).toSatisfyApiSpec();
-      expect(verifyRes.body.accessToken).toBeDefined();
-      expect(verifyRes.body.refreshToken).toBeDefined();
-      expect(verifyRes.body.user.phoneNumber).toBe(phoneNumber);
+      expect(verifyRes.body.data.accessToken).toBeDefined();
+      expect(verifyRes.body.data.refreshToken).toBeDefined();
+      expect(verifyRes.body.data.user.phoneNumber).toBe(phoneNumber);
 
-      const { accessToken, refreshToken } = verifyRes.body;
+      const { accessToken, refreshToken } = verifyRes.body.data;
 
       // 4. Refresh Token
       const refreshRes = await request(app)
@@ -83,17 +81,17 @@ describe('Critical Business Flows E2E', () => {
         .send({ refreshToken });
 
       expect(refreshRes.status).toBe(200);
-      expect(refreshRes.body.accessToken).toBeDefined();
-      expect(refreshRes.body.accessToken).not.toBe(accessToken);
+      expect(refreshRes.body.data.accessToken).toBeDefined();
+      expect(refreshRes.body.data.accessToken).not.toBe(accessToken);
 
       // 5. Logout
       const logoutRes = await request(app)
         .post('/api/v1/auth/logout')
-        .set('Authorization', `Bearer ${refreshRes.body.accessToken}`)
-        .send({ refreshToken });
+        .set('Authorization', `Bearer ${refreshRes.body.data.accessToken}`)
+        .send({ refreshToken: refreshRes.body.data.refreshToken });
 
       expect(logoutRes.status).toBe(200);
-      expect(logoutRes.body.ok).toBe(true);
+      expect(logoutRes.body.data.ok).toBe(true);
     });
   });
 
@@ -111,14 +109,16 @@ describe('Critical Business Flows E2E', () => {
           code = otpRecord?.code || null;
         }
         const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber, code: code as string });
-        token = res.body.accessToken;
-        userId = res.body.user.id;
+        token = res.body.data.accessToken;
+        userId = res.body.data.user.id;
     });
 
     afterAll(async () => {
         // Cleanup Flow 2 data
-        await prisma.salon.deleteMany({ where: { primaryOwnerId: BigInt(userId) } });
-        await prisma.user.deleteMany({ where: { id: BigInt(userId) } });
+        if (userId) {
+            await prisma.salon.deleteMany({ where: { primaryOwnerId: BigInt(userId) } });
+            await prisma.user.deleteMany({ where: { id: BigInt(userId) } });
+        }
     });
 
     it('should complete onboarding and create a published salon', async () => {
@@ -153,12 +153,12 @@ describe('Critical Business Flows E2E', () => {
         });
 
       expect(salonRes.status).toBe(201);
-      expect(salonRes.body.slug).toBe(salonSlug);
+      expect(salonRes.body.data.slug).toBe(salonSlug);
 
       // 4. Verify Salon is accessible and has correct owner
       const getRes = await request(app).get(`/api/v1/salons/${salonSlug}`);
       expect(getRes.status).toBe(200);
-      expect(getRes.body.name).toBe('E2E Test Salon');
+      expect(getRes.body.data.name).toBe('E2E Test Salon');
 
       const salonInDb = await prisma.salon.findUnique({
           where: { slug: salonSlug },
@@ -177,7 +177,7 @@ describe('Critical Business Flows E2E', () => {
       });
 
       const assignRes = await request(app)
-        .post(`/api/v1/salons/${salonRes.body.id}/services`)
+        .post(`/api/v1/salons/${salonRes.body.data.id}/services`)
         .set('Authorization', `Bearer ${token}`)
         .send({
           services: [{ serviceId: Number(serviceDef.id), notes: 'Expert level' }],
@@ -188,7 +188,7 @@ describe('Critical Business Flows E2E', () => {
 
       // 6. Verify Services linked
       const salonWithServices = await prisma.salon.findUnique({
-          where: { id: BigInt(salonRes.body.id) },
+          where: { id: BigInt(salonRes.body.data.id) },
           include: { services: true }
       });
       expect(salonWithServices?.services.length).toBe(1);
@@ -208,7 +208,7 @@ describe('Critical Business Flows E2E', () => {
       });
 
       const mediaRes = await request(app)
-        .post(`/api/v1/salons/${salonRes.body.id}/avatar`)
+        .post(`/api/v1/salons/${salonRes.body.data.id}/avatar`)
         .set('Authorization', `Bearer ${token}`)
         .send({
           mediaId: mediaItem.id.toString()
@@ -217,12 +217,12 @@ describe('Critical Business Flows E2E', () => {
       expect(mediaRes.status).toBe(200);
 
       const updatedSalon = await prisma.salon.findUnique({
-          where: { id: BigInt(salonRes.body.id) }
+          where: { id: BigInt(salonRes.body.data.id) }
       });
       expect(updatedSalon?.avatarMediaId?.toString()).toBe(mediaItem.id.toString());
 
       // Cleanup newly created service data
-      await prisma.salonService.deleteMany({ where: { salonId: BigInt(salonRes.body.id) } });
+      await prisma.salonService.deleteMany({ where: { salonId: BigInt(salonRes.body.data.id) } });
       await prisma.serviceDefinition.delete({ where: { id: serviceDef.id } });
       await prisma.serviceCategory.delete({ where: { id: serviceCat.id } });
     });
@@ -262,7 +262,7 @@ describe('Critical Business Flows E2E', () => {
         code = otpRecord?.code || null;
       }
       const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000003', code: code as string });
-      adminToken = res.body.accessToken;
+      adminToken = res.body.data.accessToken;
 
       // Create initial Salon
       const salon = await prisma.salon.create({
@@ -291,8 +291,10 @@ describe('Critical Business Flows E2E', () => {
       // Cleanup Flow 3 data
       await prisma.redirectRule.deleteMany({ where: { toPath: `/atlas/salon/${newSlug}` } });
       await prisma.sitemapUrl.deleteMany({ where: { path: `/atlas/salon/${newSlug}` } });
-      await prisma.slugHistory.deleteMany({ where: { entityId: BigInt(salonId) } });
-      await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
+      if (salonId) {
+        await prisma.slugHistory.deleteMany({ where: { entityId: BigInt(salonId) } });
+        await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
+      }
       await prisma.user.deleteMany({ where: { phoneNumber: '+989000000003' } });
     });
 
@@ -304,7 +306,7 @@ describe('Critical Business Flows E2E', () => {
         .send({ slug: newSlug });
 
       expect(updateRes.status).toBe(200);
-      expect(updateRes.body.slug).toBe(newSlug);
+      expect(updateRes.body.data.slug).toBe(newSlug);
 
       // 2. Check Side Effect: SlugHistory
       const history = await prisma.slugHistory.findFirst({
@@ -332,9 +334,9 @@ describe('Critical Business Flows E2E', () => {
         .query({ path: `/atlas/salon/${oldSlug}` });
 
       expect(resolveRes.status).toBe(200);
-      expect(resolveRes.body.redirect).toBeDefined();
-      expect(resolveRes.body.redirect.toPath).toBe(`/atlas/salon/${newSlug}`);
-      expect(resolveRes.body.redirect.type).toBe('PERMANENT_301');
+      expect(resolveRes.body.data.redirect).toBeDefined();
+      expect(resolveRes.body.data.redirect.toPath).toBe(`/atlas/salon/${newSlug}`);
+      expect(resolveRes.body.data.redirect.type).toBe('PERMANENT_301');
     });
   });
 
@@ -386,13 +388,13 @@ describe('Critical Business Flows E2E', () => {
       await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000005' });
       const userCode = (await redis.get('otp:+989000000005')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000005'}}))?.code;
       const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000005', code: userCode as string });
-      userToken = userVerify.body.accessToken;
-      userId5 = userVerify.body.user.id;
+      userToken = userVerify.body.data.accessToken;
+      userId5 = userVerify.body.data.user.id;
 
-      await prisma.user.update({ where: { id: BigInt(userVerify.body.user.id) }, data: { role: UserRole.SALON } });
+      await prisma.user.update({ where: { id: BigInt(userVerify.body.data.user.id) }, data: { role: UserRole.SALON } });
 
       const salon = await prisma.salon.create({
-          data: { name: 'Verify Me Salon', slug: 'verify-me', primaryOwnerId: BigInt(userVerify.body.user.id), owners: { connect: { id: BigInt(userVerify.body.user.id) } } }
+          data: { name: 'Verify Me Salon', slug: 'verify-me', primaryOwnerId: BigInt(userVerify.body.data.user.id), owners: { connect: { id: BigInt(userVerify.body.data.user.id) } } }
       });
       salonId = salon.id.toString();
 
@@ -415,12 +417,14 @@ describe('Critical Business Flows E2E', () => {
       await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000006' });
       const adminCode = (await redis.get('otp:+989000000006')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000006'}}))?.code;
       const adminVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000006', code: adminCode as string });
-      adminToken = adminVerify.body.accessToken;
+      adminToken = adminVerify.body.data.accessToken;
     });
 
     afterAll(async () => {
-        await prisma.verificationRequest.deleteMany({ where: { salonId: BigInt(salonId) } });
-        await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
+        if (salonId) {
+            await prisma.verificationRequest.deleteMany({ where: { salonId: BigInt(salonId) } });
+            await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
+        }
         await prisma.user.deleteMany({ where: { phoneNumber: { in: ['+989000000005', '+989000000006'] } } });
     });
 
@@ -451,7 +455,7 @@ describe('Critical Business Flows E2E', () => {
         });
 
       expect(reqRes.status).toBe(201);
-      requestId = reqRes.body.id;
+      requestId = reqRes.body.data.id;
 
       // 2. Admin Reviews and Approves
       const reviewRes = await request(app)
@@ -482,8 +486,8 @@ describe('Critical Business Flows E2E', () => {
         await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: phone });
         const code = (await redis.get(`otp:${phone}`)) || (await prisma.otp.findUnique({where:{phoneE164:phone}}))?.code;
         const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: phone, code: code as string });
-        authorToken = res.body.accessToken;
-        authorId = res.body.user.id;
+        authorToken = res.body.data.accessToken;
+        authorId = res.body.data.user.id;
 
         await prisma.user.update({ where: { id: BigInt(authorId) }, data: { role: UserRole.AUTHOR } });
         await prisma.authorProfile.create({
@@ -492,9 +496,11 @@ describe('Critical Business Flows E2E', () => {
     });
 
     afterAll(async () => {
-        await prisma.post.deleteMany({ where: { authorId: BigInt(authorId) } });
-        await prisma.authorProfile.delete({ where: { userId: BigInt(authorId) } });
-        await prisma.user.deleteMany({ where: { id: BigInt(authorId) } });
+        if (authorId) {
+            await prisma.post.deleteMany({ where: { authorId: BigInt(authorId) } });
+            await prisma.authorProfile.deleteMany({ where: { userId: BigInt(authorId) } });
+            await prisma.user.deleteMany({ where: { id: BigInt(authorId) } });
+        }
     });
 
     it('should handle full blog post lifecycle', async () => {
@@ -511,7 +517,7 @@ describe('Critical Business Flows E2E', () => {
         });
 
       expect(createRes.status).toBe(201);
-      postId = createRes.body.id;
+      postId = createRes.body.data.id;
 
       // 2. Update to Published
       const updateRes = await request(app)
@@ -523,12 +529,12 @@ describe('Critical Business Flows E2E', () => {
         });
 
       expect(updateRes.status).toBe(200);
-      expect(updateRes.body.status).toBe('published');
+      expect(updateRes.body.data.status).toBe('published');
 
       // 3. Verify public accessibility
       const getRes = await request(app).get(`/api/v1/blog/posts/${postSlug}`);
       expect(getRes.status).toBe(200);
-      expect(getRes.body.title).toBe('E2E Test Post');
+      expect(getRes.body.data.title).toBe('E2E Test Post');
     });
   });
 });

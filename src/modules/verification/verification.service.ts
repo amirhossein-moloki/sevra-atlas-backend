@@ -1,5 +1,5 @@
 import { prisma } from '../../shared/db/prisma';
-import { VerificationStatus, EntityType, MediaKind } from '@prisma/client';
+import { VerificationStatus, MediaKind } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
 
 export class VerificationService {

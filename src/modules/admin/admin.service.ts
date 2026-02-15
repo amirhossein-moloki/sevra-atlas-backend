@@ -125,7 +125,7 @@ export class AdminService {
     }
 
     const deletedFilter = deletedColumn ? `AND "${deletedColumn}" IS NULL` : '';
-    const data = await prisma.$queryRawUnsafe<any[]>(`
+    const data = await prisma.$queryRawUnsafe<{ date: Date | string; count: number }[]>(`
       SELECT DATE_TRUNC('day', "${column}") as date, COUNT(*)::int as count
       FROM "${table}"
       WHERE "${column}" >= $1 AND "${column}" <= $2 ${deletedFilter}

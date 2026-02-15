@@ -1,4 +1,3 @@
-/// <reference path="../types/adminjs.d.ts" />
 import type { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import type { AdminJSOptions } from 'adminjs';
@@ -25,7 +24,6 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
           _baseDmmf?: { datamodel: { models: { name: string; fields: unknown[] }[] } };
         }
         const prismaInternal = prisma as unknown as PrismaInternal;
-        const dmmf = prismaInternal._runtimeDataModel || prismaInternal._baseDmmf;
         let models: Record<string, { name: string; fields: unknown[] }> = {};
 
         if (prismaInternal._runtimeDataModel) {

@@ -9,7 +9,7 @@ declare global {
         actorId?: string;
         role?: UserRole;
         salonId?: string;
-        actorType?: any;
+        actorType?: unknown;
       };
       salonId?: string;
       requestId?: string;

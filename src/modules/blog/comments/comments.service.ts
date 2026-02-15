@@ -1,15 +1,16 @@
 import { prisma } from '../../../shared/db/prisma';
-import { CommentStatus, UserRole } from '@prisma/client';
+import { CommentStatus, Prisma } from '@prisma/client';
 import { ApiError } from '../../../shared/errors/ApiError';
 import { safeBigInt } from '../../../shared/utils/bigint';
 
 export class BlogCommentsService {
-  async listPostComments(postSlug: string, query: any) {
-    const { page = 1, pageSize = 10, ordering = '-createdAt' } = query;
+  async listPostComments(postSlug: string, query: Record<string, unknown>) {
+    const { page = 1, pageSize = 10 } = query;
+    const ordering = (query.ordering as string) || '-createdAt';
     const limit = parseInt(pageSize as string) || 10;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = {
+    const where: Prisma.CommentWhereInput = {
       post: { slug: postSlug },
       status: CommentStatus.approved,
       deletedAt: null
@@ -19,7 +20,7 @@ export class BlogCommentsService {
       prisma.comment.findMany({
         where,
         include: { user: { select: { username: true, profilePicture: true } } },
-        orderBy: { createdAt: ordering.startsWith('-') ? 'desc' : 'asc' },
+        orderBy: { createdAt: (ordering as string).startsWith('-') ? 'desc' : 'asc' },
         skip,
         take: limit,
       }),
@@ -32,7 +33,7 @@ export class BlogCommentsService {
     };
   }
 
-  async createComment(postSlug: string, userId: bigint, data: any) {
+  async createComment(postSlug: string, userId: bigint, data: Record<string, unknown>) {
     const post = await prisma.post.findUnique({ where: { slug: postSlug } });
     if (!post) throw new ApiError(404, 'Post not found');
 
@@ -40,8 +41,8 @@ export class BlogCommentsService {
       data: {
         postId: post.id,
         userId,
-        content: data.content,
-        parentId: data.parentId ? safeBigInt(data.parentId, 'parentId') : null,
+        content: data.content as string,
+        parentId: data.parentId ? safeBigInt(data.parentId as string | number, 'parentId') : null,
         status: CommentStatus.pending
       }
     });
@@ -50,13 +51,13 @@ export class BlogCommentsService {
     return comment;
   }
 
-  async listGlobalComments(query: any, isAdmin: boolean) {
+  async listGlobalComments(query: Record<string, unknown>, isAdmin: boolean) {
     const { page = 1, pageSize = 20, status } = query;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = { deletedAt: null };
-    if (status) where.status = status;
+    const where: Prisma.CommentWhereInput = { deletedAt: null };
+    if (status) where.status = status as CommentStatus;
     else if (!isAdmin) where.status = CommentStatus.approved;
 
     const [comments, total] = await Promise.all([

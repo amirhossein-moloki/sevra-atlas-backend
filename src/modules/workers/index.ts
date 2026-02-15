@@ -49,7 +49,7 @@ export const startWorkersGracefully = () => {
       try {
         await prisma.$queryRaw`SELECT 1`;
         services.database = 'CONNECTED';
-      } catch (e) {
+      } catch (_e) {
         services.database = 'DISCONNECTED';
         isHealthy = false;
       }
@@ -57,7 +57,7 @@ export const startWorkersGracefully = () => {
       try {
         await redisQueue.ping();
         services.redis = 'CONNECTED';
-      } catch (e) {
+      } catch (_e) {
         services.redis = 'DISCONNECTED';
         isHealthy = false;
       }

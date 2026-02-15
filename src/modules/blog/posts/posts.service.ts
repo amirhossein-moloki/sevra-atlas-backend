@@ -1,6 +1,6 @@
 import { prisma } from '../../../shared/db/prisma';
 import { ApiError } from '../../../shared/errors/ApiError';
-import { PostStatus, PostVisibility, UserRole, EntityType } from '@prisma/client';
+import { PostStatus, PostVisibility, UserRole, EntityType, Prisma } from '@prisma/client';
 import { handleSlugChange, initSeoMeta } from '../../../shared/utils/seo';
 import { isStaff, isAdmin } from '../../../shared/auth/roles';
 import { pickAllowedFields } from '../../../shared/utils/object';
@@ -66,7 +66,7 @@ export class PostsService {
       }
     }
 
-    let orderBy: any = { publishedAt: 'desc' };
+    let orderBy: Prisma.PostOrderByWithRelationInput = { publishedAt: 'desc' };
     if (ordering) {
       const direction = ordering.startsWith('-') ? 'desc' : 'asc';
       const field = ordering.startsWith('-') ? ordering.substring(1) : ordering;

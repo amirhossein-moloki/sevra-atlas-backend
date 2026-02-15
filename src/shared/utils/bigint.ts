@@ -15,7 +15,7 @@ export function safeBigInt(value: any, fieldName: string = 'id'): bigint {
       throw new Error();
     }
     return BigInt(value);
-  } catch (error) {
+  } catch (_error) {
     throw new ApiError(400, `Invalid ${fieldName}: ${value}`);
   }
 }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { VerificationController } from './verification.controller';
-import { requireAuth, requireRole, requireStaff } from '../../shared/middlewares/auth.middleware';
+import { requireAuth, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { requestVerificationSchema, reviewVerificationSchema } from './verification.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';

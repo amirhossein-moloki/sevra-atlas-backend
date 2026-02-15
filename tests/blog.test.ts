@@ -12,14 +12,16 @@ describe('Blog Module E2E', () => {
   let authorId: string;
   let adminId: string;
   let userId: string;
+  let sharedPostSlug: string;
+  let sharedPostId: string;
 
   beforeAll(async () => {
     // Setup Users
     const admin = await prisma.user.upsert({
-      where: { phoneNumber: '+989000000100' },
-      update: { role: UserRole.ADMIN },
+      where: { phoneNumber: '+989000000200' },
+      update: { role: UserRole.ADMIN, isActive: true },
       create: {
-        phoneNumber: '+989000000100',
+        phoneNumber: '+989000000200',
         username: 'blog_admin',
         firstName: 'Admin',
         lastName: 'Blog',
@@ -34,10 +36,10 @@ describe('Blog Module E2E', () => {
     adminToken = generateAccessToken({ sub: adminId, role: UserRole.ADMIN });
 
     const author = await prisma.user.upsert({
-      where: { phoneNumber: '+989000000101' },
-      update: { role: UserRole.AUTHOR },
+      where: { phoneNumber: '+989000000201' },
+      update: { role: UserRole.AUTHOR, isActive: true },
       create: {
-        phoneNumber: '+989000000101',
+        phoneNumber: '+989000000201',
         username: 'blog_author',
         firstName: 'Author',
         lastName: 'Blog',
@@ -62,10 +64,10 @@ describe('Blog Module E2E', () => {
     });
 
     const user = await prisma.user.upsert({
-      where: { phoneNumber: '+989000000102' },
-      update: { role: UserRole.USER },
+      where: { phoneNumber: '+989000000202' },
+      update: { role: UserRole.USER, isActive: true },
       create: {
-        phoneNumber: '+989000000102',
+        phoneNumber: '+989000000202',
         username: 'blog_user',
         firstName: 'Regular',
         lastName: 'User',
@@ -140,7 +142,6 @@ describe('Blog Module E2E', () => {
 
   describe('Post Lifecycle', () => {
     let postSlug = 'test-post-' + Date.now();
-    let postId: string;
 
     it('should allow author to create a draft post', async () => {
       // Get category and tag IDs from previous step
@@ -162,7 +163,8 @@ describe('Blog Module E2E', () => {
 
       expect(res.status).toBe(201);
       expect(res.body.data.status).toBe('draft');
-      postId = res.body.data.id;
+      sharedPostId = res.body.data.id;
+      sharedPostSlug = postSlug;
     });
 
     it('should not show draft post in public list', async () => {
@@ -210,18 +212,38 @@ describe('Blog Module E2E', () => {
   });
 
   describe('Comments System', () => {
-    let postSlug: string;
     let commentId: string;
 
     beforeAll(async () => {
-        const post = await prisma.post.findFirst({ where: { authorId: BigInt(authorId) } });
-        if (!post) throw new Error('Post not found for comments test');
-        postSlug = post.slug;
+        if (!sharedPostSlug) {
+            const post = await prisma.post.findFirst({ where: { authorId: BigInt(authorId) } });
+            if (post) {
+                sharedPostSlug = post.slug;
+                sharedPostId = post.id.toString();
+            } else {
+                // Fallback create
+                const cat = await prisma.category.findFirst();
+                const newPost = await prisma.post.create({
+                    data: {
+                        title: 'Fallback Post',
+                        slug: 'fallback-post-' + Date.now(),
+                        content: 'Fallback content',
+                        excerpt: 'Fallback excerpt',
+                        status: 'published',
+                        publishedAt: new Date(),
+                        authorId: BigInt(authorId),
+                        categoryId: cat?.id
+                    }
+                });
+                sharedPostSlug = newPost.slug;
+                sharedPostId = newPost.id.toString();
+            }
+        }
     });
 
     it('should allow authenticated user to post a comment', async () => {
       const res = await request(app)
-        .post(`/api/v1/blog/posts/${postSlug}/comments`)
+        .post(`/api/v1/blog/posts/${sharedPostSlug}/comments`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           content: 'Great post! Thanks for sharing.'
@@ -234,7 +256,7 @@ describe('Blog Module E2E', () => {
     });
 
     it('should not show pending comment in public list', async () => {
-      const res = await request(app).get(`/api/v1/blog/posts/${postSlug}/comments`);
+      const res = await request(app).get(`/api/v1/blog/posts/${sharedPostSlug}/comments`);
       expect(res.status).toBe(200);
       expect(res.body.data.find((c: any) => c.id === commentId)).toBeUndefined();
     });
@@ -255,7 +277,7 @@ describe('Blog Module E2E', () => {
     });
 
     it('should show approved comment in public list', async () => {
-      const res = await request(app).get(`/api/v1/blog/posts/${postSlug}/comments`);
+      const res = await request(app).get(`/api/v1/blog/posts/${sharedPostSlug}/comments`);
       expect(res.status).toBe(200);
       expect(res.body.data.find((c: any) => c.id === commentId)).toBeDefined();
     });

@@ -37,11 +37,15 @@ describe('PostsService', () => {
 
       expect(prisma.post.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({
-            status: PostStatus.published,
-          }),
+          where: expect.any(Object),
         })
       );
+
+      const call = (prisma.post.findMany as jest.Mock).mock.calls[0][0];
+      const where = call.where;
+      const hasStatus = where.status === PostStatus.published ||
+                        (where.AND && where.AND.some((c: any) => c.status === PostStatus.published));
+      expect(hasStatus).toBe(true);
     });
 
     it('should return all posts for admin users', async () => {
@@ -50,13 +54,11 @@ describe('PostsService', () => {
 
       await service.listPosts({}, { role: UserRole.ADMIN });
 
-      expect(prisma.post.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.not.objectContaining({
-            status: PostStatus.published,
-          }),
-        })
-      );
+      const call = (prisma.post.findMany as jest.Mock).mock.calls[0][0];
+      const where = call.where;
+      const hasStatus = where.status === PostStatus.published ||
+                        (where.AND && where.AND.some((c: any) => c.status === PostStatus.published));
+      expect(hasStatus).toBeFalsy();
     });
   });
 

@@ -1,4 +1,4 @@
-import { ActionRequest, ResourceOptions } from 'adminjs';
+import { ActionRequest } from 'adminjs';
 import { prisma } from '../shared/db/prisma';
 import bcrypt from 'bcrypt';
 import sanitizeHtml from 'sanitize-html';

@@ -3,7 +3,6 @@ import { AdminService } from './admin.service';
 import { JobsService } from './jobs.service';
 import { SalonsService } from '../salons/salons.service';
 import { ArtistsService } from '../artists/artists.service';
-import { AccountStatus } from '@prisma/client';
 import { safeBigInt } from '../../shared/utils/bigint';
 
 const adminService = new AdminService();

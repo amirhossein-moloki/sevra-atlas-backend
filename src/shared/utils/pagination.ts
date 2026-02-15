@@ -3,13 +3,13 @@ export interface PaginationParams {
   limit: number;
 }
 
-export const getPagination = (query: any): PaginationParams => {
+export const getPagination = (query: Record<string, unknown>): PaginationParams => {
   const page = Math.max(1, parseInt(query.page as string) || 1);
   const limit = Math.max(1, Math.min(100, parseInt(query.limit as string) || 10));
   return { page, limit };
 };
 
-export const formatPaginatedResponse = (data: any[], total: number, params: PaginationParams) => {
+export const formatPaginatedResponse = <T>(data: T[], total: number, params: PaginationParams) => {
   return {
     data,
     meta: {

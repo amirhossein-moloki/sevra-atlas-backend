@@ -37,7 +37,7 @@ export class HealthController {
     try {
       await prisma.$queryRaw`SELECT 1`;
       health.services.database = 'CONNECTED';
-    } catch (error) {
+    } catch (_error) {
       health.services.database = 'DISCONNECTED';
       health.status = 'ERROR';
       hasError = true;
@@ -51,7 +51,7 @@ export class HealthController {
         health.status = 'ERROR';
         hasError = true;
       }
-    } catch (error) {
+    } catch (_error) {
       health.services.redis_cache = 'DISCONNECTED';
       health.status = 'ERROR';
       hasError = true;
@@ -65,7 +65,7 @@ export class HealthController {
         health.status = 'ERROR';
         hasError = true;
       }
-    } catch (error) {
+    } catch (_error) {
       health.services.redis_queue = 'DISCONNECTED';
       health.status = 'ERROR';
       hasError = true;

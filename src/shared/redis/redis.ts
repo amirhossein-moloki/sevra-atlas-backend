@@ -42,7 +42,7 @@ export const closeRedisConnections = async (force = false) => {
         redisQueue.quit()
       ]);
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignore errors during closing
   }
 };

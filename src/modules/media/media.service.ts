@@ -4,8 +4,6 @@ import { getStorageProvider } from '../../shared/storage';
 import { mediaQueue, MEDIA_JOBS } from '../../shared/queues/media.queue';
 import { MediaStatus, Media } from '@prisma/client';
 import sharp from 'sharp';
-import crypto from 'crypto';
-import path from 'path';
 import { config } from '../../config';
 import { processImage } from '../../shared/utils/image';
 import { secureFileKey } from '../../shared/utils/file';

@@ -14,7 +14,7 @@ export class LocalStorageProvider implements StorageProvider {
     }
   }
 
-  async save(key: string, buffer: Buffer, mime: string): Promise<string> {
+  async save(key: string, buffer: Buffer, _mime: string): Promise<string> {
     const filePath = safeResolve(this.uploadDir, key);
     const dir = path.dirname(filePath);
 

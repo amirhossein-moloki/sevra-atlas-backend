@@ -7,7 +7,7 @@ const authorsService = new BlogAuthorsService();
 export class BlogAuthorsController {
   async listAuthors(req: Request, res: Response) {
     const result = await authorsService.listAuthors();
-    res.json({ data: result });
+    res.json(result);
   }
 
   async getAuthor(req: Request, res: Response) {

@@ -12,6 +12,28 @@ describe('Salons & Permissions', () => {
   let salonOwnerId: bigint;
 
   beforeAll(async () => {
+    // Seed Geography for City 1
+    const province = await prisma.province.upsert({
+      where: { slug: 'tehran' },
+      update: {},
+      create: {
+        id: BigInt(1),
+        nameFa: 'تهران',
+        slug: 'tehran'
+      }
+    });
+
+    await prisma.city.upsert({
+      where: { provinceId_slug: { provinceId: province.id, slug: 'tehran' } },
+      update: {},
+      create: {
+        id: BigInt(1),
+        provinceId: province.id,
+        nameFa: 'تهران',
+        slug: 'tehran'
+      }
+    });
+
     // Setup Admin
     const admin = await prisma.user.upsert({
       where: { phoneNumber: '+989000000001' },

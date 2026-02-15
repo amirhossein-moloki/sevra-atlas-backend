@@ -199,6 +199,7 @@ describe('Blog Module E2E', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.data.slug).toBe(newSlug);
+      sharedPostSlug = newSlug;
 
       // Verify redirect rule
       const redirect = await prisma.redirectRule.findUnique({

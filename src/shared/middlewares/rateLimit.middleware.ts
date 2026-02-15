@@ -10,6 +10,9 @@ export const rateLimit = (
   keyGenerator?: (req: Request) => string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    if (process.env.ENABLE_RATE_LIMIT === 'false') {
+      return next();
+    }
     const key = keyGenerator ? keyGenerator(req) : req.ip;
     const redisKey = `ratelimit:${prefix}:${key}`;
 

@@ -102,10 +102,27 @@ export class SalonsService {
     }, 300, { staleWhileRevalidate: 60 });
   }
 
-  async getSalonBySlug(slug: string) {
-    return CacheService.wrap(CacheKeys.SALON_DETAIL(slug), async () => {
+  async findSalonByIdentifier(identifier: string) {
+    const where: any = { deletedAt: null };
+    if (!isNaN(Number(identifier))) {
+      where.id = safeBigInt(identifier, 'salon_id');
+    } else {
+      where.slug = identifier;
+    }
+    return prisma.salon.findFirst({ where });
+  }
+
+  async getSalonBySlug(identifier: string) {
+    return CacheService.wrap(CacheKeys.SALON_DETAIL(identifier), async () => {
+      const where: any = { deletedAt: null };
+      if (!isNaN(Number(identifier))) {
+        where.id = safeBigInt(identifier, 'salon_id');
+      } else {
+        where.slug = identifier;
+      }
+
       const salon = await prisma.salon.findFirst({
-      where: { slug, deletedAt: null },
+      where,
       select: {
         ...this.publicSalonFields,
         avatar: true,

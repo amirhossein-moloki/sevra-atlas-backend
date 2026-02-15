@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { SalonsService } from './salons.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
+import { ApiError } from '../../shared/errors/ApiError';
 import { getPagination, formatPaginatedResponse } from '../../shared/utils/pagination';
 import { isAdmin } from '../../shared/auth/roles';
 import { safeBigInt } from '../../shared/utils/bigint';
@@ -8,23 +9,32 @@ import { safeBigInt } from '../../shared/utils/bigint';
 const salonsService = new SalonsService();
 
 export class SalonsController {
-  async getSalons(req: Request, res: Response) {
+  private resolveId = async (identifier: string): Promise<bigint> => {
+    if (!isNaN(Number(identifier))) {
+      return safeBigInt(identifier);
+    }
+    const salon = await salonsService.findSalonByIdentifier(identifier);
+    if (!salon) throw new ApiError(404, 'Salon not found');
+    return salon.id;
+  };
+
+  getSalons = async (req: Request, res: Response) => {
     const result = await salonsService.getSalons(req.query);
     res.json(result);
-  }
+  };
 
-  async getSalon(req: Request, res: Response) {
-    const result = await salonsService.getSalonBySlug(req.params.slug);
+  getSalon = async (req: Request, res: Response) => {
+    const result = await salonsService.getSalonBySlug(req.params.idOrSlug || req.params.slug);
     res.json(result);
-  }
+  };
 
-  async createSalon(req: AuthRequest, res: Response) {
+  createSalon = async (req: AuthRequest, res: Response) => {
     const result = await salonsService.createSalon(req.body, req.user!.id);
     res.status(201).json(result);
-  }
+  };
 
-  async updateSalon(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  updateSalon = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.updateSalon(
       id,
@@ -35,8 +45,8 @@ export class SalonsController {
     res.json(result);
   }
 
-  async deleteSalon(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  deleteSalon = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.deleteSalon(
       id,
@@ -44,10 +54,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async assignServices(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  assignServices = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.query.mode as 'append' | 'replace') || 'append';
     const result = await salonsService.assignServices(
@@ -58,10 +68,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async removeService(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  removeService = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const serviceId = safeBigInt(req.params.serviceId, 'serviceId');
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.removeService(
@@ -71,10 +81,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async setAvatar(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  setAvatar = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       id,
@@ -84,10 +94,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async setCover(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  setCover = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       id,
@@ -97,10 +107,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async addGallery(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  addGallery = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       id,
@@ -110,10 +120,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async linkArtist(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  linkArtist = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.linkArtist(
       id,
@@ -122,10 +132,10 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async unlinkArtist(req: AuthRequest, res: Response) {
-    const id = safeBigInt(req.params.id);
+  unlinkArtist = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
     const artistId = safeBigInt(req.params.artistId, 'artistId');
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.unlinkArtist(
@@ -135,5 +145,5 @@ export class SalonsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 }

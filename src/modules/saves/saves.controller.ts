@@ -20,6 +20,6 @@ export class SavesController {
 
   async getMySaves(req: AuthRequest, res: Response) {
     const result = await savesService.getMySaves(req.user!.id);
-    res.json({ data: result });
+    res.json(result);
   }
 }

@@ -18,19 +18,21 @@ afterAll(async () => {
   // Global cleanup to prevent open handles in tests
   try {
     // 1. Close workers and queues
-    await mediaWorker.close(true);
-    await mediaQueue.close();
+    if (mediaWorker) await mediaWorker.close(true);
+    if (mediaQueue) await mediaQueue.close();
 
-    // 2. Clear all pending timers/intervals if possible (Jest handles this mostly but ioredis/bullmq might have some)
-
-    // 3. Disconnect Database
+    // 2. Disconnect Database
     await prisma.$disconnect();
 
-    // 4. Close Redis connections last
+    // 3. Close Redis connections last (forcing disconnect)
     await closeRedisConnections(true);
 
-    // Give it a small window for everything to settle
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // 4. Clear any remaining timers (best effort)
+    // In some environments, BullMQ or ioredis might leave timers.
+    // We already passed force=true to closeRedisConnections which calls disconnect()
+
+    // 5. Give it a small window for everything to settle
+    await new Promise(resolve => setTimeout(resolve, 200));
   } catch (error) {
     // Silent fail in teardown
     console.error('Error during global teardown:', error);

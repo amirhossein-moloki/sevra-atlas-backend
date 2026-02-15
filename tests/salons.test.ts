@@ -10,12 +10,13 @@ describe('Salons & Permissions', () => {
   let salonToken: string;
   let userToken: string;
   let salonOwnerId: bigint;
+  let testCityId: string;
 
   beforeAll(async () => {
     // Setup Admin
     const admin = await prisma.user.upsert({
       where: { phoneNumber: '+989000000001' },
-      update: { role: UserRole.ADMIN },
+      update: { role: UserRole.ADMIN, isActive: true },
       create: {
         phoneNumber: '+989000000001',
         username: 'admin_test',
@@ -33,7 +34,7 @@ describe('Salons & Permissions', () => {
     // Setup User
     const user = await prisma.user.upsert({
       where: { phoneNumber: '+989000000002' },
-      update: { role: UserRole.USER },
+      update: { role: UserRole.USER, isActive: true },
       create: {
         phoneNumber: '+989000000002',
         username: 'user_test',
@@ -65,6 +66,20 @@ describe('Salons & Permissions', () => {
     });
     salonOwnerId = salonOwner.id;
     salonToken = generateAccessToken({ sub: salonOwner.id.toString(), role: UserRole.SALON });
+
+    // Setup Province & City for FK
+    const province = await prisma.province.upsert({
+      where: { slug: 'test-province' },
+      update: {},
+      create: { nameFa: 'Test Province', slug: 'test-province' }
+    });
+
+    const city = await prisma.city.upsert({
+      where: { provinceId_slug: { provinceId: province.id, slug: 'test-city' } },
+      update: {},
+      create: { provinceId: province.id, nameFa: 'Test City', slug: 'test-city' }
+    });
+    testCityId = city.id.toString();
   });
 
   afterAll(async () => {
@@ -97,7 +112,7 @@ describe('Salons & Permissions', () => {
       .send({
         name: 'Test Salon',
         slug: 'test-salon-' + Date.now(),
-        cityId: '1' // Assuming city 1 exists or use a valid ID
+        cityId: testCityId
       });
 
     expect(res.status).toBe(201);

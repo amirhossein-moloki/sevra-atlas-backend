@@ -45,10 +45,10 @@ router.get('/', controller.getSalons);
 
 registry.registerPath({
   method: 'get',
-  path: '/salons/{slug}',
-  summary: 'Get salon by slug',
+  path: '/salons/{id}',
+  summary: 'Get salon by slug or ID',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Salon details',
@@ -60,10 +60,10 @@ router.get('/:slug', controller.getSalon);
 
 registry.registerPath({
   method: 'get',
-  path: '/salons/{slug}/reviews',
+  path: '/salons/{id}/reviews',
   summary: 'Get salon reviews',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'List of reviews',

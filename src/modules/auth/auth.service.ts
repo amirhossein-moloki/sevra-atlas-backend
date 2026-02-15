@@ -15,22 +15,21 @@ export class AuthService {
     const redisKey = `otp:${phoneNumber}`;
     const expiresAt = new Date(Date.now() + config.auth.otp.ttl * 1000);
 
-    // Use Redis with DB fallback
-    await RedisFallback.execute(
-      'requestOtp',
+    // Always update DB first as the primary fallback and source of truth
+    await prisma.otp.upsert({
+      where: { phoneE164: phoneNumber },
+      update: { code, expiresAt, attempts: 0 },
+      create: { phoneE164: phoneNumber, code, expiresAt, attempts: 0 },
+    });
+
+    // Also update Redis if available for performance
+    await RedisFallback.tryReady(
+      'requestOtpRedis',
       async () => {
         await redis.set(redisKey, code, 'EX', config.auth.otp.ttl);
         await redis.set(`${redisKey}:attempts`, 0, 'EX', config.auth.otp.ttl);
-        // Also clear any DB fallback record to keep it clean if Redis is working
-        await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
       },
-      async () => {
-        await prisma.otp.upsert({
-          where: { phoneE164: phoneNumber },
-          update: { code, expiresAt, attempts: 0 },
-          create: { phoneE164: phoneNumber, code, expiresAt, attempts: 0 },
-        });
-      }
+      null
     );
 
     await smsProvider.sendOtp(phoneNumber, code);

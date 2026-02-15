@@ -21,6 +21,6 @@ export class FollowsController {
 
   async getMyFollows(req: AuthRequest, res: Response) {
     const result = await followsService.getMyFollows(req.user!.id);
-    res.json({ data: result });
+    res.json(result);
   }
 }

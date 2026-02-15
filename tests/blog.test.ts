@@ -17,7 +17,7 @@ describe('Blog Module E2E', () => {
     // Setup Users
     const admin = await prisma.user.upsert({
       where: { phoneNumber: '+989000000100' },
-      update: { role: UserRole.ADMIN },
+      update: { role: UserRole.ADMIN, isActive: true },
       create: {
         phoneNumber: '+989000000100',
         username: 'blog_admin',
@@ -35,7 +35,7 @@ describe('Blog Module E2E', () => {
 
     const author = await prisma.user.upsert({
       where: { phoneNumber: '+989000000101' },
-      update: { role: UserRole.AUTHOR },
+      update: { role: UserRole.AUTHOR, isActive: true },
       create: {
         phoneNumber: '+989000000101',
         username: 'blog_author',
@@ -63,7 +63,7 @@ describe('Blog Module E2E', () => {
 
     const user = await prisma.user.upsert({
       where: { phoneNumber: '+989000000102' },
-      update: { role: UserRole.USER },
+      update: { role: UserRole.USER, isActive: true },
       create: {
         phoneNumber: '+989000000102',
         username: 'blog_user',

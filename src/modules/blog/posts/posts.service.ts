@@ -23,48 +23,53 @@ export class PostsService {
     const limit = Math.min(parseInt(pageSize as string) || 10, 100);
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = { deletedAt: null };
+    const and: any[] = [{ deletedAt: null }];
 
     // Permission-based queryset
     if (!user || user.role === UserRole.USER) {
       // Anonymous or normal user: only published posts
-      where.status = PostStatus.published;
-      where.publishedAt = { lte: new Date() };
+      and.push({ status: PostStatus.published });
     } else if (isStaff(user.role)) {
       // Staff: all posts
     } else if (user.role === UserRole.AUTHOR) {
       // Author: published or own posts
-      where.OR = [
-        { status: PostStatus.published, publishedAt: { lte: new Date() } },
-        { authorId: user.id }
-      ];
+      and.push({
+        OR: [
+          { status: PostStatus.published },
+          { authorId: user.id }
+        ]
+      });
     }
 
     if (q) {
-      where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { content: { contains: q, mode: 'insensitive' } },
-        { excerpt: { contains: q, mode: 'insensitive' } },
-      ];
+      and.push({
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { content: { contains: q, mode: 'insensitive' } },
+          { excerpt: { contains: q, mode: 'insensitive' } },
+        ]
+      });
     }
 
-    if (published_after) where.publishedAt = { ...where.publishedAt, gte: new Date(published_after) };
-    if (published_before) where.publishedAt = { ...where.publishedAt, lte: new Date(published_before) };
-    if (category) where.category = { slug: category };
+    if (published_after) and.push({ publishedAt: { gte: new Date(published_after) } });
+    if (published_before) and.push({ publishedAt: { lte: new Date(published_before) } });
+    if (category) and.push({ category: { slug: category } });
     if (tag) {
       const tagSlugs = Array.isArray(tag) ? tag : (tag as string).split(',');
-      where.tags = { some: { tag: { slug: { in: tagSlugs } } } };
+      and.push({ tags: { some: { tag: { slug: { in: tagSlugs } } } } });
     }
-    if (is_hot === 'true') where.isHot = true;
-    if (series) where.series = { slug: series };
-    if (visibility) where.visibility = visibility as PostVisibility;
+    if (is_hot === 'true') and.push({ isHot: true });
+    if (series) and.push({ series: { slug: series } });
+    if (visibility) and.push({ visibility: visibility as PostVisibility });
     if (author) {
       if (!isNaN(Number(author))) {
-        where.authorId = safeBigInt(author, 'author');
+        and.push({ authorId: safeBigInt(author, 'author') });
       } else {
-        where.author = { user: { username: author } };
+        and.push({ author: { user: { username: author } } });
       }
     }
+
+    const where: any = { AND: and };
 
     let orderBy: any = { publishedAt: 'desc' };
     if (ordering) {
@@ -101,9 +106,24 @@ export class PostsService {
     };
   }
 
-  async getPostBySlug(slug: string, user?: any) {
-    const post = await prisma.post.findFirst({
-      where: { slug, deletedAt: null },
+  private async findPostByIdentifier(identifier: string) {
+    if (/^\d+$/.test(identifier)) {
+      const post = await prisma.post.findUnique({
+        where: { id: BigInt(identifier) },
+        include: {
+          author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
+          category: true,
+          coverMedia: true,
+          ogImage: true,
+          tags: { include: { tag: true } },
+          series: true,
+          mediaAttachments: { include: { media: true } }
+        }
+      });
+      if (post && !post.deletedAt) return post;
+    }
+    return prisma.post.findFirst({
+      where: { slug: identifier, deletedAt: null },
       include: {
         author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
         category: true,
@@ -114,11 +134,15 @@ export class PostsService {
         mediaAttachments: { include: { media: true } }
       }
     });
+  }
+
+  async getPostBySlug(slug: string, user?: any) {
+    const post = await this.findPostByIdentifier(slug);
 
     if (!post) throw new ApiError(404, 'Post not found');
 
     // Visibility check
-    if (post.status !== PostStatus.published || (post.publishedAt && post.publishedAt > new Date())) {
+    if (post.status !== PostStatus.published) {
       const canView = user && (isAdmin(user.role) || user.id === post.authorId);
       if (!canView) throw new ApiError(404, 'Post not found');
     }
@@ -172,7 +196,7 @@ export class PostsService {
 
   async updatePost(slug: string, data: any, user: any) {
     const safeData = pickAllowedFields(data, [...this.allowedFields]);
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await this.findPostByIdentifier(slug);
     if (!post) throw new ApiError(404, 'Post not found');
 
     const isAdminUser = isAdmin(user.role);
@@ -216,7 +240,7 @@ export class PostsService {
   }
 
   async deletePost(slug: string, user: any) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await this.findPostByIdentifier(slug);
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {
@@ -234,7 +258,7 @@ export class PostsService {
   }
 
   async getSimilarPosts(slug: string) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+    const post = await this.findPostByIdentifier(slug);
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [] };
 
@@ -259,7 +283,7 @@ export class PostsService {
   }
 
   async getSameCategoryPosts(slug: string, query: any) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+    const post = await this.findPostByIdentifier(slug);
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [], meta: { total: 0 } };
 
@@ -297,10 +321,7 @@ export class PostsService {
   }
 
   async getRelatedPosts(slug: string) {
-    const post = await prisma.post.findFirst({
-      where: { slug, deletedAt: null },
-      include: { tags: true }
-    });
+    const post = await this.findPostByIdentifier(slug);
     if (!post) throw new ApiError(404, 'Post not found');
 
     const tagIds = post.tags.map(t => t.tagId);
@@ -336,7 +357,7 @@ export class PostsService {
   }
 
   async publishPost(slug: string, user: any) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+    const post = await this.findPostByIdentifier(slug);
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {

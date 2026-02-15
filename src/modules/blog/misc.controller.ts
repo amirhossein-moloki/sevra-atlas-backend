@@ -9,7 +9,7 @@ const blogMiscService = new BlogMiscService();
 export class BlogMiscController {
   async listRevisions(req: Request, res: Response) {
     const result = await blogMiscService.listRevisions(req.params.postId);
-    res.json({ data: result });
+    res.json(result);
   }
 
   async addReaction(req: AuthRequest, res: Response) {
@@ -19,7 +19,7 @@ export class BlogMiscController {
 
   async listPages(req: Request, res: Response) {
     const result = await blogMiscService.listPages();
-    res.json({ data: result });
+    res.json(result);
   }
 
   async getPage(req: Request, res: Response) {

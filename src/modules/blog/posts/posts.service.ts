@@ -101,9 +101,16 @@ export class PostsService {
     };
   }
 
-  async getPostBySlug(slug: string, user?: any) {
+  async getPostBySlug(identifier: string, user?: any) {
+    const where: any = { deletedAt: null };
+    if (!isNaN(Number(identifier))) {
+      where.id = safeBigInt(identifier, 'post_id');
+    } else {
+      where.slug = identifier;
+    }
+
     const post = await prisma.post.findFirst({
-      where: { slug, deletedAt: null },
+      where,
       include: {
         author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
         category: true,
@@ -123,11 +130,11 @@ export class PostsService {
       if (!canView) throw new ApiError(404, 'Post not found');
     }
 
-    // Increment views
-    await prisma.post.update({
+    // Increment views (non-blocking)
+    prisma.post.update({
       where: { id: post.id },
       data: { viewsCount: { increment: 1 } }
-    });
+    }).catch(err => console.error('Failed to increment post views:', err));
 
     return post;
   }
@@ -170,9 +177,17 @@ export class PostsService {
     });
   }
 
-  async updatePost(slug: string, data: any, user: any) {
+  async findPostByIdentifier(identifier: string) {
+    if (!isNaN(Number(identifier))) {
+      const id = safeBigInt(identifier, 'post_id');
+      return prisma.post.findFirst({ where: { id, deletedAt: null } });
+    }
+    return prisma.post.findFirst({ where: { slug: identifier, deletedAt: null } });
+  }
+
+  async updatePost(identifier: string, data: any, user: any) {
     const safeData = pickAllowedFields(data, [...this.allowedFields]);
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 
     const isAdminUser = isAdmin(user.role);
@@ -215,8 +230,8 @@ export class PostsService {
     });
   }
 
-  async deletePost(slug: string, user: any) {
-    const post = await prisma.post.findUnique({ where: { slug } });
+  async deletePost(identifier: string, user: any) {
+    const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {
@@ -233,8 +248,8 @@ export class PostsService {
     return { ok: true };
   }
 
-  async getSimilarPosts(slug: string) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+  async getSimilarPosts(identifier: string) {
+    const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [] };
 
@@ -258,8 +273,8 @@ export class PostsService {
     return { data: similar };
   }
 
-  async getSameCategoryPosts(slug: string, query: any) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+  async getSameCategoryPosts(identifier: string, query: any) {
+    const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [], meta: { total: 0 } };
 
@@ -296,14 +311,16 @@ export class PostsService {
     };
   }
 
-  async getRelatedPosts(slug: string) {
-    const post = await prisma.post.findFirst({
-      where: { slug, deletedAt: null },
-      include: { tags: true }
-    });
+  async getRelatedPosts(identifier: string) {
+    const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 
-    const tagIds = post.tags.map(t => t.tagId);
+    const postWithTags = await prisma.post.findUnique({
+        where: { id: post.id },
+        include: { tags: true }
+    });
+
+    const tagIds = postWithTags?.tags.map(t => t.tagId) || [];
     if (tagIds.length === 0) return { data: [] };
 
     // In Prisma we can't easily do the "count common tags" annotation in a single findMany
@@ -335,8 +352,8 @@ export class PostsService {
     return { data: related.slice(0, 5) };
   }
 
-  async publishPost(slug: string, user: any) {
-    const post = await prisma.post.findFirst({ where: { slug, deletedAt: null } });
+  async publishPost(identifier: string, user: any) {
+    const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 
     if (!isStaff(user.role) && post.authorId !== user.id) {

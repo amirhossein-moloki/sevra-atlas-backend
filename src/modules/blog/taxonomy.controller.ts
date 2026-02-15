@@ -7,7 +7,7 @@ const taxonomyService = new BlogTaxonomyService();
 export class BlogTaxonomyController {
   async listCategories(req: Request, res: Response) {
     const result = await taxonomyService.listCategories();
-    res.json({ data: result });
+    res.json(result);
   }
 
   async createCategory(req: Request, res: Response) {
@@ -35,7 +35,7 @@ export class BlogTaxonomyController {
 
   async listTags(req: Request, res: Response) {
     const result = await taxonomyService.listTags();
-    res.json({ data: result });
+    res.json(result);
   }
 
   async createTag(req: Request, res: Response) {
@@ -63,7 +63,7 @@ export class BlogTaxonomyController {
 
   async listSeries(req: Request, res: Response) {
     const result = await taxonomyService.listSeries();
-    res.json({ data: result });
+    res.json(result);
   }
 
   async createSeries(req: Request, res: Response) {

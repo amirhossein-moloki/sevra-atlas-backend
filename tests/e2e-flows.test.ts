@@ -3,6 +3,7 @@ import app from '../src/app';
 import { prisma } from '../src/shared/db/prisma';
 import { redis } from '../src/shared/redis/redis';
 import { UserRole, EntityType, AccountStatus } from '@prisma/client';
+import { generateUniquePhone } from './test-utils';
 
 /**
  * 🛡️ CRITICAL BUSINESS FLOWS - REAL E2E TESTS
@@ -34,9 +35,10 @@ describe('Critical Business Flows E2E', () => {
   });
 
   describe('Flow 1: Authentication Lifecycle (OTP → Auth → Refresh)', () => {
-    const phoneNumber = '+989000000001';
+    let phoneNumber: string;
 
     beforeEach(async () => {
+      phoneNumber = generateUniquePhone();
       // Cleanup previous data for this phone number
       await prisma.user.deleteMany({ where: { phoneNumber } });
       await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
@@ -96,11 +98,12 @@ describe('Critical Business Flows E2E', () => {
   });
 
   describe('Flow 2: User Onboarding & Salon Creation', () => {
-    const phoneNumber = '+989000000002';
+    let phoneNumber: string;
     let token: string;
     let userId: string;
 
     beforeAll(async () => {
+        phoneNumber = generateUniquePhone();
         // Setup a user via API
         await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber });
         let code: string | null = await redis.get(`otp:${phoneNumber}`);
@@ -170,10 +173,10 @@ describe('Critical Business Flows E2E', () => {
       // 5. Assign Services (NEW)
       // First create a service category and definition
       const serviceCat = await prisma.serviceCategory.create({
-          data: { nameFa: 'Test Category', slug: 'test-cat' }
+          data: { nameFa: 'Test Category', slug: 'test-cat-' + Date.now() }
       });
       const serviceDef = await prisma.serviceDefinition.create({
-          data: { categoryId: serviceCat.id, nameFa: 'Test Service', slug: 'test-service' }
+          data: { categoryId: serviceCat.id, nameFa: 'Test Service', slug: 'test-service-' + Date.now() }
       });
 
       const assignRes = await request(app)
@@ -233,35 +236,35 @@ describe('Critical Business Flows E2E', () => {
     const newSlug = 'updated-slug-' + Date.now();
     let adminToken: string;
     let salonId: string;
+    let adminPhone: string;
 
     beforeAll(async () => {
+      adminPhone = generateUniquePhone();
       // Setup Admin
-      const admin = await prisma.user.upsert({
-          where: { phoneNumber: '+989000000003' },
-          update: { role: UserRole.ADMIN },
-          create: {
-            phoneNumber: '+989000000003',
-            username: 'admin_user',
+      const admin = await prisma.user.create({
+          data: {
+            phoneNumber: adminPhone,
+            username: 'admin_user_' + Date.now(),
             firstName: 'Admin',
             lastName: 'E2E',
-            email: 'admin@e2e.com',
+            email: `admin_${Date.now()}@e2e.com`,
             isStaff: true,
             isActive: true,
             role: UserRole.ADMIN,
-            referralCode: 'ADME2E'
+            referralCode: 'ADME2E' + Math.floor(Math.random()*1000)
           }
       });
 
       // Note: We'd normally login to get a real token, but for test speed we can generate one
       // Since it's E2E, let's assume the auth/otp/verify mock or real works.
       // For this test, let's use the actual verification flow for admin.
-      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000003' });
-      let code: string | null = await redis.get(`otp:+989000000003`);
+      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: adminPhone });
+      let code: string | null = await redis.get(`otp:${adminPhone}`);
       if (!code) {
-        const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: '+989000000003' } });
+        const otpRecord = await prisma.otp.findUnique({ where: { phoneE164: adminPhone } });
         code = otpRecord?.code || null;
       }
-      const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000003', code: code as string });
+      const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: adminPhone, code: code as string });
       adminToken = res.body.data.accessToken;
 
       // Create initial Salon
@@ -342,7 +345,7 @@ describe('Critical Business Flows E2E', () => {
 
   describe('Resilience: Failure in the middle of a flow', () => {
     it('should maintain state consistency when a multi-step flow fails', async () => {
-      const phoneNumber = '+989000000004';
+      const phoneNumber = generateUniquePhone();
 
       // 1. Request OTP
       await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber });
@@ -382,41 +385,43 @@ describe('Critical Business Flows E2E', () => {
     let adminToken: string;
     let salonId: string;
     let requestId: string;
+    let userPhone: string;
+    let adminPhone: string;
 
     beforeAll(async () => {
+      userPhone = generateUniquePhone();
+      adminPhone = generateUniquePhone();
       // 1. Setup User & Salon
-      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000005' });
-      const userCode = (await redis.get('otp:+989000000005')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000005'}}))?.code;
-      const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000005', code: userCode as string });
+      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: userPhone });
+      const userCode = (await redis.get(`otp:${userPhone}`)) || (await prisma.otp.findUnique({where:{phoneE164:userPhone}}))?.code;
+      const userVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: userPhone, code: userCode as string });
       userToken = userVerify.body.data.accessToken;
       userId5 = userVerify.body.data.user.id;
 
       await prisma.user.update({ where: { id: BigInt(userVerify.body.data.user.id) }, data: { role: UserRole.SALON } });
 
       const salon = await prisma.salon.create({
-          data: { name: 'Verify Me Salon', slug: 'verify-me', primaryOwnerId: BigInt(userVerify.body.data.user.id), owners: { connect: { id: BigInt(userVerify.body.data.user.id) } } }
+          data: { name: 'Verify Me Salon', slug: 'verify-me-' + Date.now(), primaryOwnerId: BigInt(userVerify.body.data.user.id), owners: { connect: { id: BigInt(userVerify.body.data.user.id) } } }
       });
       salonId = salon.id.toString();
 
       // 2. Setup Admin
-      await prisma.user.upsert({
-          where: { phoneNumber: '+989000000006' },
-          update: { role: UserRole.ADMIN },
-          create: {
-            phoneNumber: '+989000000006',
-            username: 'admin_verify',
+      const admin = await prisma.user.create({
+          data: {
+            phoneNumber: adminPhone,
+            username: 'admin_verify_' + Date.now(),
             role: UserRole.ADMIN,
             isStaff: true,
             isActive: true,
-            referralCode: 'VADM',
+            referralCode: 'VADM' + Math.floor(Math.random()*1000),
             firstName: '',
             lastName: '',
             email: ''
           }
       });
-      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: '+989000000006' });
-      const adminCode = (await redis.get('otp:+989000000006')) || (await prisma.otp.findUnique({where:{phoneE164:'+989000000006'}}))?.code;
-      const adminVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: '+989000000006', code: adminCode as string });
+      await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: adminPhone });
+      const adminCode = (await redis.get(`otp:${adminPhone}`)) || (await prisma.otp.findUnique({where:{phoneE164:adminPhone}}))?.code;
+      const adminVerify = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: adminPhone, code: adminCode as string });
       adminToken = adminVerify.body.data.accessToken;
     });
 
@@ -482,7 +487,7 @@ describe('Critical Business Flows E2E', () => {
 
     beforeAll(async () => {
         // Setup Author
-        const phone = '+989000000007';
+        const phone = generateUniquePhone();
         await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: phone });
         const code = (await redis.get(`otp:${phone}`)) || (await prisma.otp.findUnique({where:{phoneE164:phone}}))?.code;
         const res = await request(app).post('/api/v1/auth/otp/verify').send({ phoneNumber: phone, code: code as string });
@@ -497,6 +502,7 @@ describe('Critical Business Flows E2E', () => {
 
     afterAll(async () => {
         if (authorId) {
+            // Delete redirects created during tests if any
             await prisma.post.deleteMany({ where: { authorId: BigInt(authorId) } });
             await prisma.authorProfile.deleteMany({ where: { userId: BigInt(authorId) } });
             await prisma.user.deleteMany({ where: { id: BigInt(authorId) } });

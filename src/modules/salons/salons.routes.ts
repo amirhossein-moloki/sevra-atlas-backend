@@ -45,10 +45,10 @@ router.get('/', controller.getSalons);
 
 registry.registerPath({
   method: 'get',
-  path: '/salons/{slug}',
-  summary: 'Get salon by slug',
+  path: '/salons/{idOrSlug}',
+  summary: 'Get salon by slug or ID',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Salon details',
@@ -60,10 +60,10 @@ router.get('/:slug', controller.getSalon);
 
 registry.registerPath({
   method: 'get',
-  path: '/salons/{slug}/reviews',
+  path: '/salons/{idOrSlug}/reviews',
   summary: 'Get salon reviews',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'List of reviews',
@@ -100,11 +100,11 @@ router.post(
 
 registry.registerPath({
   method: 'patch',
-  path: '/salons/{id}',
+  path: '/salons/{idOrSlug}',
   summary: 'Update a salon',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: updateSalonSchema.shape.body } } }
   },
@@ -124,11 +124,11 @@ router.patch(
 
 registry.registerPath({
   method: 'delete',
-  path: '/salons/{id}',
+  path: '/salons/{idOrSlug}',
   summary: 'Delete a salon',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Salon deleted',
@@ -144,11 +144,11 @@ router.delete(
 
 registry.registerPath({
   method: 'post',
-  path: '/salons/{id}/services',
+  path: '/salons/{idOrSlug}/services',
   summary: 'Assign services to salon',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: assignServicesSchema.shape.body } } }
   },
@@ -168,12 +168,12 @@ router.post(
 
 registry.registerPath({
   method: 'delete',
-  path: '/salons/{id}/services/{serviceId}',
+  path: '/salons/{idOrSlug}/services/{serviceId}',
   summary: 'Remove service from salon',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [
-    { name: 'id', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
     { name: 'serviceId', in: 'path', schema: { type: 'string' }, required: true }
   ],
   responses: {
@@ -191,11 +191,11 @@ router.delete(
 
 registry.registerPath({
   method: 'post',
-  path: '/salons/{id}/avatar',
+  path: '/salons/{idOrSlug}/avatar',
   summary: 'Set salon avatar',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: z.object({ mediaId: z.string() }) } }
@@ -217,11 +217,11 @@ router.post(
 
 registry.registerPath({
   method: 'post',
-  path: '/salons/{id}/cover',
+  path: '/salons/{idOrSlug}/cover',
   summary: 'Set salon cover',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: setMediaSchema.shape.body } }
@@ -243,11 +243,11 @@ router.post(
 
 registry.registerPath({
   method: 'post',
-  path: '/salons/{id}/gallery',
+  path: '/salons/{idOrSlug}/gallery',
   summary: 'Add to salon gallery',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: setMediaSchema.shape.body } }
@@ -269,11 +269,11 @@ router.post(
 
 registry.registerPath({
   method: 'post',
-  path: '/salons/{id}/artists',
+  path: '/salons/{idOrSlug}/artists',
   summary: 'Link artist to salon',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: linkArtistSchema.shape.body } } }
   },
@@ -293,12 +293,12 @@ router.post(
 
 registry.registerPath({
   method: 'delete',
-  path: '/salons/{id}/artists/{artistId}',
+  path: '/salons/{idOrSlug}/artists/{artistId}',
   summary: 'Unlink artist from salon',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [
-    { name: 'id', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
     { name: 'artistId', in: 'path', schema: { type: 'string' }, required: true }
   ],
   responses: {

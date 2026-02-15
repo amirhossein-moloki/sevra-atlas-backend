@@ -10,6 +10,14 @@ jest.mock('../src/shared/redis/redis', () => ({
 }));
 
 describe('RateLimit Middleware Fallback', () => {
+  beforeAll(() => {
+    process.env.ENABLE_RATE_LIMIT = 'true';
+  });
+
+  afterAll(() => {
+    process.env.ENABLE_RATE_LIMIT = 'false';
+  });
+
   it('should call next() even if Redis fails (fail-open)', async () => {
     (redis.incr as jest.Mock).mockRejectedValue(new Error('Redis down'));
 

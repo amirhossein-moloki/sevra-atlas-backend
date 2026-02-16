@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 export interface RequestContext {
   requestId: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const requestContext = new AsyncLocalStorage<RequestContext>();

@@ -5,6 +5,7 @@ import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
 
 export class ReviewsService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createReview(data: any, authorId: bigint) {
     const { targetType, targetId, rating, title, body } = data;
     const id = BigInt(targetId);
@@ -37,11 +38,13 @@ export class ReviewsService {
     return review;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getReviews(targetType: 'SALON' | 'ARTIST', slug: string, query: any) {
     const { page = 1, pageSize = 20, status } = query;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       status: status || ReviewStatus.PUBLISHED,
       deletedAt: null,

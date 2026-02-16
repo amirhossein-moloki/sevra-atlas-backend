@@ -14,6 +14,7 @@ export class BlogMiscService {
   }
 
   // Reactions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async addReaction(userId: bigint, data: any) {
     const reaction = await prisma.reaction.upsert({
       where: {
@@ -52,6 +53,7 @@ export class BlogMiscService {
     return page;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createPage(data: any) {
     return prisma.$transaction(async (tx) => {
       const page = await tx.page.create({ data });
@@ -60,6 +62,7 @@ export class BlogMiscService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updatePage(id: string | bigint, data: any) {
     const pageId = BigInt(id);
     return prisma.$transaction(async (tx) => {
@@ -88,6 +91,7 @@ export class BlogMiscService {
   }
 
   // Menus
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getMenu(location: any) {
     const menu = await prisma.menu.findUnique({
       where: { location },
@@ -97,11 +101,13 @@ export class BlogMiscService {
     return menu;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createMenu(data: any) {
     const menu = await prisma.menu.create({ data });
     return menu;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateMenu(id: string | bigint, data: any) {
     const menuId = BigInt(id);
     const menu = await prisma.menu.update({ where: { id: menuId }, data });
@@ -115,6 +121,7 @@ export class BlogMiscService {
   }
 
   // Menu Items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createMenuItem(data: any) {
     const { menuId, parentId, ...rest } = data;
     const menuItem = await prisma.menuItem.create({
@@ -127,6 +134,7 @@ export class BlogMiscService {
     return menuItem;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateMenuItem(id: string | bigint, data: any) {
     const menuItemId = BigInt(id);
     const { menuId, parentId, ...rest } = data;

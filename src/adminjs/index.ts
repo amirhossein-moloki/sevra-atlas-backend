@@ -1,4 +1,3 @@
-/// <reference path="../types/adminjs.d.ts" />
 import type { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import type { AdminJSOptions } from 'adminjs';

@@ -1,13 +1,14 @@
+import { Queue } from 'bullmq';
 import { mediaQueue } from '../../shared/queues/media.queue';
 import { ApiError } from '../../shared/errors/ApiError';
 
-const queues: Record<string, any> = {
+const queues: Record<string, Queue> = {
   media: mediaQueue,
 };
 
 export class JobsService {
   async getQueuesHealth() {
-    const health: Record<string, any> = {};
+    const health: Record<string, { waiting: number; active: number; completed: number; failed: number; delayed: number }> = {};
     for (const [name, queue] of Object.entries(queues)) {
       const [waiting, active, completed, failed, delayed] = await Promise.all([
         queue.getWaitingCount(),

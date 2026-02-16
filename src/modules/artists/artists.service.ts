@@ -1,7 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
-import { EntityType, AccountStatus } from '@prisma/client';
+import { EntityType, AccountStatus, Prisma } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
 import { pickAllowedFields } from '../../shared/utils/object';
@@ -35,15 +35,16 @@ export class ArtistsService {
     updatedAt: true,
   };
 
-  async getArtists(filters: any) {
+  async getArtists(filters: Record<string, unknown>) {
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
-      const { q, city, neighborhood, specialty, verified, minRating, minReviewCount, sort, page = 1, pageSize = 20 } = filters;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { q, city, neighborhood, specialty, verified, minRating, minReviewCount, sort, page = 1, pageSize = 20 } = filters as any;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = {
+    const where: Prisma.ArtistWhereInput = {
       status: AccountStatus.ACTIVE,
       deletedAt: null,
     };
@@ -56,14 +57,14 @@ export class ArtistsService {
       ];
     }
 
-    if (city) where.city = { slug: city };
-    if (neighborhood) where.neighborhood = { slug: neighborhood };
-    if (specialty) where.specialties = { some: { specialty: { slug: specialty } } };
+    if (city) where.city = { slug: city as string };
+    if (neighborhood) where.neighborhood = { slug: neighborhood as string };
+    if (specialty) where.specialties = { some: { specialty: { slug: specialty as string } } };
     if (verified === 'true') where.verification = 'VERIFIED';
     if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
     if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
 
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: Prisma.ArtistOrderByWithRelationInput = { createdAt: 'desc' };
     if (sort === 'rating') orderBy = { avgRating: 'desc' };
     if (sort === 'popular') orderBy = { reviewCount: 'desc' };
     if (sort === 'new') orderBy = { createdAt: 'desc' };
@@ -116,13 +117,14 @@ export class ArtistsService {
     }, 1800, { staleWhileRevalidate: 300 });
   }
 
-  async createArtist(data: any, userId: bigint) {
-    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+  async createArtist(data: Record<string, unknown>, userId: bigint) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]) as Record<string, unknown>;
 
     return prisma.$transaction(async (tx) => {
       const artist = await tx.artist.create({
         data: {
-          ...safeData,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(safeData as any),
           cityId: safeData.cityId ? safeBigInt(safeData.cityId, 'cityId') : undefined,
           neighborhoodId: safeData.neighborhoodId ? safeBigInt(safeData.neighborhoodId, 'neighborhoodId') : undefined,
           avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
@@ -139,34 +141,35 @@ export class ArtistsService {
     });
   }
 
-  private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
+  private async checkOwnership(tx: Prisma.TransactionClient | typeof prisma, id: bigint, userId: bigint, isAdmin: boolean) {
     const artist = await tx.artist.findFirst({
       where: { id, deletedAt: null },
       include: { owners: { select: { id: true } } },
     });
     if (!artist) throw new ApiError(404, 'Artist not found');
 
-    const isOwner = artist.owners.some((o: any) => o.id === userId);
+    const isOwner = artist.owners.some((o: { id: bigint }) => o.id === userId);
     if (!isAdmin && !isOwner) {
       throw new ApiError(403, 'Forbidden');
     }
     return artist;
   }
 
-  async updateArtist(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+  async updateArtist(id: bigint, data: Record<string, unknown>, userId: bigint, isAdmin: boolean) {
+    const safeData = pickAllowedFields(data, [...this.allowedFields]) as Record<string, unknown>;
 
     return prisma.$transaction(async (tx) => {
       const artist = await this.checkOwnership(tx, id, userId, isAdmin);
 
       if (safeData.slug && safeData.slug !== artist.slug) {
-        await handleSlugChange(EntityType.ARTIST, id, artist.slug, safeData.slug, '/atlas/artist', tx);
+        await handleSlugChange(EntityType.ARTIST, id, artist.slug, safeData.slug as string, '/atlas/artist', tx);
       }
 
       const updatedArtist = await tx.artist.update({
         where: { id },
         data: {
-          ...safeData,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(safeData as any),
           cityId: safeData.cityId ? safeBigInt(safeData.cityId, 'cityId') : undefined,
           neighborhoodId: safeData.neighborhoodId ? safeBigInt(safeData.neighborhoodId, 'neighborhoodId') : undefined,
           avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
@@ -250,7 +253,7 @@ export class ArtistsService {
     return finalMedia;
   }
 
-  async addCertification(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
+  async addCertification(id: bigint, data: Record<string, unknown>, userId: bigint, isAdmin: boolean) {
     await this.checkOwnership(prisma, id, userId, isAdmin);
 
     let mediaId: bigint | undefined;
@@ -276,15 +279,15 @@ export class ArtistsService {
     const cert = await prisma.artistCertification.create({
       data: {
         artistId: id,
-        title: data.title,
-        issuer: data.issuer,
-        issuerSlug: data.issuerSlug,
-        category: data.category,
-        level: data.level,
-        issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
-        credentialId: data.credentialId,
-        credentialUrl: data.credentialUrl,
+        title: data.title as string,
+        issuer: data.issuer as string,
+        issuerSlug: data.issuerSlug as string,
+        category: data.category as string,
+        level: data.level as string,
+        issuedAt: data.issuedAt ? new Date(data.issuedAt as string) : undefined,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt as string) : undefined,
+        credentialId: data.credentialId as string,
+        credentialUrl: data.credentialUrl as string,
         mediaId,
       },
     });
@@ -292,7 +295,7 @@ export class ArtistsService {
     return cert;
   }
 
-  async updateCertification(certId: bigint, data: any, userId: bigint, isAdmin: boolean) {
+  async updateCertification(certId: bigint, data: Record<string, unknown>, userId: bigint, isAdmin: boolean) {
     const cert = await prisma.artistCertification.findUnique({
       where: { id: certId },
     });
@@ -303,16 +306,16 @@ export class ArtistsService {
     const updated = await prisma.artistCertification.update({
       where: { id: certId },
       data: {
-        title: data.title,
-        issuer: data.issuer,
-        issuerSlug: data.issuerSlug,
-        category: data.category,
-        level: data.level,
-        credentialId: data.credentialId,
-        credentialUrl: data.credentialUrl,
+        title: data.title as string,
+        issuer: data.issuer as string,
+        issuerSlug: data.issuerSlug as string,
+        category: data.category as string,
+        level: data.level as string,
+        credentialId: data.credentialId as string,
+        credentialUrl: data.credentialUrl as string,
         mediaId: data.mediaId ? safeBigInt(data.mediaId, 'mediaId') : undefined,
-        issuedAt: data.issuedAt ? new Date(data.issuedAt) : undefined,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+        issuedAt: data.issuedAt ? new Date(data.issuedAt as string) : undefined,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt as string) : undefined,
       },
     });
     return updated;
@@ -349,17 +352,19 @@ export class ArtistsService {
     });
   }
 
-  async createSpecialty(data: any) {
+  async createSpecialty(data: Record<string, unknown>) {
     const safeData = pickAllowedFields(data, ['nameFa', 'slug', 'order']);
-    const specialty = await prisma.specialty.create({ data: safeData });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const specialty = await prisma.specialty.create({ data: safeData as any });
     return specialty;
   }
 
-  async updateSpecialty(id: bigint, data: any) {
+  async updateSpecialty(id: bigint, data: Record<string, unknown>) {
     const safeData = pickAllowedFields(data, ['nameFa', 'slug', 'order']);
     const specialty = await prisma.specialty.update({
       where: { id },
-      data: safeData,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: safeData as any,
     });
     return specialty;
   }

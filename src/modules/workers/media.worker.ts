@@ -40,6 +40,7 @@ export const mediaWorker = new Worker('media', async (job: Job) => {
     // 3. Process Variants
     const { variants } = await processImage(buffer);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const variantUrls: any = {};
     for (const [key, variant] of Object.entries(variants)) {
        const ext = variant.mime.split('/')[1];

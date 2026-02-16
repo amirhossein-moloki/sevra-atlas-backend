@@ -37,6 +37,7 @@ export function generateOpenApiSpec() {
  * This pattern typically occurs when zod-to-openapi generates an allOf for
  * a nullable referenced schema ($ref).
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function fixNullableSchemas(obj: any) {
   if (typeof obj !== 'object' || obj === null) return;
 

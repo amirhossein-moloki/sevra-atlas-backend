@@ -18,6 +18,7 @@ export type UploadResult = Media | {
 export class MediaService {
   private storage = getStorageProvider();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async listMedia(query: any) {
     const { page = 1, pageSize = 20 } = query;
     const limit = parseInt(pageSize as string) || 20;
@@ -39,6 +40,7 @@ export class MediaService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createMedia(data: any, uploadedBy: bigint) {
     const media = await prisma.media.create({
       data: {
@@ -74,6 +76,7 @@ export class MediaService {
       const { original, variants } = await processImage(file.buffer);
       const originalUrl = await this.storage.save(baseStorageKey, file.buffer, file.mimetype);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const variantUrls: any = {};
       for (const [key, variant] of Object.entries(variants)) {
         const ext = variant.mime.split('/')[1];
@@ -132,6 +135,7 @@ export class MediaService {
     return media;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateMedia(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
     const media = await prisma.media.findFirst({
       where: { id, deletedAt: null }

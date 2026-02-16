@@ -52,7 +52,7 @@ describe('PostsService', () => {
       (prisma.post.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.post.count as jest.Mock).mockResolvedValue(0);
 
-      await service.listPosts({}, { role: UserRole.ADMIN });
+      await service.listPosts({}, { id: BigInt(1), role: UserRole.ADMIN });
 
       const call = (prisma.post.findMany as jest.Mock).mock.calls[0][0];
       const where = call.where;

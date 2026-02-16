@@ -40,6 +40,7 @@ export class BlogAuthorsService {
     return author;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createAuthor(data: any) {
     const author = await prisma.authorProfile.create({
       data: {
@@ -52,6 +53,7 @@ export class BlogAuthorsService {
     return author;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateAuthor(userId: bigint, data: any) {
     const { avatarId, ...rest } = data;
     const author = await prisma.authorProfile.update({

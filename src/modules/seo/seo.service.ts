@@ -10,6 +10,7 @@ export class SeoService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async setSeoMeta(data: any) {
     const { entityType, entityId, ...meta } = data;
     const id = safeBigInt(entityId, 'entityId');
@@ -34,6 +35,7 @@ export class SeoService {
       });
 
       // Update the target entity's seoMetaId if it supports it
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const entityModels: Record<string, any> = {
         SALON: tx.salon,
         ARTIST: tx.artist,
@@ -67,6 +69,7 @@ export class SeoService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createRedirect(data: any) {
     return prisma.redirectRule.create({ data });
   }
@@ -76,6 +79,7 @@ export class SeoService {
       // 1. Clear existing sitemap
       await tx.sitemapUrl.deleteMany({});
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const entries: any[] = [];
 
       // 2. Add Provinces

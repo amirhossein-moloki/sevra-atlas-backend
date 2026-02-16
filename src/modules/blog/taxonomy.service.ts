@@ -13,6 +13,7 @@ export class BlogTaxonomyService {
     return data;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createCategory(data: any) {
     return prisma.$transaction(async (tx) => {
       const result = await tx.category.create({
@@ -36,6 +37,7 @@ export class BlogTaxonomyService {
     return category;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateCategory(id: string | bigint, data: any) {
     const categoryId = BigInt(id);
     return prisma.$transaction(async (tx) => {
@@ -75,6 +77,7 @@ export class BlogTaxonomyService {
     return data;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createTag(data: any) {
     return prisma.$transaction(async (tx) => {
       const result = await tx.tag.create({ data });
@@ -92,6 +95,7 @@ export class BlogTaxonomyService {
     return tag;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateTag(id: string | bigint, data: any) {
     const tagId = BigInt(id);
     return prisma.$transaction(async (tx) => {
@@ -124,6 +128,7 @@ export class BlogTaxonomyService {
     return data;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createSeries(data: any) {
     return prisma.$transaction(async (tx) => {
       const result = await tx.series.create({ data });
@@ -141,6 +146,7 @@ export class BlogTaxonomyService {
     return series;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateSeries(id: string | bigint, data: any) {
     const seriesId = BigInt(id);
     return prisma.$transaction(async (tx) => {

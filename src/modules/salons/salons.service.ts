@@ -1,7 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { handleSlugChange, initSeoMeta } from '../../shared/utils/seo';
-import { EntityType, AccountStatus } from '@prisma/client';
+import { EntityType, AccountStatus, Prisma } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
 import { pickAllowedFields } from '../../shared/utils/object';
@@ -43,15 +43,16 @@ export class SalonsService {
     updatedAt: true,
   };
 
-  async getSalons(filters: any) {
+  async getSalons(filters: Record<string, unknown>) {
     const cacheKey = CacheKeys.SALONS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
-      const { q, province, city, neighborhood, service, verified, minRating, womenOnly, priceTier, minReviewCount, sort, page = 1, pageSize = 20 } = filters;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { q, province, city, neighborhood, service, verified, minRating, womenOnly, priceTier, minReviewCount, sort, page = 1, pageSize = 20 } = filters as any;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
-    const where: any = {
+    const where: Prisma.SalonWhereInput = {
       status: AccountStatus.ACTIVE,
       deletedAt: null,
     };
@@ -64,17 +65,17 @@ export class SalonsService {
       ];
     }
 
-    if (province) where.city = { province: { slug: province } };
-    if (city) where.city = { slug: city };
-    if (neighborhood) where.neighborhood = { slug: neighborhood };
-    if (service) where.services = { some: { service: { slug: service } } };
+    if (province) where.city = { province: { slug: province as string } };
+    if (city) where.city = { ...((where.city as object) || {}), slug: city as string };
+    if (neighborhood) where.neighborhood = { slug: neighborhood as string };
+    if (service) where.services = { some: { service: { slug: service as string } } };
     if (verified === 'true') where.verification = 'VERIFIED';
     if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
     if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
     if (womenOnly === 'true') where.isWomenOnly = true;
     if (priceTier) where.priceTier = parseInt(priceTier as string);
 
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: Prisma.SalonOrderByWithRelationInput = { createdAt: 'desc' };
     if (sort === 'rating') orderBy = { avgRating: 'desc' };
     if (sort === 'popular') orderBy = { reviewCount: 'desc' };
     if (sort === 'new') orderBy = { createdAt: 'desc' };
@@ -103,7 +104,7 @@ export class SalonsService {
   }
 
   async findSalonByIdentifier(identifier: string) {
-    const where: any = { deletedAt: null };
+    const where: Prisma.SalonWhereInput = { deletedAt: null };
     if (!isNaN(Number(identifier))) {
       where.id = safeBigInt(identifier, 'salon_id');
     } else {
@@ -114,7 +115,7 @@ export class SalonsService {
 
   async getSalonBySlug(identifier: string) {
     return CacheService.wrap(CacheKeys.SALON_DETAIL(identifier), async () => {
-      const where: any = { deletedAt: null };
+      const where: Prisma.SalonWhereInput = { deletedAt: null };
       if (!isNaN(Number(identifier))) {
         where.id = safeBigInt(identifier, 'salon_id');
       } else {
@@ -144,8 +145,9 @@ export class SalonsService {
     }, 1800, { staleWhileRevalidate: 300 });
   }
 
-  async createSalon(data: any, userId: bigint) {
-    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+  async createSalon(data: Record<string, unknown>, userId: bigint) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safeData = pickAllowedFields(data, [...this.allowedFields]) as any;
 
     return prisma.$transaction(async (tx) => {
       const salon = await tx.salon.create({
@@ -168,28 +170,29 @@ export class SalonsService {
     });
   }
 
-  private async checkOwnership(tx: any, id: bigint, userId: bigint, isAdmin: boolean) {
+  private async checkOwnership(tx: Prisma.TransactionClient | typeof prisma, id: bigint, userId: bigint, isAdmin: boolean) {
     const salon = await tx.salon.findUnique({
       where: { id },
       include: { owners: { select: { id: true } } },
     });
     if (!salon) throw new ApiError(404, 'Salon not found');
 
-    const isOwner = salon.owners.some((o: any) => o.id === userId);
+    const isOwner = salon.owners.some((o: { id: bigint }) => o.id === userId);
     if (!isAdmin && !isOwner) {
       throw new ApiError(403, 'Forbidden');
     }
     return salon;
   }
 
-  async updateSalon(id: bigint, data: any, userId: bigint, isAdmin: boolean) {
-    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+  async updateSalon(id: bigint, data: Record<string, unknown>, userId: bigint, isAdmin: boolean) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safeData = pickAllowedFields(data, [...this.allowedFields]) as any;
 
     return prisma.$transaction(async (tx) => {
       const salon = await this.checkOwnership(tx, id, userId, isAdmin);
 
       if (safeData.slug && safeData.slug !== salon.slug) {
-        await handleSlugChange(EntityType.SALON, id, salon.slug, safeData.slug, '/atlas/salon', tx);
+        await handleSlugChange(EntityType.SALON, id, salon.slug, safeData.slug as string, '/atlas/salon', tx);
       }
 
       const updatedSalon = await tx.salon.update({
@@ -317,7 +320,7 @@ export class SalonsService {
     return finalMedia;
   }
 
-  async linkArtist(salonId: bigint, data: any, userId: bigint, isAdmin: boolean) {
+  async linkArtist(salonId: bigint, data: Record<string, unknown>, userId: bigint, isAdmin: boolean) {
     await this.checkOwnership(prisma, salonId, userId, isAdmin);
     const artistId = safeBigInt(data.artistId, 'artistId');
 
@@ -328,14 +331,14 @@ export class SalonsService {
       create: {
         salonId,
         artistId,
-        roleTitle: data.roleTitle,
-        isActive: data.isActive ?? true,
-        startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
+        roleTitle: data.roleTitle as string,
+        isActive: (data.isActive as boolean) ?? true,
+        startedAt: data.startedAt ? new Date(data.startedAt as string) : undefined,
       },
       update: {
-        roleTitle: data.roleTitle,
-        isActive: data.isActive,
-        startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
+        roleTitle: data.roleTitle as string,
+        isActive: data.isActive as boolean,
+        startedAt: data.startedAt ? new Date(data.startedAt as string) : undefined,
       },
     });
     return salonArtist;

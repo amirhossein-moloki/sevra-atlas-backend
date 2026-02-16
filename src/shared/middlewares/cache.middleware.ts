@@ -25,6 +25,7 @@ export const cacheMiddleware = (options: CacheOptions) => {
       : `http:${req.originalUrl}`;
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cachedResponse = await CacheService.get<any>(key);
 
       if (cachedResponse) {
@@ -37,6 +38,7 @@ export const cacheMiddleware = (options: CacheOptions) => {
       res.setHeader('X-Cache', 'MISS');
       const originalJson = res.json.bind(res);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res.json = (body: any) => {
         // Only cache successful responses
         if (res.statusCode >= 200 && res.statusCode < 300) {

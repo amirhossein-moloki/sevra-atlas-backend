@@ -22,12 +22,12 @@ export class PostsController {
   }
 
   async updatePost(req: AuthRequest, res: Response) {
-    const result = await postsService.updatePost(req.params.slug, req.body, req.user);
+    const result = await postsService.updatePost(req.params.slug, req.body, req.user!);
     res.json(result);
   }
 
   async deletePost(req: AuthRequest, res: Response) {
-    const result = await postsService.deletePost(req.params.slug, req.user);
+    const result = await postsService.deletePost(req.params.slug, req.user!);
     res.json(result);
   }
 
@@ -47,7 +47,7 @@ export class PostsController {
   }
 
   async publishPost(req: AuthRequest, res: Response) {
-    const result = await postsService.publishPost(req.params.slug, req.user);
+    const result = await postsService.publishPost(req.params.slug, req.user!);
     res.json(result);
   }
 }

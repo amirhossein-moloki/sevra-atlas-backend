@@ -2,6 +2,7 @@ import { UserRole } from '@prisma/client';
 import { ApiMeta } from '../shared/utils/response';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       actor?: {

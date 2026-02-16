@@ -2,6 +2,7 @@ import { prisma } from '../../shared/db/prisma';
 import { EntityType, ReportStatus } from '@prisma/client';
 
 export class ReportsService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createReport(userId: bigint, data: any) {
     const { targetType, targetId, reason, details } = data;
     const report = await prisma.report.create({
@@ -17,11 +18,13 @@ export class ReportsService {
     return report;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async listReports(query: any) {
     const { status, targetType, page = 1, pageSize = 20 } = query;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     if (status) where.status = status as ReportStatus;
     if (targetType) where.targetType = targetType as EntityType;

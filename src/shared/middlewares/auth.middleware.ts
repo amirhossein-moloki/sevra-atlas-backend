@@ -34,11 +34,11 @@ export const requireAuth = () => {
 
       req.user = user;
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ApiError) {
         return next(error);
       }
-      const message = error.name === 'TokenExpiredError' ? 'Token expired' : 'Unauthorized';
+      const message = (error instanceof Error && error.name === 'TokenExpiredError') ? 'Token expired' : 'Unauthorized';
       next(new ApiError(401, message));
     }
   };

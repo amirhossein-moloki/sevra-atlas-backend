@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const serialize = (obj: unknown): any => {
   if (!obj) return null;
   if (Array.isArray(obj)) return obj.map(o => serialize(o));

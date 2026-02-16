@@ -1,5 +1,5 @@
 import { prisma } from '../db/prisma';
-import { EntityType, RedirectType } from '@prisma/client';
+import { EntityType, RedirectType, Prisma } from '@prisma/client';
 
 export const handleSlugChange = async (
   entityType: EntityType,
@@ -7,7 +7,7 @@ export const handleSlugChange = async (
   oldSlug: string,
   newSlug: string,
   basePath: string,
-  tx?: any
+  tx?: Prisma.TransactionClient
 ) => {
   if (oldSlug === newSlug) return;
   const client = tx || prisma;
@@ -47,7 +47,7 @@ export const initSeoMeta = async (
   entityType: EntityType,
   entityId: bigint,
   title?: string,
-  tx?: any
+  tx?: Prisma.TransactionClient
 ) => {
   const client = tx || prisma;
 
@@ -72,10 +72,12 @@ export const initSeoMeta = async (
 
   // Update entity link if applicable
   const linkedModels: EntityType[] = ['SALON', 'ARTIST', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY'];
-  if (linkedModels.includes(entityType) && client[getPrismaModelName(entityType)!]) {
-    const modelName = getPrismaModelName(entityType);
+  const modelName = getPrismaModelName(entityType);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (modelName && linkedModels.includes(entityType) && (client as any)[modelName]) {
     if (modelName) {
-      await client[modelName].update({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (client as any)[modelName].update({
         where: { id: entityId },
         data: { seoMetaId: seoMeta.id }
       });

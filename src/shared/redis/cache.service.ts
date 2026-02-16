@@ -15,7 +15,7 @@ export class CacheService {
     }
   }
 
-  static async set(key: string, value: any, ttlSeconds: number): Promise<void> {
+  static async set(key: string, value: unknown, ttlSeconds: number): Promise<void> {
     try {
       const serialized = JSON.stringify(value, this.replacer);
       const jitteredTtl = this.getJitteredTtl(ttlSeconds);
@@ -126,7 +126,7 @@ export class CacheService {
     }
   }
 
-  private static replacer(_key: string, value: any) {
+  private static replacer(_key: string, value: unknown) {
     if (typeof value === 'bigint') {
       return { _type: 'BigInt', value: value.toString() };
     }
@@ -136,12 +136,15 @@ export class CacheService {
     return value;
   }
 
-  private static reviver(_key: string, value: any) {
-    if (value && typeof value === 'object' && value._type === 'BigInt') {
-      return BigInt(value.value);
-    }
-    if (value && typeof value === 'object' && value._type === 'Date') {
-      return new Date(value.value);
+  private static reviver(_key: string, value: unknown) {
+    if (value && typeof value === 'object' && value !== null) {
+      const obj = value as Record<string, unknown>;
+      if (obj._type === 'BigInt') {
+        return BigInt(obj.value as string);
+      }
+      if (obj._type === 'Date') {
+        return new Date(obj.value as string);
+      }
     }
     return value;
   }

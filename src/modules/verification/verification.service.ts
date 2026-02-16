@@ -3,6 +3,7 @@ import { VerificationStatus, MediaKind } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
 
 export class VerificationService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async requestVerification(userId: bigint, data: any) {
     const { targetType, targetId, notes, documents } = data;
     const tId = BigInt(targetId);
@@ -70,11 +71,13 @@ export class VerificationService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async listRequests(query: any) {
     const { status, page = 1, pageSize = 20 } = query;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     if (status) where.status = status as VerificationStatus;
 
@@ -95,6 +98,7 @@ export class VerificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async reviewRequest(requestId: bigint, data: any, userId: bigint) {
     const { status, notes } = data;
 

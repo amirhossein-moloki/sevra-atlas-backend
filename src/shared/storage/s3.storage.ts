@@ -62,6 +62,7 @@ export class S3StorageProvider implements StorageProvider {
       if (!response.Body) return null;
       const arrayBuffer = await response.Body.transformToByteArray();
       return Buffer.from(arrayBuffer);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.name === 'NoSuchKey') return null;
       throw error;

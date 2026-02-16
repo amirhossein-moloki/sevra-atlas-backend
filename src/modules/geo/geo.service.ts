@@ -61,79 +61,85 @@ export class GeoService {
     return neighborhoods;
   }
 
-  async createProvince(data: any) {
-    const result = await prisma.province.create({ data: this.handleBigInts(data) });
+  async createProvince(data: Record<string, unknown>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await prisma.province.create({ data: this.handleBigInts(data) as any });
     return result;
   }
 
-  async createCity(data: any) {
+  async createCity(data: Record<string, unknown>) {
     const result = await prisma.city.create({
       data: {
-        ...this.handleBigInts(data),
-        provinceId: BigInt(data.provinceId),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...this.handleBigInts(data) as any,
+        provinceId: BigInt(data.provinceId as string | number | bigint),
       },
     });
     return result;
   }
 
-  async createNeighborhood(data: any) {
+  async createNeighborhood(data: Record<string, unknown>) {
     const result = await prisma.neighborhood.create({
       data: {
-        ...this.handleBigInts(data),
-        cityId: BigInt(data.cityId),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...this.handleBigInts(data) as any,
+        cityId: BigInt(data.cityId as string | number | bigint),
       },
     });
     return result;
   }
 
-  async updateCity(id: string, data: any) {
+  async updateCity(id: string, data: Record<string, unknown>) {
     const cityId = BigInt(id);
     return prisma.$transaction(async (tx) => {
       const city = await tx.city.findUnique({ where: { id: cityId } });
       if (!city) throw new ApiError(404, 'City not found');
 
       if (data.slug && data.slug !== city.slug) {
-        await handleSlugChange(EntityType.CITY, cityId, city.slug, data.slug, '/atlas/city', tx);
+        await handleSlugChange(EntityType.CITY, cityId, city.slug, data.slug as string, '/atlas/city', tx);
       }
 
       const result = await tx.city.update({
         where: { id: cityId },
-        data: this.handleBigInts(data),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: this.handleBigInts(data) as any,
       });
       return result;
     });
   }
 
-  async updateProvince(id: string, data: any) {
+  async updateProvince(id: string, data: Record<string, unknown>) {
     const provinceId = BigInt(id);
     return prisma.$transaction(async (tx) => {
       const province = await tx.province.findUnique({ where: { id: provinceId } });
       if (!province) throw new ApiError(404, 'Province not found');
 
       if (data.slug && data.slug !== province.slug) {
-        await handleSlugChange(EntityType.PROVINCE, provinceId, province.slug, data.slug, '/atlas/province', tx);
+        await handleSlugChange(EntityType.PROVINCE, provinceId, province.slug, data.slug as string, '/atlas/province', tx);
       }
 
       const result = await tx.province.update({
         where: { id: provinceId },
-        data: this.handleBigInts(data),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: this.handleBigInts(data) as any,
       });
       return result;
     });
   }
 
-  async updateNeighborhood(id: string, data: any) {
+  async updateNeighborhood(id: string, data: Record<string, unknown>) {
     const result = await prisma.neighborhood.update({
       where: { id: BigInt(id) },
-      data: this.handleBigInts(data),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: this.handleBigInts(data) as any,
     });
     return result;
   }
 
-  private handleBigInts(data: any) {
-    const result = { ...data };
-    if (result.provinceId) result.provinceId = BigInt(result.provinceId);
-    if (result.cityId) result.cityId = BigInt(result.cityId);
+  private handleBigInts(data: Record<string, unknown>) {
+    const result = { ...data } as Record<string, unknown>;
+    if (result.provinceId) result.provinceId = BigInt(result.provinceId as string | number | bigint);
+    if (result.cityId) result.cityId = BigInt(result.cityId as string | number | bigint);
     return result;
   }
 }

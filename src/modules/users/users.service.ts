@@ -1,6 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { UserRole, AccountStatus } from '@prisma/client';
+import { UserRole, AccountStatus, Prisma, Gender } from '@prisma/client';
 
 export class UsersService {
   private readonly publicUserFields = {
@@ -27,33 +27,35 @@ export class UsersService {
     return user;
   }
 
-  async updateUser(id: string, data: any) {
+  async updateUser(id: string, data: Record<string, unknown>) {
     const user = await prisma.user.update({
       where: { id: BigInt(id) },
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        bio: data.bio,
-        cityId: data.cityId ? BigInt(data.cityId) : undefined,
-        gender: data.gender,
+        firstName: data.firstName as string | undefined,
+        lastName: data.lastName as string | undefined,
+        bio: data.bio as string | undefined,
+        cityId: data.cityId ? BigInt(data.cityId as string | number | bigint) : undefined,
+        gender: data.gender as Gender | undefined,
       },
     });
     return user;
   }
 
-  async listUsers(query: any) {
-    const { q, role, status, page = 1, pageSize = 20 } = query;
+  async listUsers(query: Record<string, unknown>) {
+    const page = Number(query.page || 1);
+    const pageSize = Number(query.pageSize || 20);
+    const { q, role, status } = query;
     const skip = (page - 1) * pageSize;
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.UserWhereInput = { deletedAt: null };
     if (q) {
       where.OR = [
-        { username: { contains: q, mode: 'insensitive' } },
-        { phoneNumber: { contains: q } },
+        { username: { contains: q as string, mode: 'insensitive' } },
+        { phoneNumber: { contains: q as string } },
       ];
     }
-    if (role) where.role = role;
-    if (status) where.status = status;
+    if (role) where.role = role as UserRole;
+    if (status) where.status = status as AccountStatus;
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({

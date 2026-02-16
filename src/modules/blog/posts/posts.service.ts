@@ -13,16 +13,18 @@ export class PostsService {
     'cover_media_id', 'og_image_id', 'tag_ids'
   ] as const;
 
-  async listPosts(query: any, user?: any) {
+  async listPosts(query: Record<string, unknown>, user?: { id: bigint, role: UserRole }) {
     const {
       page = 1, pageSize = 10, q, ordering,
       published_after, published_before, category, tag, author,
       is_hot, series, visibility
-    } = query;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } = query as any;
     
     const limit = Math.min(parseInt(pageSize as string) || 10, 100);
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { deletedAt: null };
 
     // Permission-based queryset
@@ -101,7 +103,8 @@ export class PostsService {
     };
   }
 
-  async getPostBySlug(identifier: string, user?: any) {
+  async getPostBySlug(identifier: string, user?: { id: bigint, role: UserRole }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { deletedAt: null };
     if (!isNaN(Number(identifier))) {
       where.id = safeBigInt(identifier, 'post_id');
@@ -110,7 +113,8 @@ export class PostsService {
     }
 
     const post = await prisma.post.findFirst({
-      where,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      where: where as any,
       include: {
         author: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
         category: true,
@@ -139,13 +143,14 @@ export class PostsService {
     return post;
   }
 
-  async createPost(data: any, authorUserId: bigint, isAdminUser: boolean = false) {
-    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+  async createPost(data: Record<string, unknown>, authorUserId: bigint, isAdminUser: boolean = false) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safeData = pickAllowedFields(data, [...this.allowedFields]) as any;
     const authorProfile = await prisma.authorProfile.findUnique({ where: { userId: authorUserId } });
     if (!authorProfile) throw new ApiError(403, 'User does not have an author profile');
 
     // Handle publication date logic
-    const publication = this.handlePublicationDate(data.status, data.publish_at);
+    const publication = this.handlePublicationDate(data.status as PostStatus, data.publish_at as string);
 
     return prisma.$transaction(async (tx) => {
       const post = await tx.post.create({
@@ -155,7 +160,7 @@ export class PostsService {
           excerpt: safeData.excerpt,
           content: safeData.content,
           visibility: safeData.visibility,
-          isHot: isAdminUser ? data.is_hot : false, // Only admin can set hot
+          isHot: isAdminUser ? (data.is_hot as boolean) : false, // Only admin can set hot
           canonicalUrl: safeData.canonical_url,
           seoTitle: safeData.seo_title,
           seoDescription: safeData.seo_description,
@@ -185,8 +190,9 @@ export class PostsService {
     return prisma.post.findFirst({ where: { slug: identifier, deletedAt: null } });
   }
 
-  async updatePost(identifier: string, data: any, user: any) {
-    const safeData = pickAllowedFields(data, [...this.allowedFields]);
+  async updatePost(identifier: string, data: Record<string, unknown>, user: { id: bigint, role: UserRole }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safeData = pickAllowedFields(data, [...this.allowedFields]) as any;
     const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 
@@ -195,7 +201,7 @@ export class PostsService {
       throw new ApiError(403, 'Forbidden');
     }
 
-    const publication = this.handlePublicationDate(data.status || post.status, data.publish_at);
+    const publication = this.handlePublicationDate((data.status as PostStatus) || post.status, data.publish_at as string);
 
     return prisma.$transaction(async (tx) => {
       if (safeData.slug && safeData.slug !== post.slug) {
@@ -210,7 +216,7 @@ export class PostsService {
           excerpt: safeData.excerpt,
           content: safeData.content,
           visibility: safeData.visibility,
-          isHot: isAdminUser ? data.is_hot : post.isHot,
+          isHot: isAdminUser ? (data.is_hot as boolean) : post.isHot,
           canonicalUrl: safeData.canonical_url,
           seoTitle: safeData.seo_title,
           seoDescription: safeData.seo_description,
@@ -230,7 +236,7 @@ export class PostsService {
     });
   }
 
-  async deletePost(identifier: string, user: any) {
+  async deletePost(identifier: string, user: { id: bigint, role: UserRole }) {
     const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 
@@ -273,12 +279,13 @@ export class PostsService {
     return { data: similar };
   }
 
-  async getSameCategoryPosts(identifier: string, query: any) {
+  async getSameCategoryPosts(identifier: string, query: Record<string, unknown>) {
     const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
     if (!post.categoryId) return { data: [], meta: { total: 0 } };
 
-    const { page = 1, pageSize = 10 } = query;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { page = 1, pageSize = 10 } = query as any;
     const limit = parseInt(pageSize as string) || 10;
     const skip = (parseInt(page as string || '1') - 1) * limit;
 
@@ -352,7 +359,7 @@ export class PostsService {
     return { data: related.slice(0, 5) };
   }
 
-  async publishPost(identifier: string, user: any) {
+  async publishPost(identifier: string, user: { id: bigint, role: UserRole }) {
     const post = await this.findPostByIdentifier(identifier);
     if (!post) throw new ApiError(404, 'Post not found');
 

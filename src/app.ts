@@ -99,8 +99,6 @@ app.use(
     },
   })
 );
-app.use(responseMiddleware);
-
 // Serve uploads if local storage is used
 if (config.storage.provider === 'local') {
   app.use(`/${config.storage.uploadDir}`, express.static(path.join(process.cwd(), config.storage.uploadDir)));
@@ -129,6 +127,9 @@ app.use(
     ignorePaths: /^\/backoffice/, // Ignore AdminJS routes from OpenAPI validation
   })
 );
+
+// responseMiddleware must be after OpenApiValidator to wrap responses before they are validated
+app.use(responseMiddleware);
 
 app.use('/api/v1', routes);
 

@@ -147,9 +147,11 @@ services:
       - api
     networks:
       - sevra-prod-network
-    # Use the existing command pattern but ensure it's robust
     command: >
-      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+      /bin/sh -c "
+      (while :; do sleep 6h & wait $${!}; nginx -s reload; done &) &&
+      /docker-entrypoint.sh nginx -g 'daemon off;'
+      "
 
   certbot:
     image: certbot/certbot

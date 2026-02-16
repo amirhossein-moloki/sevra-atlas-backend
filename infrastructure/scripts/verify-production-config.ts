@@ -1,6 +1,6 @@
-import { prisma } from '../src/shared/db/prisma';
-import { redis } from '../src/shared/redis/redis';
-import { config } from '../src/config';
+import { prisma } from '../../src/shared/db/prisma';
+import { redis } from '../../src/shared/redis/redis';
+import { config } from '../../src/config';
 
 async function verify() {
   console.log('🔍 Starting Production Readiness Check...');

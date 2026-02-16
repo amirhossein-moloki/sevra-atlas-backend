@@ -1,7 +1,44 @@
+# Dependencies
 node_modules/
+
+# Build artifacts
 dist/
+*.tsbuildinfo
+
+# Environment variables
 .env
+.env.*
+!.env.*.example
+!env/.env.*.example
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+infrastructure/proxy/logs/
+
+# Testing
 coverage/
+.jest/
+
+# OS/IDEs
 .DS_Store
+.vscode/
+.idea/
+
+# Database / Redis artifacts
+dump.rdb
+*.sql
+*.sqlite
+backups/
+
+# Project specific
 openapi.json
+uploads/
+infrastructure/proxy/certbot/conf/
+infrastructure/proxy/certbot/www/
+
+# Deployment state
+.env.bak

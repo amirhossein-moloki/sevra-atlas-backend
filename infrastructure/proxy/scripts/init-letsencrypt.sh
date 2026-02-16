@@ -12,7 +12,7 @@ fi
 
 domains=($DOMAIN)
 rsa_key_size=4096
-data_path="./proxy/certbot"
+data_path="./infrastructure/proxy/certbot"
 email="$EMAIL" # Adding a valid address is strongly recommended
 staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
 
@@ -34,7 +34,7 @@ fi
 echo "### Creating dummy certificate for $domains ..."
 path="/etc/letsencrypt/live/$domains"
 mkdir -p "$data_path/conf/live/$domains"
-docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker compose -f infrastructure/docker/docker-compose.prod.yml run --rm --entrypoint "\
   openssl req -x509 -nodes -newkey rsa:1024 -days 1\
     -keyout '$path/privkey.pem' \
     -out '$path/fullchain.pem' \
@@ -42,11 +42,11 @@ docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
 echo
 
 echo "### Starting nginx ..."
-docker compose -f docker-compose.prod.yml up --force-recreate -d nginx
+docker compose -f infrastructure/docker/docker-compose.prod.yml up --force-recreate -d nginx
 echo
 
 echo "### Deleting dummy certificate for $domains ..."
-docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker compose -f infrastructure/docker/docker-compose.prod.yml run --rm --entrypoint "\
   rm -rf /etc/letsencrypt/live/$domains && \
   rm -rf /etc/letsencrypt/archive/$domains && \
   rm -rf /etc/letsencrypt/renewal/$domains.conf" certbot
@@ -69,7 +69,7 @@ esac
 # Enable staging mode if needed
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
-docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker compose -f infrastructure/docker/docker-compose.prod.yml run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     $email_arg \
@@ -80,4 +80,4 @@ docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
 echo
 
 echo "### Reloading nginx ..."
-docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
+docker compose -f infrastructure/docker/docker-compose.prod.yml exec nginx nginx -s reload

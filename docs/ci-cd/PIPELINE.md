@@ -35,13 +35,13 @@ On the VPS, perform these steps once:
 # For staging
 mkdir -p ~/sevra-staging/backups
 cd ~/sevra-staging
-# Copy deploy/staging/docker-compose.yml and .env.example here
+# Copy infrastructure/deploy/staging/docker-compose.yml and .env.example here
 # Rename .env.example to .env and fill it
 
 # For production
 mkdir -p ~/sevra-prod/backups
 cd ~/sevra-prod
-# Copy deploy/production/docker-compose.yml and .env.example here
+# Copy infrastructure/deploy/production/docker-compose.yml and .env.example here
 # Rename .env.example to .env and fill it
 ```
 
@@ -52,15 +52,15 @@ docker network create sevra-network
 ```
 
 ### C. Proxy Setup
-The proxy configuration is located in `deploy/proxy`.
-1. Copy `deploy/proxy` to the VPS (e.g., `~/sevra-proxy`).
-2. Create `~/sevra-proxy/.env` based on `.env.example`.
+The proxy configuration is located in `infrastructure/deploy/proxy`.
+1. Copy `infrastructure/deploy/proxy` to the VPS (e.g., `~/sevra-proxy`).
+2. Create `~/sevra-infrastructure/proxy/.env` based on `.env.example`.
 3. Start the proxy:
 ```bash
 cd ~/sevra-proxy
 # Initialize network if not exists
 docker network create sevra-network || true
-# Follow bootstrap steps in proxy/init-certs.sh for first-time SSL
+# Follow bootstrap steps in infrastructure/proxy/init-certs.sh for first-time SSL
 ./init-certs.sh
 docker compose up -d
 ```

@@ -27,7 +27,7 @@ We use a multi-container architecture managed via `docker-compose.yml`.
 - **redis**: Cache and Queue store with AOF persistence.
 
 ## 3. Nginx Configuration
-Located in `deploy/proxy/nginx.conf`.
+Located in `infrastructure/deploy/proxy/nginx.conf`.
 - **SSL**: Automated via Certbot with a sidecar container for renewal.
 - **Micro-caching**: Enabled for anonymous GET requests to reduce app load.
 - **Buffers**: Optimized for high-throughput image uploads and large JSON responses.

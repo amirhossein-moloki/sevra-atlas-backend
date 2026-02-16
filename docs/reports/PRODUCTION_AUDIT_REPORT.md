@@ -124,7 +124,7 @@
 
 - **Logging**: Structured logs with `requestId`.
 - **Health**: Liveness and Readiness endpoints provided.
-- **Runbooks**: Documentation found in `DOCS/PRODUCTION_RUNBOOK.md`.
+- **Runbooks**: Documentation found in `docs/technical/PRODUCTION_RUNBOOK.md`.
 
 **Score:**
 - Operational Readiness Score: **92/100**

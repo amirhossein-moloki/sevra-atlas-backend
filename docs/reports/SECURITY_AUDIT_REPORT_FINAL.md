@@ -37,7 +37,7 @@ The system is a modular Express.js application using Prisma ORM with PostgreSQL.
 - **Fix Recommendation**: Configure CORS with a whitelist of allowed origins via environment variables.
 
 ### [Medium] Missing HSTS Header
-- **Location**: `proxy/conf.d/default.conf.template`
+- **Location**: `infrastructure/proxy/conf.d/default.conf.template`
 - **Description**: The Nginx configuration terminates SSL but does not send the `Strict-Transport-Security` (HSTS) header.
 - **Exploit Scenario**: A user might be downgraded to HTTP via a Man-in-the-Middle (MitM) attack if they first visit the site over HTTP and the redirect is intercepted.
 - **Impact**: Susceptibility to SSL stripping attacks.

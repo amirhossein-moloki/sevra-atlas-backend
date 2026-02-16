@@ -54,9 +54,9 @@ services:
 
   migrate:
     build:
-      context: .
-      dockerfile: Dockerfile.api
-    env_file: .env
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.api
+    env_file: ../../.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,10 +66,10 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile.api
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.api
     restart: always
-    env_file: .env
+    env_file: ../../.env
     environment:
       - IS_WORKER=false
       - DATABASE_URL=postgresql://${POSTGRES_USER:-jules}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-sevra_atlas}?schema=public
@@ -94,10 +94,10 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: Dockerfile.worker
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.worker
     restart: always
-    env_file: .env
+    env_file: ../../.env
     environment:
       - IS_WORKER=true
       - PORT=3001
@@ -125,10 +125,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./proxy/conf.d:/etc/nginx/templates:ro
-      - ./proxy/certbot/conf:/etc/letsencrypt:ro
-      - ./proxy/certbot/www:/var/www/certbot:ro
+      - ../proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../proxy/conf.d:/etc/nginx/templates:ro
+      - ../proxy/certbot/conf:/etc/letsencrypt:ro
+      - ../proxy/certbot/www:/var/www/certbot:ro
       - uploads_data:/app/uploads:ro
     environment:
       - DOMAIN=${DOMAIN}
@@ -142,8 +142,8 @@ services:
   certbot:
     image: certbot/certbot
     volumes:
-      - ./proxy/certbot/conf:/etc/letsencrypt
-      - ./proxy/certbot/www:/var/www/certbot
+      - ../proxy/certbot/conf:/etc/letsencrypt
+      - ../proxy/certbot/www:/var/www/certbot
     networks:
       - sevra-network
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"

@@ -20,7 +20,7 @@ Ensure `DOMAIN` and `EMAIL` are set correctly for SSL.
 ### 2. Bootstrap SSL (First time only)
 Run the bootstrap script to obtain Let's Encrypt certificates.
 ```bash
-./proxy/scripts/init-letsencrypt.sh
+./infrastructure/proxy/scripts/init-letsencrypt.sh
 ```
 This script will:
 1. Create a dummy certificate.

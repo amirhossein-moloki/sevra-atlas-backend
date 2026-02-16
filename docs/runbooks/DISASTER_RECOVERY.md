@@ -13,25 +13,25 @@ This document outlines the backup strategy and recovery procedures for the Sevra
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/backup-config.sh` | Shared environment variables and paths. |
-| `scripts/backup-db.sh` | Performs `pg_dump`, compresses, encrypts, and initiates sync. |
-| `scripts/backup-media.sh` | Incremental `rsync` of `./uploads`, then tar/encrypt. |
-| `scripts/rotate-backups.sh` | Strictly enforces 7d/4w/3m retention policy. |
-| `scripts/restore-db.sh` | Decrypts and restores a DB backup into a target database. |
-| `scripts/monitor-backups.sh` | Health checks and alerting (Telegram/Email). |
+| `infrastructure/scripts/backup-config.sh` | Shared environment variables and paths. |
+| `infrastructure/scripts/backup-db.sh` | Performs `pg_dump`, compresses, encrypts, and initiates sync. |
+| `infrastructure/scripts/backup-media.sh` | Incremental `rsync` of `./uploads`, then tar/encrypt. |
+| `infrastructure/scripts/rotate-backups.sh` | Strictly enforces 7d/4w/3m retention policy. |
+| `infrastructure/scripts/restore-db.sh` | Decrypts and restores a DB backup into a target database. |
+| `infrastructure/scripts/monitor-backups.sh` | Health checks and alerting (Telegram/Email). |
 
 ## 3. Automation (Cron)
 
 Recommended crontab entries:
 ```cron
 # 03:00 AM daily full DB backup
-0 3 * * * /app/scripts/backup-db.sh >> /app/logs/sevra-backup.log 2>&1
+0 3 * * * /app/infrastructure/scripts/backup-db.sh >> /app/logs/sevra-backup.log 2>&1
 
 # 04:00 AM daily Media backup
-0 4 * * * /app/scripts/backup-media.sh >> /app/logs/sevra-backup.log 2>&1
+0 4 * * * /app/infrastructure/scripts/backup-media.sh >> /app/logs/sevra-backup.log 2>&1
 
 # 05:00 AM daily monitoring check
-0 5 * * * /app/scripts/monitor-backups.sh >> /app/logs/sevra-backup.log 2>&1
+0 5 * * * /app/infrastructure/scripts/monitor-backups.sh >> /app/logs/sevra-backup.log 2>&1
 ```
 
 ## 4. Retention Policy (Strict GFS)
@@ -47,7 +47,7 @@ Recommended crontab entries:
 1. Locate the backup file (e.g., `db_backup_20240210.sql.gz.gpg`).
 2. Run the restore script:
    ```bash
-   ./scripts/restore-db.sh /path/to/backup.gpg sevra_atlas_recovered
+   ./infrastructure/scripts/restore-db.sh /path/to/backup.gpg sevra_atlas_recovered
    ```
 3. Verify data integrity (integrity checks are built into the script).
 4. Swap the database in `docker-compose.yml` or `.env` if needed.

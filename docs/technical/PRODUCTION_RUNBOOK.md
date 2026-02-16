@@ -10,8 +10,8 @@
    ```
 2. **Bootstrap SSL**
    ```bash
-   chmod +x proxy/scripts/init-letsencrypt.sh
-   ./proxy/scripts/init-letsencrypt.sh
+   chmod +x infrastructure/proxy/scripts/init-letsencrypt.sh
+   ./infrastructure/proxy/scripts/init-letsencrypt.sh
    ```
 3. **Start Everything**
    ```bash

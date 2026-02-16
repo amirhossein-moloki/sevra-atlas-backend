@@ -5,7 +5,7 @@ To ensure the API implementation stays aligned with the specification and to pre
 ## 1. Automated Route Audit (Implemented)
 We have implemented a route audit script that ensures the code and the specification are in sync.
 
-- **Script**: `scripts/audit-routes.ts`
+- **Script**: `infrastructure/scripts/audit-routes.ts`
 - **Execution**: `npm run test:contract`
 - **Guards**:
     - **Fails** if a documented endpoint in `openapi.json` is missing from the Express application.

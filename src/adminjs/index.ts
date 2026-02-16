@@ -1,3 +1,4 @@
+/// <reference path="../types/adminjs.d.ts" />
 import type { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import type { AdminJSOptions } from 'adminjs';
@@ -10,11 +11,13 @@ import { config } from '../config';
 export async function initAdminJS(app: Express, prisma: PrismaClient) {
     console.log('Initializing AdminJS...');
     try {
-        const { default: AdminJS } = await import('adminjs');
-        const { default: AdminJSExpress } = await import('@adminjs/express');
-        const { Resource, Database } = await import('@adminjs/prisma');
-        const resources = await import('./resources.js');
-        const { componentLoader } = await import('./component-loader.js');
+        // Using eval('import(...)') to prevent TSC from converting to require()
+        // which fails for ESM-only packages in CJS environment.
+        const { default: AdminJS } = await (eval('import("adminjs")') as Promise<any>);
+        const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<any>);
+        const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<any>);
+        const resources = await import('./resources');
+        const { componentLoader } = await import('./component-loader');
 
         AdminJS.registerAdapter({ Resource, Database });
 

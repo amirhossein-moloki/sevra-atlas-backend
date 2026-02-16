@@ -1,0 +1,1266 @@
+{
+  "info": {
+    "_postman_id": "sevra-atlas-api-main",
+    "name": "Sevra-Atlas-API",
+    "description": "Professional-grade Postman Collection for Sevra Atlas (Directory + Blog)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health & Meta",
+      "item": [
+        {
+          "name": "GET /health — System Health",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Check services status', () => {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data.status).to.eql('ok');",
+                  "    pm.expect(data.services.database).to.eql('healthy');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/otp/request — Request OTP [400 Invalid Phone]",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phoneNumber\": \"invalid-phone\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/otp/request"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertError(400, 'VALIDATION_ERROR');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /health/ready — Readiness",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health/ready"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16. Search",
+      "item": [
+        {
+          "name": "GET /search — Global Search",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/search?q=test",
+              "query": [
+                { "key": "q", "value": "test" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Contains results keys', () => {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data).to.have.property('salons');",
+                  "    pm.expect(data).to.have.property('artists');",
+                  "    pm.expect(data).to.have.property('posts');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "17. Verification",
+      "item": [
+        {
+          "name": "POST /verification/request — Request Verification",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\",\n    \"notes\": \"I am the owner of this salon.\",\n    \"documents\": [\n        { \"label\": \"License\", \"mediaId\": \"{{createdMediaId}}\" }\n    ]\n}"
+            },
+            "url": "{{baseUrl}}/verification/request"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.saveToEnv('data.id', 'createdVerificationId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /verification/requests — List Requests (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/verification/requests"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "18. SEO & Redirects",
+      "item": [
+        {
+          "name": "GET /seo/redirects/resolve — Resolve Redirect",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/seo/redirects/resolve?path=/old-path",
+              "query": [
+                { "key": "path", "value": "/old-path" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /seo/meta — Set SEO Meta (Admin)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"entityType\": \"SALON\",\n    \"entityId\": \"{{createdSalonId}}\",\n    \"title\": \"SEO Title for Salon\",\n    \"description\": \"SEO Description\"\n}"
+            },
+            "url": "{{baseUrl}}/seo/meta"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "item": [
+        {
+          "name": "POST /auth/otp/request — Request OTP",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phoneNumber\": \"{{testPhoneNumber}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/otp/request"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Message received', () => {",
+                  "    pm.expect(pm.response.json().data.message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/otp/verify — Verify OTP & Login",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phoneNumber\": \"{{testPhoneNumber}}\",\n    \"code\": \"{{testOtpCode}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/otp/verify"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data.accessToken', 'accessToken');",
+                  "utils.saveToEnv('data.refreshToken', 'refreshToken');",
+                  "pm.test('User object present', () => {",
+                  "    pm.expect(pm.response.json().data.user).to.have.property('id');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/refresh — Refresh Token",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data.accessToken', 'accessToken');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/logout — Logout",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', () => {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Users",
+      "item": [
+        {
+          "name": "GET /me — Get Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.validateSchema(utils.schemas.User);",
+                  "pm.test('Correct phone number', () => {",
+                  "    pm.expect(pm.response.json().data.phoneNumber).to.include(pm.environment.get('testPhoneNumber').slice(-10));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me — Get Profile [401 No Auth]",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/me",
+            "auth": { "type": "noauth" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertError(401, 'UNAUTHORIZED');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /me — Update Profile",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"User {{uniqueSuffix}}\",\n    \"bio\": \"Automated test bio\",\n    \"gender\": \"UNSPECIFIED\"\n}"
+            },
+            "url": "{{baseUrl}}/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Name updated', () => {",
+                  "    pm.expect(pm.response.json().data.user.firstName).to.eql('Test');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me/follows — My Follows",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/me/follows"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Is array', () => {",
+                  "    pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me/saves — My Saves",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/me/saves"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Is array', () => {",
+                  "    pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Geo",
+      "item": [
+        {
+          "name": "GET /geo/provinces — List Provinces",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/geo/provinces"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data[0].slug', 'provinceSlug');",
+                  "utils.saveToEnv('data[0].id', 'createdProvinceId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /geo/provinces/:slug/cities — List Cities",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/geo/provinces/{{provinceSlug}}/cities"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data[0].slug', 'citySlug');",
+                  "utils.saveToEnv('data[0].id', 'createdCityId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /geo/cities/:slug/neighborhoods — List Neighborhoods",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/geo/cities/{{citySlug}}/neighborhoods"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data[0].slug', 'neighborhoodSlug');",
+                  "utils.saveToEnv('data[0].id', 'createdNeighborhoodId');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Services & Specialties",
+      "item": [
+        {
+          "name": "GET /services — List Services",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/services"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data[0].services[0].id', 'testServiceId');",
+                  "utils.saveToEnv('data[0].services[0].slug', 'testServiceSlug');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /specialties — List Specialties",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/specialties"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data[0].id', 'testSpecialtyId');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Media",
+      "item": [
+        {
+          "name": "POST /media/upload — Upload Image",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/media/upload"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Accepted or Success', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+                  "});",
+                  "utils.saveToEnv('data.mediaId', 'createdMediaId');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Salons",
+      "item": [
+        {
+          "name": "POST /salons — Create Salon",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Salon {{uniqueSuffix}}\",\n    \"slug\": \"test-salon-{{uniqueSuffix}}\",\n    \"summary\": \"Summary for automated test salon\",\n    \"cityId\": \"{{createdCityId}}\",\n    \"neighborhoodId\": \"{{createdNeighborhoodId}}\",\n    \"phone\": \"02188888888\"\n}"
+            },
+            "url": "{{baseUrl}}/salons"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.validateSchema(utils.schemas.Salon);",
+                  "utils.saveToEnv('data.id', 'createdSalonId');",
+                  "utils.saveToEnv('data.slug', 'createdSalonSlug');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /salons — Create Salon [400 Missing Name]",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"slug\": \"no-name-salon-{{uniqueSuffix}}\"\n}"
+            },
+            "url": "{{baseUrl}}/salons"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertError(400, 'VALIDATION_ERROR');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /salons/:slug — Get Salon",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/salons/{{createdSalonSlug}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Slug matches', () => {",
+                  "    pm.expect(pm.response.json().data.slug).to.eql(pm.environment.get('createdSalonSlug'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /salons/:id — Update Salon",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Test Salon {{uniqueSuffix}}\",\n    \"isWomenOnly\": true\n}"
+            },
+            "url": "{{baseUrl}}/salons/{{createdSalonId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Field updated', () => {",
+                  "    pm.expect(pm.response.json().data.name).to.include('Updated');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /salons/:id/services — Assign Services",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"services\": [\n        { \"serviceId\": {{testServiceId}}, \"notes\": \"Automated test note\" }\n    ]\n}"
+            },
+            "url": "{{baseUrl}}/salons/{{createdSalonId}}/services"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Artists",
+      "item": [
+        {
+          "name": "POST /artists — Create Artist",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"Artist {{uniqueSuffix}}\",\n    \"slug\": \"artist-{{uniqueSuffix}}\",\n    \"summary\": \"Artist summary\",\n    \"cityId\": \"{{createdCityId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/artists"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.saveToEnv('data.id', 'createdArtistId');",
+                  "utils.saveToEnv('data.slug', 'createdArtistSlug');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /artists/:slug — Get Artist",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/artists/{{createdArtistSlug}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /artists/:id/specialties — Assign Specialties",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"specialtyIds\": [{{testSpecialtyId}}],\n    \"mode\": \"replace\"\n}"
+            },
+            "url": "{{baseUrl}}/artists/{{createdArtistId}}/specialties"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Reviews",
+      "item": [
+        {
+          "name": "POST /reviews — Create Review",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\",\n    \"rating\": 5,\n    \"title\": \"Amazing service!\",\n    \"body\": \"I really enjoyed my visit to this salon.\"\n}"
+            },
+            "url": "{{baseUrl}}/reviews"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.saveToEnv('data.id', 'createdReviewId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /reviews/:id/vote — Vote on Review",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"isLike\": true\n}"
+            },
+            "url": "{{baseUrl}}/reviews/{{createdReviewId}}/vote"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /reviews/:id — Delete Review",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/reviews/{{createdReviewId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. Follows & Saves",
+      "item": [
+        {
+          "name": "POST /follow — Follow Salon",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/follow"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /follow — Unfollow Salon",
+          "request": {
+            "method": "DELETE",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/follow"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /save — Save Salon",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/save"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /save — Unsave Salon",
+          "request": {
+            "method": "DELETE",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/save"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11. Reports",
+      "item": [
+        {
+          "name": "POST /reports — Create Report",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"targetType\": \"SALON\",\n    \"targetId\": \"{{createdSalonId}}\",\n    \"reason\": \"SPAM\",\n    \"details\": \"This salon is posting fake photos.\"\n}"
+            },
+            "url": "{{baseUrl}}/reports"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12. Blog - Taxonomy",
+      "item": [
+        {
+          "name": "POST /blog/taxonomy/categories — Create Category",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Category {{uniqueSuffix}}\",\n    \"slug\": \"test-cat-{{uniqueSuffix}}\"\n}"
+            },
+            "url": "{{baseUrl}}/blog/taxonomy/categories"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.saveToEnv('data.id', 'createdCategoryId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /blog/taxonomy/tags — Create Tag",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Tag {{uniqueSuffix}}\",\n    \"slug\": \"test-tag-{{uniqueSuffix}}\"\n}"
+            },
+            "url": "{{baseUrl}}/blog/taxonomy/tags"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.saveToEnv('data.id', 'createdTagId');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13. Blog - Posts",
+      "item": [
+        {
+          "name": "POST /blog/posts — Create Post",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Test Post {{uniqueSuffix}}\",\n    \"slug\": \"test-post-{{uniqueSuffix}}\",\n    \"excerpt\": \"This is a test post excerpt\",\n    \"content\": \"<p>Automated test content</p>\",\n    \"status\": \"published\",\n    \"category_id\": \"{{createdCategoryId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/blog/posts"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);",
+                  "utils.saveToEnv('data.id', 'createdPostId');",
+                  "utils.saveToEnv('data.slug', 'createdPostSlug');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /blog/posts/:slug — Get Post",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/blog/posts/{{createdPostSlug}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /blog/posts/:slug — Update Post",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated Test Post {{uniqueSuffix}}\"\n}"
+            },
+            "url": "{{baseUrl}}/blog/posts/{{createdPostSlug}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14. Blog - Comments",
+      "item": [
+        {
+          "name": "POST /blog/posts/:slug/comments — Add Comment",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"Great post! Thanks for sharing.\"\n}"
+            },
+            "url": "{{baseUrl}}/blog/posts/{{createdPostSlug}}/comments"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(201);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /blog/posts/:slug/comments — List Comments",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/blog/posts/{{createdPostSlug}}/comments"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "15. Admin",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminAccessToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "GET /admin/dashboard — Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/dashboard"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "pm.test('Contains counts', () => {",
+                  "    pm.expect(pm.response.json().data.counts).to.have.property('users');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin/users — List Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/users"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);",
+                  "utils.saveToEnv('data.data[0].id', 'testUserId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin/queues/health — Queue Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/queues/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "utils.assertSuccess(200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "99. Cleanup (Optional)",
+      "item": [
+        {
+          "name": "DELETE /blog/posts/:slug — Delete Test Post",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/blog/posts/{{createdPostSlug}}"
+          }
+        },
+        {
+          "name": "DELETE /salons/:id — Delete Test Salon",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/salons/{{createdSalonId}}"
+          }
+        },
+        {
+          "name": "DELETE /artists/:id — Delete Test Artist",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/artists/{{createdArtistId}}"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level Pre-request scripts",
+          "pm.request.headers.add({key: 'Accept', value: 'application/json'});",
+          "if (!pm.request.headers.has('Content-Type') && pm.request.body) {",
+          "    pm.request.headers.add({key: 'Content-Type', value: 'application/json'});",
+          "}",
+          "",
+          "// Helper to generate unique identifiers",
+          "const timestamp = Date.now();",
+          "pm.collectionVariables.set('uniqueSuffix', timestamp);",
+          "pm.collectionVariables.set('testEmail', `test_user_${timestamp}@example.com`);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level Test helpers",
+          "utils = {",
+          "    assertSuccess: function(status = 200) {",
+          "        pm.test(`Status code is ${status}`, () => {",
+          "            pm.response.to.have.status(status);",
+          "        });",
+          "        pm.test('Response success is true', () => {",
+          "            const json = pm.response.json();",
+          "            pm.expect(json.success).to.be.true;",
+          "        });",
+          "    },",
+          "    assertError: function(status, code) {",
+          "        pm.test(`Status code is ${status}`, () => {",
+          "            pm.response.to.have.status(status);",
+          "        });",
+          "        pm.test(`Error code is ${code}`, () => {",
+          "            const json = pm.response.json();",
+          "            pm.expect(json.error.code).to.eql(code);",
+          "        });",
+          "    },",
+          "    validateSchema: function(schema) {",
+          "        pm.test('Schema is valid', () => {",
+          "            pm.response.to.have.jsonSchema(schema);",
+          "        });",
+          "    },",
+          "    saveToEnv: function(jsonPath, envVar) {",
+          "        const json = pm.response.json();",
+          "        const value = _.get(json, jsonPath);",
+          "        if (value !== undefined) {",
+          "            pm.environment.set(envVar, value);",
+          "            console.log(`Saved ${value} to environment variable ${envVar}`);",
+          "        }",
+          "    },",
+          "    schemas: {",
+          "        User: {",
+          "            type: 'object',",
+          "            properties: {",
+          "                id: { type: ['string', 'number'] },",
+          "                phoneNumber: { type: 'string' },",
+          "                role: { type: 'string' }",
+          "            },",
+          "            required: ['id', 'phoneNumber', 'role']",
+          "        },",
+          "        Salon: {",
+          "            type: 'object',",
+          "            properties: {",
+          "                id: { type: ['string', 'number'] },",
+          "                name: { type: 'string' },",
+          "                slug: { type: 'string' }",
+          "            },",
+          "            required: ['id', 'name', 'slug']",
+          "        }",
+          "    }",
+          "};"
+        ]
+      }
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "uniqueSuffix",
+      "value": ""
+    },
+    {
+      "key": "testEmail",
+      "value": ""
+    }
+  ]
+}

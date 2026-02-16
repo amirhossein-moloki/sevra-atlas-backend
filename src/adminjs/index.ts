@@ -1,3 +1,4 @@
+/// <reference path="../types/adminjs.d.ts" />
 import type { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
 import type { AdminJSOptions } from 'adminjs';
@@ -10,11 +11,11 @@ import { config } from '../config';
 export async function initAdminJS(app: Express, prisma: PrismaClient) {
     console.log('Initializing AdminJS...');
     try {
-        const { default: AdminJS } = await import('adminjs');
-        const { default: AdminJSExpress } = await import('@adminjs/express');
-        const { Resource, Database } = await import('@adminjs/prisma');
-        const resources = await import('./resources.js');
-        const { componentLoader } = await import('./component-loader.js');
+        const { default: AdminJS } = await (eval('import("adminjs")') as Promise<typeof import('adminjs')>);
+        const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<typeof import('@adminjs/express')>);
+        const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<typeof import('@adminjs/prisma')>);
+        const resources = await import('./resources');
+        const { componentLoader } = await import('./component-loader');
 
         AdminJS.registerAdapter({ Resource, Database });
 

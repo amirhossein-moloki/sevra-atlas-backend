@@ -18,12 +18,6 @@ registry.registerPath({
           schema: withApiSuccess(z.object({
             status: z.string(),
             timestamp: z.string(),
-            environment: z.string(),
-            services: z.object({
-              database: z.string(),
-              redis_cache: z.string(),
-              redis_queue: z.string(),
-            }),
           })),
         },
       },
@@ -43,9 +37,37 @@ registry.registerPath({
   responses: {
     200: {
       description: 'System is ready',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.object({
+            status: z.string(),
+            timestamp: z.string(),
+            environment: z.string(),
+            services: z.object({
+              database: z.string(),
+              redis_cache: z.string(),
+              redis_queue: z.string(),
+            }),
+          })),
+        },
+      },
     },
     503: {
       description: 'System is not ready',
+      content: {
+        'application/json': {
+          schema: z.object({
+            status: z.string(),
+            timestamp: z.string(),
+            environment: z.string(),
+            services: z.object({
+              database: z.string(),
+              redis_cache: z.string(),
+              redis_queue: z.string(),
+            }),
+          }),
+        },
+      },
     },
   },
 });

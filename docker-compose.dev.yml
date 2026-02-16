@@ -20,10 +20,12 @@ services:
       - sevra-dev-network
 
   api-dev:
-    image: node:20-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     working_dir: /app
     volumes:
-      - .:/app
+      - ./:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -37,8 +39,7 @@ services:
     depends_on:
       - postgres-dev
       - redis-dev
-    command: >
-      sh -c "apk add --no-cache openssl libc6-compat && npm install && npx prisma generate && npm run dev"
+    command: sh -c "npx prisma generate && npm run dev"
     networks:
       - sevra-dev-network
 

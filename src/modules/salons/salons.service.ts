@@ -39,6 +39,9 @@ export class SalonsService {
     avatarMediaId: true,
     coverMediaId: true,
     seoMetaId: true,
+    planId: true,
+    subscriptionStatus: true,
+    featuredUntil: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -75,7 +78,7 @@ export class SalonsService {
     if (womenOnly === 'true') where.isWomenOnly = true;
     if (priceTier) where.priceTier = parseInt(priceTier as string);
 
-    let orderBy: Prisma.SalonOrderByWithRelationInput = { createdAt: 'desc' };
+    let orderBy: Prisma.SalonOrderByWithRelationInput = { visibilityScore: 'desc' };
     if (sort === 'rating') orderBy = { avgRating: 'desc' };
     if (sort === 'popular') orderBy = { reviewCount: 'desc' };
     if (sort === 'new') orderBy = { createdAt: 'desc' };
@@ -88,6 +91,7 @@ export class SalonsService {
           avatar: true,
           city: true,
           neighborhood: true,
+          plan: true,
         },
         orderBy,
         skip,

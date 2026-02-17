@@ -15,12 +15,13 @@ export class AuthController {
   }
 
   async verifyOtp(req: Request, res: Response) {
-    const { phoneNumber, code } = req.body;
+    const { phoneNumber, code, referralCode } = req.body;
     const result = await authService.verifyOtp(
       phoneNumber,
       code,
       req.ip,
-      req.headers['user-agent']
+      req.headers['user-agent'],
+      referralCode
     );
     res.json(result);
   }

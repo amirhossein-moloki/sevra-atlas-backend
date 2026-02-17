@@ -121,6 +121,21 @@ enum EntityType {
   CATEGORY
   TAG
   SERIES
+  PLAN
+  SUBSCRIPTION
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  VIP
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+  GRACE_PERIOD
 }
 
 enum RobotsIndex {
@@ -167,6 +182,9 @@ enum SaveTargetType {
 model User {
   id              BigInt   @id @default(autoincrement())
   username        String   @unique @db.VarChar(150)
+  invitedById     BigInt?  @map("invited_by_id")
+  invitedBy       User?    @relation("UserReferrals", fields: [invitedById], references: [id], onDelete: SetNull)
+  referrals       User[]   @relation("UserReferrals")
   firstName       String   @map("first_name") @db.VarChar(150)
   lastName        String   @map("last_name") @db.VarChar(150)
   email           String   @db.VarChar(254)
@@ -221,6 +239,7 @@ model User {
   verifiedCertifications ArtistCertification[] @relation("CertVerifier")
   verificationRequests VerificationRequest[] @relation("VerificationRequester")
   refreshTokens   RefreshToken[] @relation("UserRefreshTokens")
+  invitesSent     Invite[]       @relation("InvitesSent")
 
   @@map("users_user")
   @@index([cityId])
@@ -738,6 +757,13 @@ model CityStats {
 model Salon {
   id            BigInt  @id @default(autoincrement())
   name          String  @db.VarChar(255)
+
+  planId            BigInt?            @map("plan_id")
+  plan              Plan?              @relation(fields: [planId], references: [id], onDelete: SetNull)
+  subscriptionStatus SubscriptionStatus? @default(ACTIVE) @map("subscription_status")
+  visibilityScore   Float              @default(0) @map("visibility_score")
+  featuredUntil     DateTime?          @map("featured_until")
+
   slug          String  @unique @db.VarChar(255) // /salon/{slug}
 
   summary       String? @db.Text
@@ -789,6 +815,7 @@ model Salon {
   follows         Follow[] @relation("FollowSalon")
   reports         Report[] @relation("SalonReports")
   verificationReq VerificationRequest?
+  subscription    Subscription?
 
   avgRating     Float @default(0)
   reviewCount   Int   @default(0)
@@ -814,6 +841,13 @@ model OpeningHours {
 model Artist {
   id            BigInt  @id @default(autoincrement())
   fullName      String  @db.VarChar(255)
+
+  planId            BigInt?            @map("plan_id")
+  plan              Plan?              @relation(fields: [planId], references: [id], onDelete: SetNull)
+  subscriptionStatus SubscriptionStatus? @default(ACTIVE) @map("subscription_status")
+  visibilityScore   Float              @default(0) @map("visibility_score")
+  featuredUntil     DateTime?          @map("featured_until")
+
   slug          String  @unique @db.VarChar(255) // /artist/{slug}
 
   summary       String? @db.Text
@@ -850,6 +884,7 @@ model Artist {
   follows         Follow[] @relation("FollowArtist")
   reports         Report[] @relation("ArtistReports")
   verificationReq VerificationRequest?
+  subscription    Subscription?
 
   // ✅ Certifications (NEW)
   certifications  ArtistCertification[]
@@ -1174,6 +1209,114 @@ model Follow {
   @@unique([followerId, targetType, salonId, artistId])
   @@index([targetType, createdAt])
   @@index([followerId, createdAt])
+}
+
+/////////////////////////////////
+// --- Monetization Models --- //
+/////////////////////////////////
+
+model Plan {
+  id          BigInt   @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  tier        PlanTier
+  entityType  EntityType // SALON or ARTIST
+  price       BigInt   @default(0) // Price in IRR
+  durationDays Int     @default(30) @map("duration_days")
+  features    Json     @default("{}")
+
+  subscriptions Subscription[]
+  salons        Salon[]
+  artists       Artist[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("billing_plan")
+}
+
+model Subscription {
+  id              BigInt             @id @default(autoincrement())
+  planId          BigInt             @map("plan_id")
+  plan            Plan               @relation(fields: [planId], references: [id])
+
+  salonId         BigInt?            @unique @map("salon_id")
+  salon           Salon?             @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  artistId        BigInt?            @unique @map("artist_id")
+  artist          Artist?            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  status          SubscriptionStatus @default(ACTIVE)
+  startDate       DateTime           @default(now()) @map("start_date")
+  endDate         DateTime?          @map("end_date")
+  nextBillingDate DateTime?          @map("next_billing_date")
+
+  billingHistory  BillingHistory[]
+
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  @@map("billing_subscription")
+  @@index([status])
+  @@index([endDate])
+}
+
+model BillingHistory {
+  id              BigInt   @id @default(autoincrement())
+  subscriptionId  BigInt   @map("subscription_id")
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  amount          BigInt   @default(0) // Amount in IRR
+  currency        String   @default("IRR") @db.VarChar(3)
+  paymentDate     DateTime @default(now()) @map("payment_date")
+  paymentMethod   String?  @map("payment_method") @db.VarChar(50)
+  transactionId   String?  @unique @map("transaction_id") @db.VarChar(255)
+  notes           String?  @db.Text
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("billing_history")
+  @@index([subscriptionId])
+}
+
+model Invite {
+  id          BigInt   @id @default(autoincrement())
+  inviterId   BigInt   @map("inviter_id")
+  inviter     User     @relation("InvitesSent", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  code        String   @unique @db.VarChar(50)
+  maxUses     Int      @default(1) @map("max_uses")
+  usedCount   Int      @default(0) @map("used_count")
+
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("growth_invite")
+  @@index([inviterId])
+}
+
+model PlanChangeLog {
+  id              BigInt   @id @default(autoincrement())
+  targetType      EntityType
+  targetId        BigInt
+  oldPlanId       BigInt?
+  newPlanId       BigInt
+  changedBy       BigInt?
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@map("billing_plan_change_log")
+}
+
+model AnalyticsEvent {
+  id          BigInt   @id @default(autoincrement())
+  eventType   String   // CLICK, VIEW, CONVERSION
+  entityType  EntityType
+  entityId    BigInt
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@map("analytics_event")
+  @@index([eventType, entityType, entityId])
 }
 
 model Save {

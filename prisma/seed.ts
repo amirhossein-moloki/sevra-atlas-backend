@@ -16,6 +16,7 @@ import {
   OrderStrategy,
   RedirectType,
   FollowTargetType,
+  PlanTier,
   SaveTargetType,
 } from '@prisma/client';
 import { fakerFA as faker } from '@faker-js/faker';
@@ -452,6 +453,73 @@ async function seedBlog(authors: any[], categories: any[], tags: any[], mediaIds
   log(`Seeded comments.`);
 }
 
+async function seedPlans() {
+  logStep('Seeding Plans');
+
+  const salonPlans = [
+    {
+      name: 'Salon Free Plan',
+      tier: PlanTier.FREE,
+      entityType: EntityType.SALON,
+      price: 0n,
+      durationDays: 0,
+      features: {
+        priority: 0,
+        bestEligibility: false,
+        verifiedBadge: false,
+        highlightedContact: false,
+        homepageExposure: false,
+        categoryInclusion: true,
+      },
+    },
+    // Professional Plans
+    { name: 'Salon Pro - 1 Month', tier: PlanTier.PRO, entityType: EntityType.SALON, price: 850000n, durationDays: 30, features: { priority: 1, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: false, categoryInclusion: true } },
+    { name: 'Salon Pro - 3 Months', tier: PlanTier.PRO, entityType: EntityType.SALON, price: 2400000n, durationDays: 90, features: { priority: 1, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: false, categoryInclusion: true } },
+    { name: 'Salon Pro - 6 Months', tier: PlanTier.PRO, entityType: EntityType.SALON, price: 4500000n, durationDays: 180, features: { priority: 1, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: false, categoryInclusion: true } },
+    { name: 'Salon Pro - 1 Year', tier: PlanTier.PRO, entityType: EntityType.SALON, price: 8000000n, durationDays: 365, features: { priority: 1, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: false, categoryInclusion: true } },
+    // VIP Plans
+    { name: 'Salon VIP - 1 Month', tier: PlanTier.VIP, entityType: EntityType.SALON, price: 2500000n, durationDays: 30, features: { priority: 2, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: true, categoryInclusion: true, socialPromotion: true } },
+    { name: 'Salon VIP - 3 Months', tier: PlanTier.VIP, entityType: EntityType.SALON, price: 7000000n, durationDays: 90, features: { priority: 2, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: true, categoryInclusion: true, socialPromotion: true } },
+    { name: 'Salon VIP - 6 Months', tier: PlanTier.VIP, entityType: EntityType.SALON, price: 13000000n, durationDays: 180, features: { priority: 2, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: true, categoryInclusion: true, socialPromotion: true } },
+    { name: 'Salon VIP - 1 Year', tier: PlanTier.VIP, entityType: EntityType.SALON, price: 24000000n, durationDays: 365, features: { priority: 2, bestEligibility: true, verifiedBadge: true, highlightedContact: true, homepageExposure: true, categoryInclusion: true, socialPromotion: true } },
+  ];
+
+  const artistPlans = [
+    {
+      name: 'Artist Free Plan',
+      tier: PlanTier.FREE,
+      entityType: EntityType.ARTIST,
+      price: 0n,
+      durationDays: 0,
+      features: {
+        priority: 0,
+        verifiedBadge: false,
+        categoryPriority: false,
+      },
+    },
+    // Featured Artist Plans
+    { name: 'Artist Featured - 1 Month', tier: PlanTier.PRO, entityType: EntityType.ARTIST, price: 400000n, durationDays: 30, features: { priority: 1, verifiedBadge: true, categoryPriority: true } },
+    { name: 'Artist Featured - 3 Months', tier: PlanTier.PRO, entityType: EntityType.ARTIST, price: 1100000n, durationDays: 90, features: { priority: 1, verifiedBadge: true, categoryPriority: true } },
+    { name: 'Artist Featured - 6 Months', tier: PlanTier.PRO, entityType: EntityType.ARTIST, price: 2000000n, durationDays: 180, features: { priority: 1, verifiedBadge: true, categoryPriority: true } },
+    { name: 'Artist Featured - 1 Year', tier: PlanTier.PRO, entityType: EntityType.ARTIST, price: 3600000n, durationDays: 365, features: { priority: 1, verifiedBadge: true, categoryPriority: true } },
+  ];
+
+  for (const plan of [...salonPlans, ...artistPlans]) {
+    const existing = await prisma.plan.findFirst({
+      where: { name: plan.name, entityType: plan.entityType }
+    });
+    if (!existing) {
+      await prisma.plan.create({ data: plan });
+    } else {
+      await prisma.plan.update({
+        where: { id: existing.id },
+        data: plan
+      });
+    }
+  }
+  log(`Upserted ${salonPlans.length + artistPlans.length} plans`);
+}
+
 async function seedDirectory(cityIds: bigint[], adminId: bigint, mediaIds: bigint[], serviceIds: bigint[], specialtyIds: bigint[], regularUserIds: bigint[]) {
   logStep('Seeding Directory (Salons & Artists)');
 
@@ -649,6 +717,8 @@ async function main() {
   }
 
   const taxonomy = await seedTaxonomy();
+
+  await seedPlans();
 
   if (SEED_CONTENT) {
     await seedBlog(authorsList, taxonomy.categories, taxonomy.tags, mediaIds);

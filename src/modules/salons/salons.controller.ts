@@ -4,8 +4,11 @@ import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { ApiError } from '../../shared/errors/ApiError';
 import { isAdmin } from '../../shared/auth/roles';
 import { safeBigInt } from '../../shared/utils/bigint';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { EntityType } from '@prisma/client';
 
 const salonsService = new SalonsService();
+const subService = new SubscriptionsService();
 
 export class SalonsController {
   private resolveId = async (identifier: string): Promise<bigint> => {
@@ -24,6 +27,13 @@ export class SalonsController {
 
   getSalon = async (req: Request, res: Response) => {
     const result = await salonsService.getSalonBySlug(req.params.idOrSlug || req.params.slug);
+
+    // Background click tracking
+    subService.trackClick(EntityType.SALON, result.id, {
+      planId: result.planId?.toString(),
+      isFeatured: !!result.featuredUntil && result.featuredUntil > new Date(),
+    }).catch(err => {});
+
     res.json(result);
   };
 

@@ -3,6 +3,7 @@ import { ApiError } from '../../shared/errors/ApiError';
 import { ReviewStatus } from '@prisma/client';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
+import { updateEntityVisibilityScore } from '../../shared/utils/ranking-updater';
 
 export class ReviewsService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,6 +133,7 @@ export class ReviewsService {
         data: { avgRating, reviewCount },
         select: { slug: true, cityId: true }
       });
+      await updateEntityVisibilityScore('SALON', targetId);
       await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
       await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
       if (salon.cityId) await CacheService.del(CacheKeys.CITY_STATS(salon.cityId));
@@ -141,6 +143,7 @@ export class ReviewsService {
         data: { avgRating, reviewCount },
         select: { slug: true, cityId: true }
       });
+      await updateEntityVisibilityScore('ARTIST', targetId);
       await CacheService.del(CacheKeys.ARTIST_DETAIL(artist.slug));
       await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
       if (artist.cityId) await CacheService.del(CacheKeys.CITY_STATS(artist.cityId));

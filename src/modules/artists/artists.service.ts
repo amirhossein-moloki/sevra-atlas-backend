@@ -31,6 +31,9 @@ export class ArtistsService {
     avatarMediaId: true,
     coverMediaId: true,
     seoMetaId: true,
+    planId: true,
+    subscriptionStatus: true,
+    featuredUntil: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -64,7 +67,7 @@ export class ArtistsService {
     if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
     if (minReviewCount) where.reviewCount = { gte: parseInt(minReviewCount as string) };
 
-    let orderBy: Prisma.ArtistOrderByWithRelationInput = { createdAt: 'desc' };
+    let orderBy: Prisma.ArtistOrderByWithRelationInput = { visibilityScore: 'desc' };
     if (sort === 'rating') orderBy = { avgRating: 'desc' };
     if (sort === 'popular') orderBy = { reviewCount: 'desc' };
     if (sort === 'new') orderBy = { createdAt: 'desc' };
@@ -77,6 +80,7 @@ export class ArtistsService {
           avatar: true,
           city: true,
           neighborhood: true,
+          plan: true,
         },
         orderBy,
         skip,

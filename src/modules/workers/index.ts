@@ -1,10 +1,15 @@
 import { mediaWorker } from './media.worker';
+import { billingWorker, scheduleRecurringBillingJobs } from './billing.worker';
 import { logger } from '../../shared/logger/logger';
 import express from 'express';
 import { config } from '../../config';
 
 export const startWorkers = () => {
   logger.info('Starting background workers...');
+
+  scheduleRecurringBillingJobs().catch(err => {
+    logger.error('Failed to schedule recurring billing jobs:', err);
+  });
 
   mediaWorker.on('completed', (job) => {
     logger.info(`Job ${job.id} completed successfully`);
@@ -18,6 +23,7 @@ export const startWorkers = () => {
   const shutdown = async () => {
     logger.info('Shutting down workers...');
     await mediaWorker.close();
+    await billingWorker.close();
     process.exit(0);
   };
 
@@ -28,6 +34,7 @@ export const startWorkers = () => {
 export const stopWorkers = async () => {
   logger.info('Stopping background workers...');
   await mediaWorker.close();
+  await billingWorker.close();
 };
 
 export const startWorkersGracefully = () => {

@@ -19,6 +19,7 @@ import adminRoutes from './modules/admin/admin.routes';
 import healthRoutes from './modules/health/health.routes';
 import subscriptionRoutes from './modules/subscriptions/subscriptions.routes';
 import growthRoutes from './modules/growth/growth.routes';
+import paymentsRoutes from './modules/payments/payments.routes';
 
 const router = Router();
 
@@ -66,6 +67,7 @@ router.use('/save', saveRoutes);
 router.use('/reports', reportRoutes);
 router.use('/verification', verificationRoutes);
 router.use('/subscriptions', subscriptionRoutes);
+router.use('/payments', paymentsRoutes);
 router.use('/growth', growthRoutes);
 router.use('/admin', adminRoutes);
 router.use('/health', healthRoutes);

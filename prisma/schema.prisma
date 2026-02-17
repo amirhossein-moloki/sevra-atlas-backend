@@ -138,6 +138,17 @@ enum SubscriptionStatus {
   GRACE_PERIOD
 }
 
+enum PaymentStatus {
+  PENDING
+  INITIATED
+  PAID
+  FAILED
+  CANCELED
+  EXPIRED
+  VERIFIED
+  REFUNDED
+}
+
 enum RobotsIndex {
   INDEX_FOLLOW
   NOINDEX_FOLLOW
@@ -240,6 +251,7 @@ model User {
   verificationRequests VerificationRequest[] @relation("VerificationRequester")
   refreshTokens   RefreshToken[] @relation("UserRefreshTokens")
   invitesSent     Invite[]       @relation("InvitesSent")
+  payments        Payment[]
 
   @@map("users_user")
   @@index([cityId])
@@ -824,6 +836,7 @@ model Salon {
   reports         Report[] @relation("SalonReports")
   verificationReq VerificationRequest?
   subscription    Subscription?
+  payments        Payment[]
 
   avgRating     Float @default(0)
   reviewCount   Int   @default(0)
@@ -896,6 +909,7 @@ model Artist {
   reports         Report[] @relation("ArtistReports")
   verificationReq VerificationRequest?
   subscription    Subscription?
+  payments        Payment[]
 
   // ✅ Certifications (NEW)
   certifications  ArtistCertification[]
@@ -1247,6 +1261,7 @@ model Plan {
   subscriptions Subscription[]
   salons        Salon[]
   artists       Artist[]
+  payments      Payment[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -1341,6 +1356,43 @@ model AnalyticsEvent {
 
   @@map("analytics_event")
   @@index([eventType, entityType, entityId])
+  @@index([createdAt])
+}
+
+model Payment {
+  id               BigInt        @id @default(autoincrement())
+  userId           BigInt        @map("user_id")
+  user             User          @relation(fields: [userId], references: [id])
+  amount           BigInt        // Amount in IRR
+  currency         String        @default("IRR") @db.VarChar(3)
+  description      String?       @db.Text
+  status           PaymentStatus @default(PENDING)
+
+  provider         String        @default("ZIBAL") @db.VarChar(50)
+  providerTrackId  String?       @unique @map("provider_track_id") @db.VarChar(255)
+  providerRefNumber String?      @map("provider_ref_number") @db.VarChar(255)
+
+  idempotencyKey   String        @unique @map("idempotency_key") @db.VarChar(255)
+
+  // Relations
+  planId           BigInt?       @map("plan_id")
+  plan             Plan?         @relation(fields: [planId], references: [id])
+
+  // For Salons/Artists
+  salonId          BigInt?       @map("salon_id")
+  salon            Salon?        @relation(fields: [salonId], references: [id])
+  artistId         BigInt?       @map("artist_id")
+  artist           Artist?       @relation(fields: [artistId], references: [id])
+
+  metadata         Json?         @default("{}")
+
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@map("payments")
+  @@index([status])
+  @@index([userId])
+  @@index([providerTrackId])
   @@index([createdAt])
 }
 

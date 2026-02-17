@@ -129,6 +129,23 @@ services:
     networks:
       - sevra-prod-network
 
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: npm run seed:prod
+    networks:
+      - sevra-prod-network
+
   nginx:
     image: nginx:1.25-alpine
     restart: always

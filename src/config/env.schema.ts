@@ -81,6 +81,12 @@ export const envSchema = z.object({
   // Logging
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 
+  // Zibal Payment
+  ZIBAL_MERCHANT: z.string().default('zibal'), // 'zibal' for testing
+  ZIBAL_CALLBACK_URL: z.string().default('http://localhost:3000/api/payments/zibal/callback'),
+  ZIBAL_BASE_URL: z.string().default('https://gateway.zibal.ir/v1'),
+  ZIBAL_TIMEOUT_MS: z.coerce.number().default(10000),
+
   // Misc
   EMAIL: z.string().optional(),
 });

@@ -170,6 +170,13 @@ export const config = {
     level: envData.LOG_LEVEL,
   },
 
+  zibal: {
+    merchant: envData.ZIBAL_MERCHANT,
+    callbackUrl: envData.ZIBAL_CALLBACK_URL,
+    baseUrl: envData.ZIBAL_BASE_URL,
+    timeoutMs: envData.ZIBAL_TIMEOUT_MS,
+  },
+
   email: envData.EMAIL,
 };
 

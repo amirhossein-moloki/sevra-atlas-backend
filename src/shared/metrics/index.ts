@@ -18,8 +18,23 @@ export const dbQueryDuration = new Histogram({
   buckets: [0.01, 0.05, 0.1, 0.5, 1],
 });
 
+export const paymentCounter = new Counter({
+  name: 'payment_total',
+  help: 'Total number of payments',
+  labelNames: ['provider', 'status', 'type'], // type: init, verify
+});
+
+export const paymentLatency = new Histogram({
+  name: 'payment_latency_seconds',
+  help: 'Latency of payment operations in seconds',
+  labelNames: ['provider', 'step'], // step: request, verify
+  buckets: [0.1, 0.5, 1, 2, 5, 10],
+});
+
 register.registerMetric(httpRequestDurationMicroseconds);
 register.registerMetric(dbQueryDuration);
+register.registerMetric(paymentCounter);
+register.registerMetric(paymentLatency);
 
 export const metricsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const start = process.hrtime();

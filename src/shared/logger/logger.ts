@@ -18,7 +18,9 @@ export const logger = pino({
       'body.token',
       'body.refreshToken',
       'body.otp',
-      'body.code'
+      'body.code',
+      'merchant',
+      'trackId'
     ],
     remove: true,
   },

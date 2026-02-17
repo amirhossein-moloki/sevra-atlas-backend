@@ -16,114 +16,126 @@ export class SubscriptionsService {
 
   async assignPlan(targetType: 'SALON' | 'ARTIST', targetId: bigint, planId: bigint, notes?: string, adminId?: bigint) {
     return prisma.$transaction(async (tx) => {
-      const plan = await tx.plan.findUnique({ where: { id: planId } });
-      if (!plan) throw new ApiError(404, 'Plan not found');
+      return this.assignPlanInternal(tx, targetType, targetId, planId, notes || 'Manual plan assignment', adminId, 'MANUAL');
+    });
+  }
 
-      if (plan.entityType !== targetType) {
-        throw new ApiError(400, `Plan ${plan.name} is not for ${targetType}`);
+  async assignPlanInternal(
+    tx: any, // Prisma.TransactionClient
+    targetType: 'SALON' | 'ARTIST',
+    targetId: bigint,
+    planId: bigint,
+    notes?: string,
+    userId?: bigint,
+    paymentMethod = 'ZIBAL'
+  ) {
+    const plan = await tx.plan.findUnique({ where: { id: planId } });
+    if (!plan) throw new ApiError(404, 'Plan not found');
+
+    if (plan.entityType !== targetType) {
+      throw new ApiError(400, `Plan ${plan.name} is not for ${targetType}`);
+    }
+
+    const startDate = new Date();
+    const endDate = plan.durationDays > 0 ? new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000) : null;
+
+    const oldSub = await tx.subscription.findUnique({
+      where: targetType === 'SALON' ? { salonId: targetId } : { artistId: targetId },
+      include: { plan: true },
+    });
+
+    const subscription = await tx.subscription.upsert({
+      where: targetType === 'SALON' ? { salonId: targetId } : { artistId: targetId },
+      update: {
+        planId,
+        status: SubscriptionStatus.ACTIVE,
+        startDate,
+        endDate,
+        nextBillingDate: endDate,
+      },
+      create: {
+        planId,
+        salonId: targetType === 'SALON' ? targetId : null,
+        artistId: targetType === 'ARTIST' ? targetId : null,
+        status: SubscriptionStatus.ACTIVE,
+        startDate,
+        endDate,
+        nextBillingDate: endDate,
+      },
+    });
+
+    // Log plan change
+    await tx.planChangeLog.create({
+      data: {
+        targetType: targetType === 'SALON' ? EntityType.SALON : EntityType.ARTIST,
+        targetId,
+        oldPlanId: oldSub?.planId,
+        newPlanId: planId,
+        changedBy: userId,
+        reason: notes,
       }
+    });
 
-      const startDate = new Date();
-      const endDate = plan.durationDays > 0 ? new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000) : null;
-
-      const oldSub = await tx.subscription.findUnique({
-        where: targetType === 'SALON' ? { salonId: targetId } : { artistId: targetId },
-        include: { plan: true },
-      });
-
-      const subscription = await tx.subscription.upsert({
-        where: targetType === 'SALON' ? { salonId: targetId } : { artistId: targetId },
-        update: {
-          planId,
-          status: SubscriptionStatus.ACTIVE,
-          startDate,
-          endDate,
-          nextBillingDate: endDate,
-        },
-        create: {
-          planId,
-          salonId: targetType === 'SALON' ? targetId : null,
-          artistId: targetType === 'ARTIST' ? targetId : null,
-          status: SubscriptionStatus.ACTIVE,
-          startDate,
-          endDate,
-          nextBillingDate: endDate,
-        },
-      });
-
-      // Log plan change
-      await tx.planChangeLog.create({
+    // Track conversion if moving from Free (or no plan) to Paid
+    const wasFree = !oldSub || oldSub.plan.price === 0n;
+    if (plan.price > 0n && wasFree) {
+      await tx.analyticsEvent.create({
         data: {
-          targetType: targetType === 'SALON' ? EntityType.SALON : EntityType.ARTIST,
-          targetId,
-          oldPlanId: oldSub?.planId,
-          newPlanId: planId,
-          changedBy: adminId,
-          reason: notes,
+          eventType: 'CONVERSION',
+          entityType: targetType === 'SALON' ? EntityType.SALON : EntityType.ARTIST,
+          entityId: targetId,
+          metadata: { from: 'FREE', to: plan.tier }
         }
       });
+    }
 
-      // Track conversion if moving from Free (or no plan) to Paid
-      const wasFree = !oldSub || oldSub.plan.price === 0n;
-      if (plan.price > 0n && wasFree) {
-        await tx.analyticsEvent.create({
-          data: {
-            eventType: 'CONVERSION',
-            entityType: targetType === 'SALON' ? EntityType.SALON : EntityType.ARTIST,
-            entityId: targetId,
-            metadata: { from: 'FREE', to: plan.tier }
-          }
-        });
-      }
-
-      // Update Salon/Artist record
-      if (targetType === 'SALON') {
-        await tx.salon.update({
-          where: { id: targetId },
-          data: {
-            planId,
-            subscriptionStatus: SubscriptionStatus.ACTIVE,
-            featuredUntil: plan.tier === PlanTier.VIP ? endDate : null,
-          },
-        });
-      } else {
-        await tx.artist.update({
-          where: { id: targetId },
-          data: {
-            planId,
-            subscriptionStatus: SubscriptionStatus.ACTIVE,
-            featuredUntil: plan.tier === PlanTier.PRO ? endDate : null, // PRO for artist is "Featured"
-          },
-        });
-      }
-
-      // Record billing history
-      await tx.billingHistory.create({
+    // Update Salon/Artist record
+    if (targetType === 'SALON') {
+      await tx.salon.update({
+        where: { id: targetId },
         data: {
-          subscriptionId: subscription.id,
-          amount: plan.price,
-          paymentDate: startDate,
-          paymentMethod: 'MANUAL',
-          notes: notes || 'Manual plan assignment',
+          planId,
+          subscriptionStatus: SubscriptionStatus.ACTIVE,
+          featuredUntil: plan.tier === PlanTier.VIP ? endDate : null,
         },
       });
+    } else {
+      await tx.artist.update({
+        where: { id: targetId },
+        data: {
+          planId,
+          subscriptionStatus: SubscriptionStatus.ACTIVE,
+          featuredUntil: plan.tier === PlanTier.PRO ? endDate : null, // PRO for artist is "Featured"
+        },
+      });
+    }
 
-      // Recompute score
-      await updateEntityVisibilityScore(targetType, targetId);
-
-      // Invalidate cache
-      if (targetType === 'SALON') {
-        const salon = await tx.salon.findUnique({ where: { id: targetId }, select: { slug: true } });
-        if (salon) await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
-        await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
-      } else {
-        const artist = await tx.artist.findUnique({ where: { id: targetId }, select: { slug: true } });
-        if (artist) await CacheService.del(CacheKeys.ARTIST_DETAIL(artist.slug));
-        await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
-      }
-
-      return subscription;
+    // Record billing history
+    await tx.billingHistory.create({
+      data: {
+        subscriptionId: subscription.id,
+        amount: plan.price,
+        paymentDate: startDate,
+        paymentMethod,
+        notes: notes,
+      },
     });
+
+    // Recompute score
+    await updateEntityVisibilityScore(targetType, targetId);
+
+    // Invalidate cache
+    if (targetType === 'SALON') {
+      const salon = await tx.salon.findUnique({ where: { id: targetId }, select: { slug: true } });
+      if (salon) await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
+      await CacheService.delByPattern(CacheKeys.SALONS_LIST_PATTERN);
+    } else {
+      const artist = await tx.artist.findUnique({ where: { id: targetId }, select: { slug: true } });
+      if (artist) await CacheService.del(CacheKeys.ARTIST_DETAIL(artist.slug));
+      await CacheService.delByPattern(CacheKeys.ARTISTS_LIST_PATTERN);
+    }
+
+    return subscription;
   }
 
   async checkExpirations() {

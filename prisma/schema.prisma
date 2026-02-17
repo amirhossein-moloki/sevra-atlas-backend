@@ -187,7 +187,7 @@ model User {
   referrals       User[]   @relation("UserReferrals")
   firstName       String   @map("first_name") @db.VarChar(150)
   lastName        String   @map("last_name") @db.VarChar(150)
-  email           String   @db.VarChar(254)
+  email           String   @unique @db.VarChar(254)
   isStaff         Boolean  @map("is_staff")
   isActive        Boolean  @map("is_active")
   dateJoined      DateTime @map("date_joined") @default(now())
@@ -244,6 +244,7 @@ model User {
   @@map("users_user")
   @@index([cityId])
   @@index([role, status])
+  @@index([deletedAt])
 }
 
 model OtpAttempt {
@@ -311,6 +312,7 @@ model Media {
   @@index([uploadedBy])
   @@index([createdAt])
   @@index([entityType, entityId])
+  @@index([deletedAt])
 }
 
 /////////////////////////
@@ -355,6 +357,7 @@ model Category {
   @@index([parentId])
   @@index([order])
   @@index([seoMetaId])
+  @@index([deletedAt])
 }
 
 model Tag {
@@ -370,6 +373,7 @@ model Tag {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("blog_tag")
+  @@index([deletedAt])
 }
 
 model Series {
@@ -387,6 +391,7 @@ model Series {
 
   @@map("blog_series")
   @@index([orderStrategy])
+  @@index([deletedAt])
 }
 
 model Post {
@@ -441,6 +446,7 @@ model Post {
   @@index([scheduledAt])
   @@index([isHot])
   @@index([seoMetaId])
+  @@index([deletedAt])
 }
 
 model PostTag {
@@ -498,6 +504,7 @@ model Comment {
   @@index([postId, createdAt])
   @@index([status, createdAt])
   @@index([parentId])
+  @@index([deletedAt])
 }
 
 model Reaction {
@@ -538,6 +545,7 @@ model Page {
   @@map("blog_page")
   @@index([status, publishedAt])
   @@index([seoMetaId])
+  @@index([deletedAt])
 }
 
 model Menu {
@@ -827,6 +835,9 @@ model Salon {
   @@index([cityId, neighborhoodId, status])
   @@index([verification])
   @@index([seoMetaId])
+  @@index([visibilityScore(sort: Desc)])
+  @@index([avgRating(sort: Desc)])
+  @@index([deletedAt])
 }
 
 model OpeningHours {
@@ -899,6 +910,9 @@ model Artist {
   @@index([cityId, neighborhoodId, status])
   @@index([verification])
   @@index([seoMetaId])
+  @@index([visibilityScore(sort: Desc)])
+  @@index([avgRating(sort: Desc)])
+  @@index([deletedAt])
 }
 
 model ArtistCertification {
@@ -972,6 +986,7 @@ model ServiceCategory {
   deletedAt DateTime? @map("deleted_at")
 
   @@index([order])
+  @@index([deletedAt])
 }
 
 model ServiceDefinition {
@@ -990,6 +1005,7 @@ model ServiceDefinition {
   deletedAt DateTime? @map("deleted_at")
 
   @@index([categoryId])
+  @@index([deletedAt])
 }
 
 model SalonService {
@@ -1021,6 +1037,7 @@ model Specialty {
   deletedAt DateTime? @map("deleted_at")
 
   @@index([order])
+  @@index([deletedAt])
 }
 
 model ArtistSpecialty {
@@ -1071,6 +1088,7 @@ model Review {
   @@index([authorId, createdAt])
   @@index([salonId, status, createdAt])
   @@index([artistId, status, createdAt])
+  @@index([deletedAt])
 }
 
 model ReviewVote {
@@ -1139,9 +1157,11 @@ model VerificationRequest {
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
 
   @@index([status, createdAt])
   @@index([requestedById, createdAt])
+  @@index([deletedAt])
 }
 
 model VerificationDocument {
@@ -1254,10 +1274,12 @@ model Subscription {
 
   createdAt       DateTime           @default(now()) @map("created_at")
   updatedAt       DateTime           @updatedAt @map("updated_at")
+  deletedAt       DateTime?          @map("deleted_at")
 
   @@map("billing_subscription")
   @@index([status])
   @@index([endDate])
+  @@index([deletedAt])
 }
 
 model BillingHistory {
@@ -1273,9 +1295,11 @@ model BillingHistory {
   notes           String?  @db.Text
 
   createdAt       DateTime @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   @@map("billing_history")
   @@index([subscriptionId])
+  @@index([deletedAt])
 }
 
 model Invite {
@@ -1317,6 +1341,7 @@ model AnalyticsEvent {
 
   @@map("analytics_event")
   @@index([eventType, entityType, entityId])
+  @@index([createdAt])
 }
 
 model Save {

@@ -2,8 +2,11 @@ import { Request, Response } from 'express';
 import { ArtistsService } from './artists.service';
 import { isAdmin } from '../../shared/auth/roles';
 import { safeBigInt } from '../../shared/utils/bigint';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { EntityType } from '@prisma/client';
 
 const artistsService = new ArtistsService();
+const subService = new SubscriptionsService();
 
 export class ArtistsController {
   async getArtists(req: Request, res: Response) {
@@ -35,6 +38,13 @@ export class ArtistsController {
 
   async getArtist(req: Request, res: Response) {
     const result = await artistsService.getArtistBySlug(req.params.slug);
+
+    // Background click tracking
+    subService.trackClick(EntityType.ARTIST, result.id, {
+      planId: result.planId?.toString(),
+      isFeatured: !!result.featuredUntil && result.featuredUntil > new Date(),
+    }).catch(err => {});
+
     res.json(result);
   }
 

@@ -8,6 +8,9 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '.
 import { UserRole } from '@prisma/client';
 import { logger } from '../../shared/logger/logger';
 import crypto from 'crypto';
+import { GrowthService } from '../growth/growth.service';
+
+const growthService = new GrowthService();
 
 export class AuthService {
   async requestOtp(phoneNumber: string, ip?: string, userAgent?: string) {
@@ -42,7 +45,7 @@ export class AuthService {
     return { message: 'OTP sent successfully' };
   }
 
-  async verifyOtp(phoneNumber: string, code: string, ip?: string, userAgent?: string) {
+  async verifyOtp(phoneNumber: string, code: string, ip?: string, userAgent?: string, referralCode?: string) {
     const redisKey = `otp:${phoneNumber}`;
     let storedCode: string | null = null;
     let attempts = 0;
@@ -119,6 +122,14 @@ export class AuthService {
           referralCode: Math.random().toString(36).substring(2, 10),
         },
       });
+
+      if (referralCode) {
+        try {
+          await growthService.trackReferral(user.id, referralCode);
+        } catch (err) {
+          logger.warn(`Failed to track referral for user ${user.id} with code ${referralCode}: ${err}`);
+        }
+      }
     }
 
     await prisma.otpAttempt.create({

@@ -6,6 +6,7 @@ import compression from 'compression';
 import path from 'path';
 import pinoHttp from 'pino-http';
 import { logger } from './shared/logger/logger';
+import { register, metricsMiddleware } from './shared/metrics';
 import { errorHandler } from './shared/middlewares/error.middleware';
 import { requestIdMiddleware } from './shared/middlewares/requestId.middleware';
 import { responseMiddleware } from './shared/middlewares/response.middleware';
@@ -85,6 +86,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(rateLimit('global', config.security.rateLimit.max, config.security.rateLimit.windowS));
 
 app.use(requestIdMiddleware);
+app.use(metricsMiddleware);
+
+// Prometheus Metrics Endpoint
+app.get('/metrics', async (_req: Request, res: Response) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex);
+  }
+});
+
 app.use(
   pinoHttp({
     logger,

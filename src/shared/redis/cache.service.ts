@@ -1,5 +1,6 @@
 import { redisCache as redis } from './redis';
 import { logger } from '../logger/logger';
+import { runInBackground } from '../utils/background';
 
 export class CacheService {
   private static PREFIX = 'sevra:cache:v1:';
@@ -95,7 +96,7 @@ export class CacheService {
         await this.set(key, { data: freshData, expiresAt: now + (ttlSeconds * 1000) }, ttlSeconds + (options.staleWhileRevalidate || 0));
         return freshData;
       } finally {
-        await redis.del(this.PREFIX + lockKey).catch(() => {});
+        runInBackground(redis.del(this.PREFIX + lockKey), 'cache_lock_cleanup', { key });
       }
     } catch (error) {
       logger.error(`Cache wrap error for key ${key}, falling back to origin:`, error);

@@ -165,6 +165,7 @@ export class SalonsService {
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
         },
+        select: this.publicSalonFields,
       });
       await initSeoMeta(EntityType.SALON, salon.id, salon.name, tx);
       // Invalidate lists and geo stats
@@ -209,6 +210,7 @@ export class SalonsService {
           avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
           coverMediaId: safeData.coverMediaId ? safeBigInt(safeData.coverMediaId, 'coverMediaId') : undefined,
         },
+        select: this.publicSalonFields,
       });
 
       // Invalidate
@@ -236,21 +238,38 @@ export class SalonsService {
         await tx.salonService.deleteMany({ where: { salonId: id } });
       }
 
-      for (const item of serviceData) {
-        const sId = safeBigInt(item.serviceId, 'serviceId');
-        await tx.salonService.upsert({
-          where: {
-            salonId_serviceId: { salonId: id, serviceId: sId },
-          },
-          create: {
-            salonId: id,
-            serviceId: sId,
-            notes: item.notes,
-          },
-          update: {
-            notes: item.notes,
-          },
+      const dataToUpsert = serviceData.map(item => ({
+        salonId: id,
+        serviceId: safeBigInt(item.serviceId, 'serviceId'),
+        notes: item.notes,
+      }));
+
+      if (mode === 'replace') {
+        await tx.salonService.createMany({
+          data: dataToUpsert,
+          skipDuplicates: true,
         });
+      } else {
+        const existing = await tx.salonService.findMany({
+          where: { salonId: id, serviceId: { in: dataToUpsert.map(d => d.serviceId) } }
+        });
+        const existingMap = new Map(existing.map(e => [e.serviceId, e]));
+
+        const toCreate = dataToUpsert.filter(d => !existingMap.has(d.serviceId));
+        const toUpdate = dataToUpsert.filter(d => {
+          const ext = existingMap.get(d.serviceId);
+          return ext && ext.notes !== d.notes;
+        });
+
+        if (toCreate.length > 0) {
+          await tx.salonService.createMany({ data: toCreate });
+        }
+        for (const item of toUpdate) {
+          await tx.salonService.update({
+            where: { salonId_serviceId: { salonId: id, serviceId: item.serviceId } },
+            data: { notes: item.notes },
+          });
+        }
       }
       return { ok: true };
     });
@@ -269,27 +288,31 @@ export class SalonsService {
     await this.checkOwnership(prisma, id, userId, isAdmin);
 
     if (kind === 'GALLERY' && data.mediaIds) {
-      const results = [];
-      for (const mId of data.mediaIds) {
-        const mediaId = safeBigInt(mId, 'mediaId');
-        const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
-        if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
+      const mediaIds = data.mediaIds.map(mId => safeBigInt(mId, 'mediaId'));
 
-        if (!isAdmin && existingMedia.uploadedBy !== userId) {
-          throw new ApiError(403, `You do not have permission to use media ${mId}`);
-        }
-
-        const updated = await prisma.media.update({
-          where: { id: mediaId },
-          data: {
-            kind,
-            entityType: EntityType.SALON,
-            entityId: id,
+      // Ownership check for all media items
+      if (!isAdmin) {
+        const count = await prisma.media.count({
+          where: {
+            id: { in: mediaIds },
+            uploadedBy: userId,
           },
         });
-        results.push(updated);
+        if (count !== mediaIds.length) {
+          throw new ApiError(403, 'You do not have permission to use one or more of the provided media items');
+        }
       }
-      return results;
+
+      await prisma.media.updateMany({
+        where: { id: { in: mediaIds } },
+        data: {
+          kind,
+          entityType: EntityType.SALON,
+          entityId: id,
+        },
+      });
+
+      return prisma.media.findMany({ where: { id: { in: mediaIds } } });
     }
 
     if (!data.mediaId) {

@@ -4,6 +4,24 @@ import { getRequestId } from '../utils/context';
 
 export const logger = pino({
   level: config.logging.level,
+  redact: {
+    paths: [
+      'password',
+      'token',
+      'refreshToken',
+      'otp',
+      'authorization',
+      'cookies',
+      'headers.authorization',
+      'headers.cookie',
+      'body.password',
+      'body.token',
+      'body.refreshToken',
+      'body.otp',
+      'body.code'
+    ],
+    remove: true,
+  },
   mixin() {
     const requestId = getRequestId();
     return requestId ? { requestId } : {};

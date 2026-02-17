@@ -269,7 +269,11 @@ export class AuthService {
   }
 
   async getTokenVersion(userId: string): Promise<number> {
-    const version = await redis.get(`user_token_version:${userId}`);
+    const version = await RedisFallback.tryReady(
+      'getTokenVersion',
+      () => redis.get(`user_token_version:${userId}`),
+      null
+    );
     return version ? parseInt(version) : 0;
   }
 
@@ -283,17 +287,25 @@ export class AuthService {
 
     // 2. Delete all refresh tokens from Redis using SCAN for performance/safety
     let cursor = '0';
-    do {
-      const [newCursor, keys] = await redis.scan(cursor, 'MATCH', `refresh_token:${userId}:*`, 'COUNT', 100);
-      cursor = newCursor;
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
-    } while (cursor !== '0');
+    try {
+      do {
+        const [newCursor, keys] = await redis.scan(cursor, 'MATCH', `refresh_token:${userId}:*`, 'COUNT', 100);
+        cursor = newCursor;
+        if (keys.length > 0) {
+          await redis.del(...keys);
+        }
+      } while (cursor !== '0');
+    } catch (error) {
+      logger.error(`Redis error during logoutAll scan for user ${userId}:`, error);
+    }
 
     // 3. Increment token version in Redis to invalidate all current access tokens
     // This requires the auth middleware to check this version
-    await redis.incr(`user_token_version:${userId}`);
+    await RedisFallback.tryReady(
+      'incrTokenVersion',
+      () => redis.incr(`user_token_version:${userId}`),
+      null
+    );
 
     return { ok: true };
   }

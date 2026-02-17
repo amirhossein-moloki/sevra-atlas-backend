@@ -43,7 +43,7 @@ describe('SEO Flow E2E', () => {
       data: {
         name: 'Test Salon',
         slug: oldSlug,
-        owners: { connect: { id: adminId } }
+        owners: { connect: [{ id: adminId }] }
       }
     });
 

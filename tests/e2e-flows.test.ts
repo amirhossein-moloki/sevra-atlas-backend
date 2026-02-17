@@ -273,7 +273,7 @@ describe('Critical Business Flows E2E', () => {
               name: 'SEO Flow Salon',
               slug: oldSlug,
               primaryOwnerId: admin.id,
-              owners: { connect: { id: admin.id } }
+              owners: { connect: [{ id: admin.id }] }
           }
       });
       salonId = salon.id.toString();
@@ -401,7 +401,7 @@ describe('Critical Business Flows E2E', () => {
       await prisma.user.update({ where: { id: BigInt(userVerify.body.data.user.id) }, data: { role: UserRole.SALON } });
 
       const salon = await prisma.salon.create({
-          data: { name: 'Verify Me Salon', slug: 'verify-me-' + Date.now(), primaryOwnerId: BigInt(userVerify.body.data.user.id), owners: { connect: { id: BigInt(userVerify.body.data.user.id) } } }
+          data: { name: 'Verify Me Salon', slug: 'verify-me-' + Date.now(), primaryOwnerId: BigInt(userVerify.body.data.user.id), owners: { connect: [{ id: BigInt(userVerify.body.data.user.id) }] } }
       });
       salonId = salon.id.toString();
 

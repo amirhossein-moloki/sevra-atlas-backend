@@ -148,7 +148,7 @@ describe('Admin Endpoints Stability', () => {
           name: 'Verification Test Salon',
           slug: 'ver-test-salon-' + Date.now(),
           status: AccountStatus.ACTIVE,
-          owners: { connect: { id: userId } }
+          owners: { connect: [{ id: userId }] }
         }
       });
       salonId = salon.id;
@@ -218,7 +218,7 @@ describe('Admin Endpoints Stability', () => {
                 name: 'Duplicate Test Salon',
                 slug: 'dup-test-salon-' + Date.now(),
                 status: AccountStatus.ACTIVE,
-                owners: { connect: { id: userId } }
+                owners: { connect: [{ id: userId }] }
             }
         });
 

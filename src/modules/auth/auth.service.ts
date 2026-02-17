@@ -136,7 +136,8 @@ export class AuthService {
       data: { phoneE164: phoneNumber, ip, userAgent, purpose: 'VERIFY', success: true, userId: user.id },
     });
 
-    const payload = { sub: user.id.toString(), role: user.role };
+    const version = await this.getTokenVersion(user.id.toString());
+    const payload = { sub: user.id.toString(), role: user.role, v: version };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
@@ -214,7 +215,8 @@ export class AuthService {
       }
 
       // Success! Now rotate.
-      const newPayload = { sub: user.id.toString(), role: user.role };
+      const version = await this.getTokenVersion(user.id.toString());
+      const newPayload = { sub: user.id.toString(), role: user.role, v: version };
       const newAccessToken = generateAccessToken(newPayload);
       const newRefreshToken = generateRefreshToken(newPayload);
       const newRefreshTokenHash = crypto.createHash('sha256').update(newRefreshToken).digest('hex');
@@ -262,6 +264,36 @@ export class AuthService {
     await prisma.refreshToken.deleteMany({
       where: { token: tokenHash },
     });
+
+    return { ok: true };
+  }
+
+  async getTokenVersion(userId: string): Promise<number> {
+    const version = await redis.get(`user_token_version:${userId}`);
+    return version ? parseInt(version) : 0;
+  }
+
+  async logoutAll(userId: string) {
+    const id = BigInt(userId);
+
+    // 1. Delete all refresh tokens from DB
+    await prisma.refreshToken.deleteMany({
+      where: { userId: id },
+    });
+
+    // 2. Delete all refresh tokens from Redis using SCAN for performance/safety
+    let cursor = '0';
+    do {
+      const [newCursor, keys] = await redis.scan(cursor, 'MATCH', `refresh_token:${userId}:*`, 'COUNT', 100);
+      cursor = newCursor;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== '0');
+
+    // 3. Increment token version in Redis to invalidate all current access tokens
+    // This requires the auth middleware to check this version
+    await redis.incr(`user_token_version:${userId}`);
 
     return { ok: true };
   }

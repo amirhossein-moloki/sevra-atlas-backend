@@ -143,4 +143,29 @@ router.post(
   controller.logout
 );
 
+registry.registerPath({
+  method: 'post',
+  path: '/auth/logout-all',
+  summary: 'Logout user from all devices',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Logged out from all devices successfully',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.object({ ok: z.boolean() }))
+        }
+      }
+    },
+  },
+});
+
+router.post(
+  '/logout-all',
+  requireAuth(),
+  rateLimit('logout', 10, 60),
+  controller.logoutAll
+);
+
 export default router;

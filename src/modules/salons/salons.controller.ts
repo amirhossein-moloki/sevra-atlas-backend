@@ -6,18 +6,15 @@ import { isAdmin } from '../../shared/auth/roles';
 import { safeBigInt } from '../../shared/utils/bigint';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { EntityType } from '@prisma/client';
+import { runInBackground } from '../../shared/utils/background';
+import { resolveId } from '../../shared/utils/resolver/idResolver';
 
 const salonsService = new SalonsService();
 const subService = new SubscriptionsService();
 
 export class SalonsController {
-  private resolveId = async (identifier: string): Promise<bigint> => {
-    if (!isNaN(Number(identifier))) {
-      return safeBigInt(identifier);
-    }
-    const salon = await salonsService.findSalonByIdentifier(identifier);
-    if (!salon) throw new ApiError(404, 'Salon not found');
-    return salon.id;
+  private resolveSalonId = async (identifier: string): Promise<bigint> => {
+    return resolveId(identifier, (idOrSlug) => salonsService.findSalonByIdentifier(idOrSlug), 'Salon');
   };
 
   getSalons = async (req: Request, res: Response) => {
@@ -29,10 +26,14 @@ export class SalonsController {
     const result = await salonsService.getSalonBySlug(req.params.idOrSlug || req.params.slug);
 
     // Background click tracking
-    subService.trackClick(EntityType.SALON, result.id, {
-      planId: result.planId?.toString(),
-      isFeatured: !!result.featuredUntil && result.featuredUntil > new Date(),
-    }).catch(err => {});
+    runInBackground(
+      subService.trackClick(EntityType.SALON, result.id, {
+        planId: result.planId?.toString(),
+        isFeatured: !!result.featuredUntil && result.featuredUntil > new Date(),
+      }),
+      'salon_click_tracking',
+      { salonId: result.id.toString() }
+    );
 
     res.json(result);
   };
@@ -43,7 +44,7 @@ export class SalonsController {
   };
 
   updateSalon = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.updateSalon(
       id,
@@ -55,7 +56,7 @@ export class SalonsController {
   }
 
   deleteSalon = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.deleteSalon(
       id,
@@ -66,7 +67,7 @@ export class SalonsController {
   };
 
   assignServices = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.query.mode as 'append' | 'replace') || 'append';
     const result = await salonsService.assignServices(
@@ -80,7 +81,7 @@ export class SalonsController {
   };
 
   removeService = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const serviceId = safeBigInt(req.params.serviceId, 'serviceId');
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.removeService(
@@ -93,7 +94,7 @@ export class SalonsController {
   };
 
   setAvatar = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       id,
@@ -106,7 +107,7 @@ export class SalonsController {
   };
 
   setCover = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       id,
@@ -119,7 +120,7 @@ export class SalonsController {
   };
 
   addGallery = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.attachMedia(
       id,
@@ -132,7 +133,7 @@ export class SalonsController {
   };
 
   linkArtist = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.linkArtist(
       id,
@@ -144,7 +145,7 @@ export class SalonsController {
   };
 
   unlinkArtist = async (req: AuthRequest, res: Response) => {
-    const id = await this.resolveId(req.params.idOrSlug || req.params.id);
+    const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const artistId = safeBigInt(req.params.artistId, 'artistId');
     const adminMode = isAdmin(req.user?.role);
     const result = await salonsService.unlinkArtist(

@@ -38,6 +38,16 @@ export class ArtistsService {
     updatedAt: true,
   };
 
+  async findArtistByIdentifier(identifier: string) {
+    const where: Prisma.ArtistWhereInput = { deletedAt: null };
+    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+      where.id = safeBigInt(identifier, 'artist_id');
+    } else {
+      where.slug = identifier;
+    }
+    return prisma.artist.findFirst({ where });
+  }
+
   async getArtists(filters: Record<string, unknown>) {
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
@@ -136,6 +146,7 @@ export class ArtistsService {
           primaryOwnerId: userId,
           owners: { connect: { id: userId } },
         },
+        select: this.publicArtistFields,
       });
       await initSeoMeta(EntityType.ARTIST, artist.id, artist.fullName, tx);
       // Invalidate
@@ -179,6 +190,7 @@ export class ArtistsService {
           avatarMediaId: safeData.avatarMediaId ? safeBigInt(safeData.avatarMediaId, 'avatarMediaId') : undefined,
           coverMediaId: safeData.coverMediaId ? safeBigInt(safeData.coverMediaId, 'coverMediaId') : undefined,
         },
+        select: this.publicArtistFields,
       });
 
       // Invalidate
@@ -202,27 +214,31 @@ export class ArtistsService {
     await this.checkOwnership(prisma, id, userId, isAdmin);
 
     if (kind === 'GALLERY' && data.mediaIds) {
-      const results = [];
-      for (const mId of data.mediaIds) {
-        const mediaId = safeBigInt(mId, 'mediaId');
-        const existingMedia = await prisma.media.findUnique({ where: { id: mediaId } });
-        if (!existingMedia) throw new ApiError(404, `Media ${mId} not found`);
+      const mediaIds = data.mediaIds.map(mId => safeBigInt(mId, 'mediaId'));
 
-        if (!isAdmin && existingMedia.uploadedBy !== userId) {
-          throw new ApiError(403, `You do not have permission to use media ${mId}`);
-        }
-
-        const updated = await prisma.media.update({
-          where: { id: mediaId },
-          data: {
-            kind,
-            entityType: EntityType.ARTIST,
-            entityId: id,
+      // Ownership check for all media items
+      if (!isAdmin) {
+        const count = await prisma.media.count({
+          where: {
+            id: { in: mediaIds },
+            uploadedBy: userId,
           },
         });
-        results.push(updated);
+        if (count !== mediaIds.length) {
+          throw new ApiError(403, 'You do not have permission to use one or more of the provided media items');
+        }
       }
-      return results;
+
+      await prisma.media.updateMany({
+        where: { id: { in: mediaIds } },
+        data: {
+          kind,
+          entityType: EntityType.ARTIST,
+          entityId: id,
+        },
+      });
+
+      return prisma.media.findMany({ where: { id: { in: mediaIds } } });
     }
 
     if (!data.mediaId) {
@@ -394,23 +410,20 @@ export class ArtistsService {
     return prisma.$transaction(async (tx) => {
       await this.checkOwnership(tx, id, userId, isAdmin);
 
+      const sIds = specialtyIds.map(sId => safeBigInt(sId, 'specialtyId'));
+
       if (mode === 'replace') {
         await tx.artistSpecialty.deleteMany({ where: { artistId: id } });
       }
 
-      for (const sId of specialtyIds) {
-        const specialtyId = safeBigInt(sId, 'specialtyId');
-        await tx.artistSpecialty.upsert({
-          where: {
-            artistId_specialtyId: { artistId: id, specialtyId },
-          },
-          create: {
-            artistId: id,
-            specialtyId,
-          },
-          update: {},
-        });
-      }
+      await tx.artistSpecialty.createMany({
+        data: sIds.map(specialtyId => ({
+          artistId: id,
+          specialtyId,
+        })),
+        skipDuplicates: true,
+      });
+
       return { ok: true };
     });
   }

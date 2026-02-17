@@ -5,6 +5,7 @@ import { handleSlugChange, initSeoMeta } from '../../../shared/utils/seo';
 import { isStaff, isAdmin } from '../../../shared/auth/roles';
 import { pickAllowedFields } from '../../../shared/utils/object';
 import { safeBigInt } from '../../../shared/utils/bigint';
+import { runInBackground } from '../../../shared/utils/background';
 
 export class PostsService {
   private readonly allowedFields = [
@@ -135,10 +136,14 @@ export class PostsService {
     }
 
     // Increment views (non-blocking)
-    prisma.post.update({
-      where: { id: post.id },
-      data: { viewsCount: { increment: 1 } }
-    }).catch(err => console.error('Failed to increment post views:', err));
+    runInBackground(
+      prisma.post.update({
+        where: { id: post.id },
+        data: { viewsCount: { increment: 1 } }
+      }),
+      'increment_post_views',
+      { postId: post.id.toString() }
+    );
 
     return post;
   }

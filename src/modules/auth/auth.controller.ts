@@ -41,4 +41,13 @@ export class AuthController {
     const result = await authService.logout(userId.toString(), refreshToken);
     res.json(result);
   }
+
+  async logoutAll(req: Request, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const result = await authService.logoutAll(userId.toString());
+    res.json(result);
+  }
 }

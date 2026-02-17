@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../auth/jwt';
 import { ApiError } from '../errors/ApiError';
 import { prisma } from '../db/prisma';
+import { redisCache as redis } from '../redis/redis';
 import { UserRole } from '@prisma/client';
 import { STAFF_ROLES, ADMIN_ONLY } from '../auth/roles';
 
@@ -22,6 +23,14 @@ export const requireAuth = () => {
 
       const token = authHeader.split(' ')[1];
       const payload = verifyAccessToken(token);
+
+      // Check token version for global logout/invalidation
+      if (payload.v !== undefined) {
+        const currentVersion = await redis.get(`user_token_version:${payload.sub}`);
+        if (currentVersion && parseInt(currentVersion) > payload.v) {
+          throw new ApiError(401, 'Token has been revoked');
+        }
+      }
 
       const user = await prisma.user.findUnique({
         where: { id: BigInt(payload.sub) },

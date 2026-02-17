@@ -37,6 +37,7 @@ export class UsersService {
         cityId: data.cityId ? BigInt(data.cityId as string | number | bigint) : undefined,
         gender: data.gender as Gender | undefined,
       },
+      select: this.publicUserFields,
     });
     return user;
   }

@@ -4,11 +4,17 @@ import { isAdmin } from '../../shared/auth/roles';
 import { safeBigInt } from '../../shared/utils/bigint';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { EntityType } from '@prisma/client';
+import { resolveId } from '../../shared/utils/resolver/idResolver';
+import { runInBackground } from '../../shared/utils/background';
 
 const artistsService = new ArtistsService();
 const subService = new SubscriptionsService();
 
 export class ArtistsController {
+  private resolveArtistId = async (identifier: string): Promise<bigint> => {
+    return resolveId(identifier, (idOrSlug) => artistsService.findArtistByIdentifier(idOrSlug), 'Artist');
+  };
+
   async getArtists(req: Request, res: Response) {
     const result = await artistsService.getArtists(req.query);
     res.json(result);
@@ -40,10 +46,14 @@ export class ArtistsController {
     const result = await artistsService.getArtistBySlug(req.params.slug);
 
     // Background click tracking
-    subService.trackClick(EntityType.ARTIST, result.id, {
-      planId: result.planId?.toString(),
-      isFeatured: !!result.featuredUntil && result.featuredUntil > new Date(),
-    }).catch(err => {});
+    runInBackground(
+      subService.trackClick(EntityType.ARTIST, result.id, {
+        planId: result.planId?.toString(),
+        isFeatured: !!result.featuredUntil && result.featuredUntil > new Date(),
+      }),
+      'artist_click_tracking',
+      { artistId: result.id.toString() }
+    );
 
     res.json(result);
   }
@@ -54,7 +64,7 @@ export class ArtistsController {
   }
 
   async updateArtist(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateArtist(
       id,
@@ -66,7 +76,7 @@ export class ArtistsController {
   }
 
   async deleteArtist(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteArtist(
       id,
@@ -77,7 +87,7 @@ export class ArtistsController {
   }
 
   async setAvatar(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       id,
@@ -90,7 +100,7 @@ export class ArtistsController {
   }
 
   async setCover(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       id,
@@ -103,7 +113,7 @@ export class ArtistsController {
   }
 
   async addGallery(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       id,
@@ -116,7 +126,7 @@ export class ArtistsController {
   }
 
   async addCertification(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.addCertification(
       id,
@@ -161,7 +171,7 @@ export class ArtistsController {
   }
 
   async assignSpecialties(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
+    const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
     const result = await artistsService.assignSpecialties(

@@ -5,6 +5,7 @@ import { config } from '../../config';
 export interface TokenPayload {
   sub: string;
   role: string;
+  v?: number; // token version
   jti?: string;
 }
 

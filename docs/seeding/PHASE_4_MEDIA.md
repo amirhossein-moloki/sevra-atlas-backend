@@ -1,15 +1,24 @@
-# Phase 4 — Media & Asset Strategy
+# Phase 4 — Media & Asset Strategy (Hardened)
 
-## Image Sources
-- **Provider**: Unsplash (via direct URLs with pinned IDs).
-- **Stability**: Pinned IDs ensure the same image is loaded across runs.
-- **Fail-safe**: If Unsplash is unreachable, seeder uses placeholder.com URLs.
+## 1. Primary Strategy: Pinned CDN
+- **Source**: Unsplash via static CDN URLs.
+- **Pinned IDs**: Every entity type has a pool of 10-20 pinned photo IDs.
+- **Stability**: `storageKey` is derived from the Unsplash ID, ensuring deduplication and persistence across runs.
 
-## Mapping
-- **Salon**: 1 Avatar, 1 Cover, 3+ Gallery items.
-- **Artist**: 1 Avatar.
-- **Post**: 1 Cover.
+## 2. Fallback Strategy: Backup CDN
+- **Backup**: If primary URLs fail, the seeder falls back to a pinned set of `picsum.photos` IDs which are also pinned to specific dimensions and IDs.
+- **Strict Rule**: No random `placeimg.com` or `loremflickr.com` that change on refresh.
 
-## Caching & Performance
-- Media records are upserted by `storageKey` (which is the Unsplash ID).
-- Avoids redundant downloads/records if re-run.
+## 3. Mapping Distribution
+- **Salons**:
+  - 1x Avatar (Portrait)
+  - 1x Cover (Landscape)
+  - 3x Gallery (Mixed)
+- **Artists**:
+  - 1x Avatar (Headshot)
+- **Blog Posts**:
+  - 1x High-quality Cover
+
+## 4. Business Rules
+- All media records are created with `status: COMPLETED` to skip background processing in dev.
+- `altText` is generated based on the entity name for SEO realism.

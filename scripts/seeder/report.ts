@@ -6,9 +6,9 @@ export interface TargetPlan {
   justification: string;
 }
 
-export const printReport = (plans: TargetPlan[]) => {
+export const printReport = (plans: TargetPlan[], mode: string) => {
   console.log('\n=================================================');
-  console.log('       COVERAGE & TARGETS REPORT (DRY RUN)       ');
+  console.log(`       COVERAGE & TARGETS REPORT (${mode})       `);
   console.log('=================================================\n');
 
   console.table(plans.map(p => ({

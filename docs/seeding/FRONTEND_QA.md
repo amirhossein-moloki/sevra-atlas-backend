@@ -24,3 +24,7 @@ After running the seeder, verify the following in the UI:
 ## 5. Edge Cases
 - [ ] Find a salon with 0 reviews (should show "No reviews yet" or similar empty state).
 - [ ] Find a "Popular" salon with 50+ reviews (should test list performance).
+
+## 6. Dataset Scale Verification
+- [ ] UI_SMALL: Lists feel snappy, total counts are manageable (hundreds).
+- [ ] UI_LARGE: Lists show high-volume (thousands), verifying search result density and infinite scroll/pagination performance.

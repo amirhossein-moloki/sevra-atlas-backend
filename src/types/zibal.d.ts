@@ -1,3 +1,6 @@
+/**
+ * Type definitions for zibal payment gateway
+ */
 declare module 'zibal' {
   interface ZibalConfig {
     merchant: string;

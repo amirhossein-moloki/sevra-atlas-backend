@@ -45,10 +45,10 @@ router.get('/provinces/:slug/cities', controller.getProvinceCities);
 
 registry.registerPath({
   method: 'get',
-  path: '/geo/cities/{slug}',
+  path: '/geo/cities/{idOrSlug}',
   summary: 'Get city details',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'City details',
@@ -60,10 +60,10 @@ router.get('/cities/:slug', controller.getCity);
 
 registry.registerPath({
   method: 'get',
-  path: '/geo/cities/{slug}/neighborhoods',
+  path: '/geo/cities/{idOrSlug}/neighborhoods',
   summary: 'List neighborhoods of a city',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'List of neighborhoods',
@@ -157,11 +157,11 @@ router.post(
 
 registry.registerPath({
   method: 'patch',
-  path: '/geo/cities/{id}',
+  path: '/geo/cities/{idOrSlug}',
   summary: 'Update a city (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateCitySchema.shape.body } },
@@ -184,11 +184,11 @@ router.patch(
 
 registry.registerPath({
   method: 'patch',
-  path: '/geo/neighborhoods/{id}',
+  path: '/geo/neighborhoods/{idOrSlug}',
   summary: 'Update a neighborhood (Admin)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: {
       content: { 'application/json': { schema: updateNeighborhoodSchema.shape.body } },

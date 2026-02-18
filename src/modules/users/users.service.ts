@@ -1,6 +1,7 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
 import { UserRole, AccountStatus, Prisma, Gender } from '@prisma/client';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 export class UsersService {
   private readonly publicUserFields = {
@@ -20,7 +21,7 @@ export class UsersService {
 
   async getUserById(id: string) {
     const user = await prisma.user.findFirst({
-      where: { id: BigInt(id), deletedAt: null },
+      where: { id: safeBigInt(id), deletedAt: null },
       select: this.publicUserFields,
     });
     if (!user) throw new ApiError(404, 'User not found');
@@ -29,12 +30,12 @@ export class UsersService {
 
   async updateUser(id: string, data: Record<string, unknown>) {
     const user = await prisma.user.update({
-      where: { id: BigInt(id) },
+      where: { id: safeBigInt(id) },
       data: {
         firstName: data.firstName as string | undefined,
         lastName: data.lastName as string | undefined,
         bio: data.bio as string | undefined,
-        cityId: data.cityId ? BigInt(data.cityId as string | number | bigint) : undefined,
+        cityId: data.cityId ? safeBigInt(data.cityId, 'cityId') : undefined,
         gender: data.gender as Gender | undefined,
       },
       select: this.publicUserFields,
@@ -82,7 +83,7 @@ export class UsersService {
 
   async updateUserRole(id: string, role: UserRole) {
     await prisma.user.update({
-      where: { id: BigInt(id) },
+      where: { id: safeBigInt(id) },
       data: { role },
     });
     return { ok: true };
@@ -90,7 +91,7 @@ export class UsersService {
 
   async updateUserStatus(id: string, status: AccountStatus) {
     await prisma.user.update({
-      where: { id: BigInt(id) },
+      where: { id: safeBigInt(id) },
       data: { status },
     });
     return { ok: true };
@@ -98,7 +99,7 @@ export class UsersService {
 
   async deleteUser(id: string) {
     await prisma.user.update({
-      where: { id: BigInt(id) },
+      where: { id: safeBigInt(id) },
       data: {
         status: AccountStatus.DELETED,
         deletedAt: new Date(),

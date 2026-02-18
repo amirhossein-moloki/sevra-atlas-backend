@@ -2,6 +2,7 @@ import { prisma } from '../../shared/db/prisma';
 import { handleSlugChange } from '../../shared/utils/seo';
 import { EntityType } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 export class GeoService {
   async getProvinces() {
@@ -72,7 +73,7 @@ export class GeoService {
       data: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...this.handleBigInts(data) as any,
-        provinceId: BigInt(data.provinceId as string | number | bigint),
+        provinceId: safeBigInt(data.provinceId, 'provinceId'),
       },
     });
     return result;
@@ -83,14 +84,14 @@ export class GeoService {
       data: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...this.handleBigInts(data) as any,
-        cityId: BigInt(data.cityId as string | number | bigint),
+        cityId: safeBigInt(data.cityId, 'cityId'),
       },
     });
     return result;
   }
 
   async updateCity(id: string, data: Record<string, unknown>) {
-    const cityId = BigInt(id);
+    const cityId = safeBigInt(id);
     return prisma.$transaction(async (tx) => {
       const city = await tx.city.findUnique({ where: { id: cityId } });
       if (!city) throw new ApiError(404, 'City not found');
@@ -109,7 +110,7 @@ export class GeoService {
   }
 
   async updateProvince(id: string, data: Record<string, unknown>) {
-    const provinceId = BigInt(id);
+    const provinceId = safeBigInt(id);
     return prisma.$transaction(async (tx) => {
       const province = await tx.province.findUnique({ where: { id: provinceId } });
       if (!province) throw new ApiError(404, 'Province not found');
@@ -129,7 +130,7 @@ export class GeoService {
 
   async updateNeighborhood(id: string, data: Record<string, unknown>) {
     const result = await prisma.neighborhood.update({
-      where: { id: BigInt(id) },
+      where: { id: safeBigInt(id) },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: this.handleBigInts(data) as any,
     });
@@ -138,8 +139,8 @@ export class GeoService {
 
   private handleBigInts(data: Record<string, unknown>) {
     const result = { ...data } as Record<string, unknown>;
-    if (result.provinceId) result.provinceId = BigInt(result.provinceId as string | number | bigint);
-    if (result.cityId) result.cityId = BigInt(result.cityId as string | number | bigint);
+    if (result.provinceId) result.provinceId = safeBigInt(result.provinceId, 'provinceId');
+    if (result.cityId) result.cityId = safeBigInt(result.cityId, 'cityId');
     return result;
   }
 }

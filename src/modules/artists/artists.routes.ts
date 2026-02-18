@@ -57,10 +57,10 @@ router.get('/specialties', controller.listSpecialties);
 
 registry.registerPath({
   method: 'get',
-  path: '/artists/{slug}',
+  path: '/artists/{idOrSlug}',
   summary: 'Get artist by slug',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Artist details',
@@ -72,10 +72,10 @@ router.get('/:slug', controller.getArtist);
 
 registry.registerPath({
   method: 'get',
-  path: '/artists/{slug}/reviews',
+  path: '/artists/{idOrSlug}/reviews',
   summary: 'Get artist reviews',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'List of reviews',
@@ -111,11 +111,11 @@ router.post(
 
 registry.registerPath({
   method: 'patch',
-  path: '/artists/{id}',
+  path: '/artists/{idOrSlug}',
   summary: 'Update an artist',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: updateArtistSchema.shape.body } } }
   },
@@ -135,11 +135,11 @@ router.patch(
 
 registry.registerPath({
   method: 'delete',
-  path: '/artists/{id}',
+  path: '/artists/{idOrSlug}',
   summary: 'Delete an artist',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Artist deleted',
@@ -155,11 +155,11 @@ router.delete(
 
 registry.registerPath({
   method: 'post',
-  path: '/artists/{id}/avatar',
+  path: '/artists/{idOrSlug}/avatar',
   summary: 'Set artist avatar',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: z.object({ mediaId: z.string() }) } } }
   },
@@ -179,11 +179,11 @@ router.post(
 
 registry.registerPath({
   method: 'post',
-  path: '/artists/{id}/cover',
+  path: '/artists/{idOrSlug}/cover',
   summary: 'Set artist cover',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: setMediaSchema.shape.body } } }
   },
@@ -203,11 +203,11 @@ router.post(
 
 registry.registerPath({
   method: 'post',
-  path: '/artists/{id}/gallery',
+  path: '/artists/{idOrSlug}/gallery',
   summary: 'Add to artist gallery',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: setMediaSchema.shape.body } } }
   },
@@ -227,11 +227,11 @@ router.post(
 
 registry.registerPath({
   method: 'post',
-  path: '/artists/{id}/certifications',
+  path: '/artists/{idOrSlug}/certifications',
   summary: 'Add certification to artist',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: certificationSchema.shape.body } } }
   },
@@ -251,12 +251,12 @@ router.post(
 
 registry.registerPath({
   method: 'patch',
-  path: '/artists/{id}/certifications/{certId}',
+  path: '/artists/{idOrSlug}/certifications/{certId}',
   summary: 'Update artist certification',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [
-    { name: 'id', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
     { name: 'certId', in: 'path', schema: { type: 'string' }, required: true }
   ],
   request: {
@@ -278,12 +278,12 @@ router.patch(
 
 registry.registerPath({
   method: 'delete',
-  path: '/artists/{id}/certifications/{certId}',
+  path: '/artists/{idOrSlug}/certifications/{certId}',
   summary: 'Delete artist certification',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [
-    { name: 'id', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
     { name: 'certId', in: 'path', schema: { type: 'string' }, required: true }
   ],
   responses: {
@@ -301,12 +301,12 @@ router.delete(
 
 registry.registerPath({
   method: 'patch',
-  path: '/artists/{id}/certifications/{certId}/verify',
+  path: '/artists/{idOrSlug}/certifications/{certId}/verify',
   summary: 'Verify artist certification (Staff)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [
-    { name: 'id', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
     { name: 'certId', in: 'path', schema: { type: 'string' }, required: true }
   ],
   responses: {
@@ -325,11 +325,11 @@ router.patch(
 
 registry.registerPath({
   method: 'post',
-  path: '/artists/{id}/specialties',
+  path: '/artists/{idOrSlug}/specialties',
   summary: 'Assign specialties to artist',
   tags: [tag],
   security: [{ bearerAuth: [] }],
-  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   request: {
     body: { content: { 'application/json': { schema: assignSpecialtiesSchema.shape.body } } }
   },

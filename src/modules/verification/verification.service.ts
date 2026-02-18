@@ -1,12 +1,13 @@
 import { prisma } from '../../shared/db/prisma';
 import { VerificationStatus, MediaKind } from '@prisma/client';
 import { ApiError } from '../../shared/errors/ApiError';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 export class VerificationService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async requestVerification(userId: bigint, data: any) {
     const { targetType, targetId, notes, documents } = data;
-    const tId = BigInt(targetId);
+    const tId = safeBigInt(targetId, 'targetId');
 
     return prisma.$transaction(async (tx) => {
       // 1. Check if target exists and user has permission (is owner)
@@ -36,7 +37,7 @@ export class VerificationService {
 
       const docData = [];
       for (const doc of documents) {
-        const mediaId = BigInt(doc.mediaId);
+        const mediaId = safeBigInt(doc.mediaId, 'mediaId');
         const media = await tx.media.findUnique({ where: { id: mediaId } });
         if (!media) throw new ApiError(404, `Media ${doc.mediaId} not found`);
         if (media.uploadedBy !== userId) throw new ApiError(403, `You do not own media ${doc.mediaId}`);

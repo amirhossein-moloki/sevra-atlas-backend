@@ -13,6 +13,18 @@ export const rateLimit = (
     if (process.env.ENABLE_RATE_LIMIT === 'false') {
       return next();
     }
+
+    // Bypass for whitelisted IPs or bypass token
+    const whitelist = process.env.RATE_LIMIT_WHITELIST_IPS?.split(',') || [];
+    const bypassToken = process.env.RATE_LIMIT_BYPASS_TOKEN;
+
+    if (
+      (req.ip && whitelist.includes(req.ip)) ||
+      (bypassToken && req.headers['x-rate-limit-bypass'] === bypassToken)
+    ) {
+      return next();
+    }
+
     const key = keyGenerator ? keyGenerator(req) : req.ip;
     const redisKey = `ratelimit:${prefix}:${key}`;
 

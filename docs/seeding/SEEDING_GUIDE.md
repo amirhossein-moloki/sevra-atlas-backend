@@ -29,23 +29,25 @@ This document outlines the strategy, targets, and execution plan for populating 
 
 | Flow | Min Pages | Filter Hit-Rate | Detail Completeness | Realism Skew |
 |---|---|---|---|---|
-| **Salons** | 5 | Top 10 cities yield >= 2 pages each | Avatar, Cover, 3+ Gallery, 8+ Reviews | 10% get 50% reviews |
-| **Artists** | 5 | Top 5 specialties yield >= 2 pages each | Avatar, Bio, 3+ specialties | Power law distribution |
-| **Blog** | 5 | Top 5 categories yield >= 1 page each | Cover, Author, 10+ Comments | 20% are "Hot" |
+| **Salons** | 5 | Top cities yield >= 2 pages each | Avatar, Cover, partial Gallery, 8+ Reviews | 10% get 50% reviews |
+| **Artists** | 5 | Top cities yield >= 2 pages each | Avatar, Bio | Power law distribution |
+| **Blog** | 5 | Top categories yield >= 1 page each | Cover, Author, 5-10 Comments | 20% are "Hot" |
 
 ---
 
 ## 3. Scale-Aware Target Plan (Phase 2)
 
-Targets are automatically derived from API pagination defaults and scaled based on the selected mode.
+Targets are automatically derived from API pagination defaults, filter requirements, and scaled based on the selected mode.
 
-| Model | Justification | UI_SMALL (1x) | UI_MEDIUM (2.5x) | UI_LARGE (5x) |
+### Formula:
+`required = max(pageSize * minPages, pageSize * 2 * distinctCitiesToUse)`
+
+| Model | Justification | UI_SMALL | UI_MEDIUM | UI_LARGE |
 |---|---|---|---|---|
-| Salon | pageSize(20)*minPages(5)*complexity(4) | 400 | 1000 | 2000 |
-| Artist | pageSize(20)*minPages(5)*complexity(4) | 400 | 1000 | 2000 |
-| Post | pageSize(12)*minPages(5)*complexity(2) | 120 | 300 | 600 |
-| Review | (Salons+Artists)*8 | 6400 | 16000 | 32000 |
-| User | Base(500) * Mode | 500 | 1250 | 2500 |
+| Salon | pageSize(20)*hitDepth(2)*cities | 320 (8 cities) | 480 (12 cities) | 800 (20 cities) |
+| Artist | pageSize(20)*hitDepth(2)*cities | 320 (8 cities) | 480 (12 cities) | 800 (20 cities) |
+| Review | (Salons+Artists)*multiplier | ~1600 (2.5x) | ~7680 (8x) | ~19200 (12x) |
+| User | Base * Scale | 150 | 500 | 1200 |
 
 ---
 
@@ -55,20 +57,20 @@ Targets are automatically derived from API pagination defaults and scaled based 
 |---|---|---|
 | `User.phoneNumber` | `+989` + 9 digits | Deterministic based on index. |
 | `Salon.name` | Prefix + Name | Mixed from `salon_names.json`. |
-| `Salon.addressLine` | Persian address pattern | "خیابان" + Name + "پلاک" + Number. |
+| `Salon.summary` | Latin transliteration included | Enhances searchability. |
 | `City.nameFa` | Persian City Name | `geo_fa.json`. |
 
-**Localization**: All UI-visible strings use Persian (fa-IR) characters and syntax. Consistency is maintained across geographic hierarchies.
+**Search Realism**: Names include both Persian characters and Latin transliterations to test broad search coverage.
 
 ---
 
 ## 5. Media & Asset Strategy (Phase 4)
 
 - **Primary Source**: Pinned Unsplash IDs (Stable CDN).
-- **Redundancy**: Pinned Picsum IDs as fallback.
+- **Redundancy**: Pinned backup URLs (Real photos, no dummy placeholders).
 - **Idempotency**: `storageKey` is derived from the Asset ID to prevent duplicates.
 - **Distribution**:
-  - Salons: Avatar + Cover + 3 Gallery items.
+  - Salons: Avatar + Cover + partial Gallery items.
   - Artists: Avatar.
   - Posts: Cover.
 
@@ -84,7 +86,7 @@ The seeder supports three modes controlled by environment variables.
   ```
 - **Modes**:
   ```bash
-  npm run seed:ui:small   # Fast daily dev
+  npm run seed:ui:small   # Fast daily dev (Lighter load)
   npm run seed:ui:medium  # Staging/QA
   npm run seed:ui:large   # Demo/Performance
   ```
@@ -93,11 +95,12 @@ The seeder supports three modes controlled by environment variables.
 
 ## 7. Frontend QA Checklist
 
-- [ ] **Salon Listing**: 5+ pages available; filters (City, Price, WomenOnly) yield valid results.
+- [ ] **Search Coverage**: Search by Persian name, partial string, and Latin transliteration yields results.
+- [ ] **Salon Listing**: 5+ pages available; filter by City (e.g. Tehran) yields >= 2 pages.
 - [ ] **Salon Detail**: Rating/Count match list; Persian text is correct; Gallery loads.
-- [ ] **Artists**: 5+ pages available; specialties show correct results.
+- [ ] **Artists**: 5+ pages available; filter by City works.
 - [ ] **Blog**: "Hot" posts appear; pagination works.
-- [ ] **Edge Cases**: Empty state (0 reviews) and High-volume (50+ reviews) verified.
+- [ ] **Empty State**: Verify entities with 0 reviews (available in SMALL mode).
 
 ---
 
@@ -107,4 +110,3 @@ If connectivity fails, ensure:
 1. Docker containers are running: `docker compose -f docker-compose.dev.yml up -d postgres-dev`
 2. Network access to pull images.
 3. Database URL matches: `postgresql://jules:password@localhost:5432/sevra_atlas?schema=public`
-4. Schema is initialized: `npx prisma migrate dev`

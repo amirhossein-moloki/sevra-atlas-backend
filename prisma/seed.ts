@@ -3,7 +3,8 @@ import * as path from 'path';
 
 async function main() {
   console.log('Redirecting to modular seeder...');
-  const child = spawn('npx', ['ts-node', path.join(__dirname, '../scripts/seeder/orchestrator.ts')], {
+  const args = ['ts-node', path.join(__dirname, '../scripts/seeder/orchestrator.ts'), ...process.argv.slice(2)];
+  const child = spawn('npx', args, {
     stdio: 'inherit',
     env: { ...process.env, TS_NODE_PROJECT: 'tsconfig.json' }
   });

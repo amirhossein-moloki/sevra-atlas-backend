@@ -11,42 +11,43 @@ export interface ComputedTarget {
 export function deriveTargets(pagination: ApiPagination[], mode: SeedMode = 'UI_SMALL'): ComputedTarget[] {
   const targets: ComputedTarget[] = [];
   const minPages = 5;
+  const filterHitDepth = 2; // min pages per filter option
 
-  const modeMultiplier = {
-    'UI_SMALL': 1,
-    'UI_MEDIUM': 2.5,
-    'UI_LARGE': 5
+  // Scale parameters
+  const config = {
+    'UI_SMALL':  { cityCount: 8,  userBase: 150, reviewMultiplier: 2.5, postMultiplier: 1 },
+    'UI_MEDIUM': { cityCount: 12, userBase: 500, reviewMultiplier: 8,   postMultiplier: 2.5 },
+    'UI_LARGE':  { cityCount: 20, userBase: 1200, reviewMultiplier: 12,  postMultiplier: 5 }
   }[mode];
 
   const coreModels = ['Salon', 'Artist', 'Post'];
 
   for (const p of pagination) {
     if (coreModels.includes(p.model)) {
-        let complexityFactor = 1;
-        if (['Salon', 'Artist'].includes(p.model)) complexityFactor = 4; // To cover top filter combinations
-        if (p.model === 'Post') complexityFactor = 2;
+        let required = p.pageSize * minPages;
+        let justification = `pageSize(${p.pageSize}) * minPages(${minPages})`;
 
-        const baseRequired = p.pageSize * minPages * complexityFactor;
-        const scaledRequired = Math.ceil(baseRequired * modeMultiplier);
+        if (['Salon', 'Artist'].includes(p.model)) {
+            const filterTarget = p.pageSize * filterHitDepth * config.cityCount;
+            if (filterTarget > required) {
+                required = filterTarget;
+                justification = `pageSize(${p.pageSize}) * hitDepth(${filterHitDepth}) * cities(${config.cityCount})`;
+            }
+        }
 
-        targets.push({
-          model: p.model,
-          required: scaledRequired,
-          justification: `pageSize(${p.pageSize}) * minPages(${minPages}) * complexity(${complexityFactor}) * mode(${modeMultiplier}x)`
-        });
+        if (p.model === 'Post') {
+            required = Math.ceil(required * config.postMultiplier);
+            justification += ` * postMultiplier(${config.postMultiplier})`;
+        }
+
+        targets.push({ model: p.model, required, justification });
     }
   }
 
   // Infrastructure targets
-  targets.push({ model: 'Province', required: 5, justification: 'Basic geo coverage' });
-  targets.push({ model: 'City', required: 10, justification: 'Basic geo coverage' });
-
-  const userBase = 500;
-  targets.push({
-    model: 'User',
-    required: Math.ceil(userBase * modeMultiplier),
-    justification: `Base(500) * mode(${modeMultiplier}x)`
-  });
+  targets.push({ model: 'Province', required: 5, justification: 'Static geo coverage' });
+  targets.push({ model: 'City', required: config.cityCount, justification: `Target cities for ${mode}` });
+  targets.push({ model: 'User', required: config.userBase, justification: `Target users for ${mode}` });
 
   const salons = targets.find(t => t.model === 'Salon')?.required || 0;
   const artists = targets.find(t => t.model === 'Artist')?.required || 0;
@@ -54,20 +55,20 @@ export function deriveTargets(pagination: ApiPagination[], mode: SeedMode = 'UI_
 
   targets.push({
     model: 'Review',
-    required: Math.ceil((salons + artists) * 8),
-    justification: '(Salons+Artists) * 8 avg reviews'
+    required: Math.ceil((salons + artists) * config.reviewMultiplier),
+    justification: `(Salons+Artists) * ${config.reviewMultiplier} avg reviews (Skewed)`
   });
 
   targets.push({
     model: 'Comment',
-    required: Math.ceil(posts * 10),
-    justification: 'Posts * 10 avg comments'
+    required: Math.ceil(posts * (mode === 'UI_SMALL' ? 5 : 10)),
+    justification: `Posts * ${mode === 'UI_SMALL' ? 5 : 10} avg comments`
   });
 
   targets.push({
     model: 'Media',
-    required: Math.ceil((salons + artists) * 5 + posts + 500),
-    justification: 'Avatars, Covers, and galleries'
+    required: Math.ceil((salons + artists) * 3 + posts + 200),
+    justification: 'Avatar + Cover + partial Gallery + Post Covers'
   });
 
   return targets;

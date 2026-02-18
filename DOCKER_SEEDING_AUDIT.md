@@ -47,7 +47,26 @@ The project features a modular, idempotent seeding system located in `scripts/se
 | **Deployment Failure** | High | The `seed` service will fail in prod, potentially blocking CI/CD pipelines. |
 | **Wrong DB Seeding** | Moderate | Relies on `DATABASE_URL`; a misconfigured `.env.production` could seed a live DB. |
 
-## 5. Recommended Safe Setup
+## 5. How to Run Seeding for Production
+
+Currently, because the production Docker image lacks the source scripts and `ts-node`, you cannot run the seed command directly inside the production container using `docker compose exec`.
+
+### Recommended Method (Remote Execution)
+The safest and most reliable way is to run the seeder from a management environment (like your local machine or a CI/CD runner) that has the source code and can connect to the production database:
+
+```bash
+# 1. Set the production database URL
+export DATABASE_URL="postgresql://user:password@production-db-host:5432/db_name"
+
+# 2. Run the seeder with the desired mode
+# Options: UI_SMALL, UI_MEDIUM, UI_LARGE
+SEED_MODE=UI_SMALL npm run prisma:seed
+```
+
+### Manual Execution via Docker (Requires Image Update)
+To run it directly inside Docker, the `Dockerfile.api` must be modified to include the `scripts/` directory in the final stage, and the `seed:prod` script must be updated to use the compiled `.js` files.
+
+## 6. Recommended Safe Setup
 
 ### For Local Development
 Keep seeding **manual** to speed up container startup and avoid unexpected data changes.

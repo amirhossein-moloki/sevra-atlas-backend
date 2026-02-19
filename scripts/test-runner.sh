@@ -10,7 +10,7 @@ echo "--- Starting Test Runner Setup ---" | tee -a "$LOG_FILE"
 
 # 1. Install necessary system dependencies for alpine
 echo "Installing system dependencies..." | tee -a "$LOG_FILE"
-apk add --no-cache netcat-openbsd postgresql-client | tee -a "$LOG_FILE"
+apk add --no-cache netcat-openbsd postgresql-client openssl libc6-compat | tee -a "$LOG_FILE"
 
 # 2. Install devDependencies
 echo "Installing node dependencies..." | tee -a "$LOG_FILE"
@@ -51,16 +51,16 @@ export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGR
 # 9. Execute tests and capture output while preserving exit code
 echo "Executing tests..." | tee -a "$LOG_FILE"
 
-# We use a temporary file to capture output and preserve exit status in POSIX sh
+# Try to enable pipefail to capture Jest's exit code when piping to tee
+# If the shell doesn't support it, we fall back to the exit code of tee (less ideal)
+set -o pipefail 2>/dev/null || true
+
 NODE_ENV=production \
 SANDBOX_MODE=true \
 ALLOW_PROD_WRITES=false \
-npx jest --config jest.config.test-runner.js --runInBand --verbose > /tmp/jest_output 2>&1
+npx jest --config jest.config.test-runner.js --runInBand --verbose 2>&1 | tee -a "$LOG_FILE"
 
 TEST_EXIT_CODE=$?
-
-# Stream the captured output to console and log file
-cat /tmp/jest_output | tee -a "$LOG_FILE"
 
 echo "--- Test Runner Finished with code $TEST_EXIT_CODE ---" | tee -a "$LOG_FILE"
 

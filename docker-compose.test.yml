@@ -2,15 +2,15 @@ services:
   postgres-test:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: jules
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: sevra_atlas_test
+      POSTGRES_USER: ${POSTGRES_USER:-jules}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-sevra_atlas_test}
     tmpfs:
       - /var/lib/postgresql/data
     networks:
       - sevra-test-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jules -d sevra_atlas_test"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-jules} -d $${POSTGRES_DB:-sevra_atlas_test}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -32,11 +32,11 @@ services:
       - .:/app
     environment:
       - NODE_ENV=test
-      - DATABASE_URL=postgresql://jules:password@postgres-test:5432/sevra_atlas_test?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-jules}:${POSTGRES_PASSWORD:-password}@postgres-test:5432/${POSTGRES_DB:-sevra_atlas_test}?schema=public
       - REDIS_URL=redis://redis-test:6379
       - REDIS_QUEUE_URL=redis://redis-test:6379
-      - JWT_ACCESS_SECRET=test_secret
-      - JWT_REFRESH_SECRET=test_secret
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-test_secret}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-test_secret}
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -49,4 +49,5 @@ services:
 
 networks:
   sevra-test-network:
+    name: sevra-test-net
     driver: bridge

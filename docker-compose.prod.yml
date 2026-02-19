@@ -211,6 +211,7 @@ services:
 
 networks:
   sevra-prod-network:
+    name: sevra-prod-net
     driver: bridge
 
 volumes:

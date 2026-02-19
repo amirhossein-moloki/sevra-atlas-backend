@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { VerificationController } from './verification.controller';
 import { requireAuth, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
+import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { requestVerificationSchema, reviewVerificationSchema } from './verification.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 import { VerificationRequestSchema } from '../../shared/openapi/schemas';
@@ -30,6 +31,7 @@ registry.registerPath({
 router.post(
   '/request',
   requireAuth(),
+  rateLimit('verification_request', 5, 3600), // 5 requests per hour
   validate(requestVerificationSchema),
   controller.requestVerification
 );

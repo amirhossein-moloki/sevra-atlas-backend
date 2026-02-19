@@ -1,10 +1,9 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { EntityType, SubscriptionStatus, PlanTier } from '@prisma/client';
+import { EntityType, SubscriptionStatus, PlanTier, Prisma } from '@prisma/client';
 import { updateEntityVisibilityScore } from '../../shared/utils/ranking-updater';
 import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
-import { safeBigInt } from '../../shared/utils/bigint';
 
 export class SubscriptionsService {
   async listPlans(entityType?: EntityType) {
@@ -21,7 +20,7 @@ export class SubscriptionsService {
   }
 
   async assignPlanInternal(
-    tx: any, // Prisma.TransactionClient
+    tx: Prisma.TransactionClient,
     targetType: 'SALON' | 'ARTIST',
     targetId: bigint,
     planId: bigint,
@@ -244,13 +243,13 @@ export class SubscriptionsService {
     };
   }
 
-  async trackClick(targetType: EntityType, targetId: bigint, metadata: any = {}) {
+  async trackClick(targetType: EntityType, targetId: bigint, metadata: Record<string, unknown> = {}) {
     return prisma.analyticsEvent.create({
       data: {
         eventType: 'CLICK',
         entityType: targetType,
         entityId: targetId,
-        metadata
+        metadata: metadata as Prisma.InputJsonValue
       }
     });
   }

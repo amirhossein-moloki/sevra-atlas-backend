@@ -4,41 +4,30 @@ import { authMiddleware } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { initZibalSchema, zibalCallbackSchema } from './payments.validators';
+import { registry, withApiSuccess, z } from '../../shared/openapi/registry';
+import { PaymentSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new PaymentsController();
 
-/**
- * @openapi
- * /api/payments/zibal/init:
- *   post:
- *     summary: Initiate a Zibal payment
- *     tags: [Payments]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [amount, planId]
- *             properties:
- *               amount:
- *                 type: integer
- *               planId:
- *                 type: string
- *               salonId:
- *                 type: string
- *               artistId:
- *                 type: string
- *               description:
- *                 type: string
- *               idempotencyKey:
- *                 type: string
- *               mobile:
- *                 type: string
- */
+const tag = 'Payments';
+
+registry.registerPath({
+  method: 'post',
+  path: '/payments/zibal/init',
+  summary: 'Initiate a Zibal payment',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: { content: { 'application/json': { schema: initZibalSchema.shape.body } } }
+  },
+  responses: {
+    200: {
+      description: 'Payment initiated',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ trackId: z.string(), payUrl: z.string() })) } }
+    }
+  }
+});
 router.post(
   '/zibal/init',
   authMiddleware,
@@ -47,37 +36,39 @@ router.post(
   controller.initZibal
 );
 
-/**
- * @openapi
- * /api/payments/zibal/callback:
- *   get:
- *     summary: Zibal payment callback
- *     tags: [Payments]
- *     parameters:
- *       - in: query
- *         name: trackId
- *         required: true
- *         schema: { type: string }
- *       - in: query
- *         name: success
- *         required: true
- *         schema: { type: string }
- *       - in: query
- *         name: status
- *         required: true
- *         schema: { type: string }
- */
+registry.registerPath({
+  method: 'get',
+  path: '/payments/zibal/callback',
+  summary: 'Zibal payment callback',
+  tags: [tag],
+  parameters: [
+    { name: 'trackId', in: 'query', schema: { type: 'string' }, required: true },
+    { name: 'success', in: 'query', schema: { type: 'string' }, required: true },
+    { name: 'status', in: 'query', schema: { type: 'string' }, required: true },
+  ],
+  responses: {
+    200: {
+      description: 'Payment processed',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
+    }
+  }
+});
 router.get('/zibal/callback', validate(zibalCallbackSchema), controller.zibalCallback);
 
-/**
- * @openapi
- * /api/payments/{id}:
- *   get:
- *     summary: Get payment details
- *     tags: [Payments]
- *     security:
- *       - bearerAuth: []
- */
+registry.registerPath({
+  method: 'get',
+  path: '/payments/{id}',
+  summary: 'Get payment details',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
+  responses: {
+    200: {
+      description: 'Payment details',
+      content: { 'application/json': { schema: withApiSuccess(PaymentSchema) } }
+    }
+  }
+});
 router.get('/:id', authMiddleware, controller.getPaymentStatus);
 
 export default router;

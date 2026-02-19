@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { SalonsService } from './salons.service';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
-import { ApiError } from '../../shared/errors/ApiError';
 import { isAdmin } from '../../shared/auth/roles';
 import { safeBigInt } from '../../shared/utils/bigint';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';

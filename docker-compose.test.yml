@@ -37,6 +37,7 @@ services:
       - REDIS_QUEUE_URL=redis://redis-test:6379
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-test_secret}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-test_secret}
+      - SESSION_SECRET=${SESSION_SECRET:-test_session_secret}
     depends_on:
       postgres-test:
         condition: service_healthy

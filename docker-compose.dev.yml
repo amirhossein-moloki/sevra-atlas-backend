@@ -34,6 +34,7 @@ services:
       - REDIS_QUEUE_URL=redis://redis-dev:6379
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-dev_secret}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-dev_secret}
+      - SESSION_SECRET=${SESSION_SECRET:-dev_session_secret}
     ports:
       - "3000:3000"
     depends_on:

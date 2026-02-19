@@ -3,7 +3,7 @@ import { config } from '../../config';
 import { getRequestId } from '../utils/context';
 
 export const logger = pino({
-  level: config.logging.level,
+  level: config.logging.level || 'info',
   redact: {
     paths: [
       'password',

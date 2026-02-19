@@ -24,7 +24,8 @@ if (!_env.success) {
 }
 
 type EnvData = z.infer<typeof envSchema>;
-const envData = _env.success ? _env.data : {} as EnvData;
+// If validation fails, we try to use partial data to at least get defaults for optional fields
+const envData = _env.success ? _env.data : (envSchema.partial().parse(process.env) as EnvData);
 
 // Extra production checks for missing secrets
 if (nodeEnv === 'production') {

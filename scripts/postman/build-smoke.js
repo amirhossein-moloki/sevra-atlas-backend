@@ -12,11 +12,11 @@ const fullCollection = JSON.parse(fs.readFileSync(fullCollectionPath, 'utf8'));
 const smokeModules = [
     '00-setup',
     '01-auth',
-    'health',
-    'geo',
-    'services',
-    'specialties',
-    'search'
+    'Health',
+    'Geo',
+    'Services',
+    'Specialties',
+    'Search'
 ];
 
 const smokeCollection = {

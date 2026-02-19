@@ -115,9 +115,9 @@ function buildEnvironment(name, envFile, composeFile, fallbackUrl) {
     };
 }
 
-const local = buildEnvironment('Local', '.env.example', 'docker-compose.yml', 'http://localhost:3000');
-const dev = buildEnvironment('Dev', '.env.development.example', 'docker-compose.dev.yml', 'http://localhost:3000');
-const prod = buildEnvironment('Prod', '.env.production.example', 'docker-compose.prod.yml', 'https://api.sevra.com');
+const local = buildEnvironment('Local', '.env.example', 'docker-compose.yml', 'http://localhost:3000/api/v1');
+const dev = buildEnvironment('Dev', '.env.development.example', 'docker-compose.dev.yml', 'http://localhost:3000/api/v1');
+const prod = buildEnvironment('Prod', '.env.production.example', 'docker-compose.prod.yml', 'https://api.sevra.com/api/v1');
 
 fs.writeFileSync('local.env.json', JSON.stringify(local, null, 2));
 fs.writeFileSync('dev.env.json', JSON.stringify(dev, null, 2));

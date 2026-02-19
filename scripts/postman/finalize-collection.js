@@ -32,7 +32,7 @@ const setupFolder = {
             }],
             request: {
                 method: "GET",
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "geo", "provinces"] }
+                url: { host: ["{{baseUrl}}"], path: ["geo", "provinces"] }
             }
         },
         {
@@ -54,7 +54,7 @@ const setupFolder = {
             }],
             request: {
                 method: "GET",
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "geo", "cities"], query: [{ key: "provinceSlug", value: "{{provinceSlug}}" }] }
+                url: { host: ["{{baseUrl}}"], path: ["geo", "cities"], query: [{ key: "provinceSlug", value: "{{provinceSlug}}" }] }
             }
         },
         {
@@ -76,7 +76,7 @@ const setupFolder = {
             }],
             request: {
                 method: "GET",
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "services"] }
+                url: { host: ["{{baseUrl}}"], path: ["services"] }
             }
         },
         {
@@ -98,7 +98,7 @@ const setupFolder = {
             }],
             request: {
                 method: "GET",
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "salons"] }
+                url: { host: ["{{baseUrl}}"], path: ["salons"] }
             }
         },
         {
@@ -120,7 +120,7 @@ const setupFolder = {
             }],
             request: {
                 method: "GET",
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "artists"] }
+                url: { host: ["{{baseUrl}}"], path: ["artists"] }
             }
         },
         {
@@ -142,7 +142,7 @@ const setupFolder = {
             }],
             request: {
                 method: "GET",
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "blog", "posts"] }
+                url: { host: ["{{baseUrl}}"], path: ["blog", "posts"] }
             }
         }
     ]
@@ -171,7 +171,7 @@ const authFolder = {
                     mode: "raw",
                     raw: JSON.stringify({ phoneNumber: "{{testPhoneNumber}}" })
                 },
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "auth", "otp", "request"] }
+                url: { host: ["{{baseUrl}}"], path: ["auth", "otp", "request"] }
             }
         },
         {
@@ -199,7 +199,7 @@ const authFolder = {
                     mode: "raw",
                     raw: JSON.stringify({ phoneNumber: "{{testPhoneNumber}}", code: "{{testOtpCode}}" })
                 },
-                url: { host: ["{{baseUrl}}"], path: ["api", "v1", "auth", "otp", "verify"] }
+                url: { host: ["{{baseUrl}}"], path: ["auth", "otp", "verify"] }
             }
         }
     ]
@@ -230,7 +230,12 @@ if (matches) {
                 timestamp: new Date().toISOString()
             });
             pm.environment.set("errorLog", JSON.stringify(errors));
-            pm.execution.skip();
+            if (pm.execution && typeof pm.execution.skip === 'function') {
+                pm.execution.skip();
+            } else {
+                console.warn("pm.execution.skip is not supported. Skipping via setNextRequest if possible.");
+                // Fallback for older Newman/Postman if needed, though less reliable for individual requests
+            }
             break;
         }
     }
@@ -290,6 +295,7 @@ try {
     }
 
     if (status < 200 || status >= 300) {
+        // Log error to environment for summary extraction
         let errorLog = pm.environment.get("errorLog") || "[]";
         let errors = JSON.parse(errorLog);
         errors.push({
@@ -302,6 +308,11 @@ try {
             timestamp: new Date().toISOString()
         });
         pm.environment.set("errorLog", JSON.stringify(errors));
+
+        // Non-blocking skip on failure for setup/auth if critical
+        if (pm.info.requestName.includes("Setup") || pm.info.requestName.includes("Auth")) {
+             console.error("Critical Setup/Auth failure: " + requestName);
+        }
     }
 } catch (e) {
     let errorLog = pm.environment.get("errorLog") || "[]";
@@ -320,6 +331,15 @@ try {
 
 function processItems(items) {
     items.forEach(item => {
+        // Fix incorrect method names in existing scripts
+        if (item.event) {
+            item.event.forEach(e => {
+                if (e.script && e.script.exec) {
+                    e.script.exec = e.script.exec.map(line => line.replace(/pm\.execution\.skipRequest\(\)/g, 'pm.execution.skip()'));
+                }
+            });
+        }
+
         if (item.request) {
             const path = (item.request.url.path || []).join('/');
 
@@ -406,6 +426,28 @@ collection.item.unshift(authFolder);
 collection.item.unshift(setupFolder);
 
 processItems(collection.item);
+
+// Fix the 'utils' issue by moving collection-level Test script to Pre-request
+if (collection.event) {
+    const testEventIndex = collection.event.findIndex(e => e.listen === 'test');
+    if (testEventIndex !== -1) {
+        const testEvent = collection.event[testEventIndex];
+        const utilsLines = testEvent.script.exec.filter(line => line.includes('utils =') || line.includes('assertSuccess') || line.includes('assertError') || line.includes('saveToEnv'));
+
+        if (utilsLines.length > 0) {
+            console.log("Moving utils definition from Collection Test to Collection Pre-request for better compatibility.");
+            let preEvent = collection.event.find(e => e.listen === 'prerequest');
+            if (!preEvent) {
+                preEvent = { listen: 'prerequest', script: { exec: [], type: 'text/javascript' } };
+                collection.event.push(preEvent);
+            }
+            // Prepend utils to pre-request
+            preEvent.script.exec = [...testEvent.script.exec, ...preEvent.script.exec];
+            // Remove from test event
+            collection.event.splice(testEventIndex, 1);
+        }
+    }
+}
 
 const undocumentedFolder = {
     name: "Undocumented Endpoints",

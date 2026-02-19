@@ -155,7 +155,11 @@ if (matches) {
 
         if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {
             console.warn("Skipping " + pm.info.requestName + " due to missing dependency: " + varName);
-            pm.execution.skip();
+            if (pm.execution && typeof pm.execution.skip === 'function') {
+                pm.execution.skip();
+            } else {
+                console.warn("pm.execution.skip not supported. Request will likely fail.");
+            }
             break;
         }
     }
@@ -169,6 +173,15 @@ if (!pm.environment.get("uniqueSuffix")) {
 function processItems(items, parentName = '') {
     items.forEach(item => {
         const fullName = parentName + ' / ' + item.name;
+
+        // Fix incorrect method names in existing scripts
+        if (item.event) {
+            item.event.forEach(e => {
+                if (e.script && e.script.exec) {
+                    e.script.exec = e.script.exec.map(line => line.replace(/pm\.execution\.skipRequest\(\)/g, 'pm.execution.skip()'));
+                }
+            });
+        }
 
         // Apply pre-request script to all requests
         if (item.request) {
@@ -262,7 +275,7 @@ if (setupFolder) {
                 method: "GET",
                 url: {
                     host: ["{{baseUrl}}"],
-                    path: ["api", "v1", "blog", "taxonomy", "categories"]
+                    path: ["blog", "taxonomy", "categories"]
                 }
             }
         });

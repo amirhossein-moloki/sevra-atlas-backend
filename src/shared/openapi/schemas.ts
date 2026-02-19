@@ -245,3 +245,31 @@ export const ReportSchema = registry.register('Report', z.object({
   details: z.string().nullable(),
   status: z.string(),
 }));
+
+export const PlanSchema = registry.register('Plan', z.object({
+  id: z.string(),
+  name: z.string(),
+  entityType: z.string(),
+  tier: z.string(),
+  price: z.string(),
+  durationDays: z.number(),
+  features: z.array(z.string()),
+}));
+
+export const SubscriptionSchema = registry.register('Subscription', z.object({
+  id: z.string(),
+  planId: z.string(),
+  status: z.string(),
+  startDate: z.string(),
+  endDate: z.string().nullable(),
+  nextBillingDate: z.string().nullable(),
+}));
+
+export const PaymentSchema = registry.register('Payment', z.object({
+  id: z.string(),
+  amount: z.string(),
+  status: z.string(),
+  trackId: z.string().nullable(),
+  paymentUrl: z.string().nullable(),
+  createdAt: z.string(),
+}));

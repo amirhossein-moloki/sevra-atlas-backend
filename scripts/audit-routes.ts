@@ -96,6 +96,7 @@ async function audit() {
   const ignorePatterns = [
     /^\/api-docs/,
     /^\/docs/,
+    /^\/metrics/,
   ];
 
   for (const ee of normalizedExpress) {

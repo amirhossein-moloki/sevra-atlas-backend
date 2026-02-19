@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { MediaController } from './media.controller';
 import { authMiddleware, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
+import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { createMediaSchema, updateMediaSchema } from './media.validators';
 import multer from 'multer';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
@@ -53,6 +54,7 @@ registry.registerPath({
 router.post(
   '/',
   authMiddleware,
+  rateLimit('media_register', 20, 600),
   validate(createMediaSchema),
   controller.createMedia
 );
@@ -97,6 +99,7 @@ registry.registerPath({
 router.post(
   '/upload',
   authMiddleware,
+  rateLimit('media_upload', 10, 600), // 10 uploads per 10 minutes
   upload.single('file'),
   controller.uploadAndOptimize
 );

@@ -68,7 +68,7 @@ registry.registerPath({
     }
   }
 });
-router.get('/:slug', controller.getArtist);
+router.get('/:idOrSlug', controller.getArtist);
 
 registry.registerPath({
   method: 'get',
@@ -83,7 +83,7 @@ registry.registerPath({
     }
   }
 });
-router.get('/:slug/reviews', reviewsController.getArtistReviews);
+router.get('/:idOrSlug/reviews', reviewsController.getArtistReviews);
 
 registry.registerPath({
   method: 'post',
@@ -127,7 +127,7 @@ registry.registerPath({
   }
 });
 router.patch(
-  '/:id',
+  '/:idOrSlug',
   requireAuth(),
   validate(updateArtistSchema),
   controller.updateArtist
@@ -148,7 +148,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id',
+  '/:idOrSlug',
   requireAuth(),
   controller.deleteArtist
 );
@@ -171,7 +171,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/avatar',
+  '/:idOrSlug/avatar',
   requireAuth(),
   validate(setMediaSchema),
   controller.setAvatar
@@ -195,7 +195,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/cover',
+  '/:idOrSlug/cover',
   requireAuth(),
   validate(setMediaSchema),
   controller.setCover
@@ -219,7 +219,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/gallery',
+  '/:idOrSlug/gallery',
   requireAuth(),
   validate(setMediaSchema),
   controller.addGallery
@@ -243,7 +243,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/certifications',
+  '/:idOrSlug/certifications',
   requireAuth(),
   validate(certificationSchema),
   controller.addCertification
@@ -270,7 +270,7 @@ registry.registerPath({
   }
 });
 router.patch(
-  '/:id/certifications/:certId',
+  '/:idOrSlug/certifications/:certId',
   requireAuth(),
   validate(certificationSchema.partial()),
   controller.updateCertification
@@ -294,7 +294,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id/certifications/:certId',
+  '/:idOrSlug/certifications/:certId',
   requireAuth(),
   controller.deleteCertification
 );
@@ -317,7 +317,7 @@ registry.registerPath({
   }
 });
 router.patch(
-  '/:id/certifications/:certId/verify',
+  '/:idOrSlug/certifications/:certId/verify',
   requireAuth(),
   requireStaff(),
   controller.verifyCertification
@@ -341,7 +341,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id/specialties',
+  '/:idOrSlug/specialties',
   requireAuth(),
   validate(assignSpecialtiesSchema),
   controller.assignSpecialties

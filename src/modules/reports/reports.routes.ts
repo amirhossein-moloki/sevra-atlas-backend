@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ReportsController } from './reports.controller';
 import { requireAuth, requireStaff } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
+import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { createReportSchema, updateReportStatusSchema } from './reports.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 import { ReportSchema } from '../../shared/openapi/schemas';
@@ -27,7 +28,13 @@ registry.registerPath({
     }
   }
 });
-router.post('/', requireAuth(), validate(createReportSchema), controller.createReport);
+router.post(
+  '/',
+  requireAuth(),
+  rateLimit('create_report', 10, 600), // 10 reports per 10 minutes
+  validate(createReportSchema),
+  controller.createReport
+);
 
 registry.registerPath({
   method: 'get',

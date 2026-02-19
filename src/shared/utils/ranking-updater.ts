@@ -1,6 +1,6 @@
 import { prisma } from '../db/prisma';
 import { calculateVisibilityScore } from './ranking';
-import { PlanTier, SubscriptionStatus } from '@prisma/client';
+import { PlanTier } from '@prisma/client';
 
 export async function updateEntityVisibilityScore(targetType: 'SALON' | 'ARTIST', targetId: bigint) {
   if (targetType === 'SALON') {

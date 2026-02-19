@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ReviewsController } from './reviews.controller';
 import { authMiddleware } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
+import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { createReviewSchema, voteReviewSchema } from './reviews.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 import { ReviewSchema } from '../../shared/openapi/schemas';
@@ -30,6 +31,7 @@ registry.registerPath({
 router.post(
   '/',
   authMiddleware,
+  rateLimit('create_review', 5, 600), // 5 reviews per 10 minutes
   validate(createReviewSchema),
   controller.createReview
 );
@@ -54,6 +56,7 @@ registry.registerPath({
 router.post(
   '/:id/vote',
   authMiddleware,
+  rateLimit('vote_review', 20, 60), // 20 votes per minute
   validate(voteReviewSchema),
   controller.voteReview
 );

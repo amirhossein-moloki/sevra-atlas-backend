@@ -56,7 +56,7 @@ registry.registerPath({
     }
   }
 });
-router.get('/:slug', controller.getSalon);
+router.get('/:idOrSlug', controller.getSalon);
 
 registry.registerPath({
   method: 'get',
@@ -71,7 +71,7 @@ registry.registerPath({
     }
   }
 });
-router.get('/:slug/reviews', reviewsController.getSalonReviews);
+router.get('/:idOrSlug/reviews', reviewsController.getSalonReviews);
 
 registry.registerPath({
   method: 'post',
@@ -116,7 +116,7 @@ registry.registerPath({
   }
 });
 router.patch(
-  '/:id(\\d+)',
+  '/:idOrSlug',
   requireAuth(),
   validate(updateSalonSchema),
   controller.updateSalon
@@ -137,7 +137,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id(\\d+)',
+  '/:idOrSlug',
   requireAuth(),
   controller.deleteSalon
 );
@@ -160,7 +160,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id(\\d+)/services',
+  '/:idOrSlug/services',
   requireAuth(),
   validate(assignServicesSchema),
   controller.assignServices
@@ -184,7 +184,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id(\\d+)/services/:serviceId(\\d+)',
+  '/:idOrSlug/services/:serviceId',
   requireAuth(),
   controller.removeService
 );
@@ -209,7 +209,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id(\\d+)/avatar',
+  '/:idOrSlug/avatar',
   requireAuth(),
   validate(setMediaSchema),
   controller.setAvatar
@@ -235,7 +235,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id(\\d+)/cover',
+  '/:idOrSlug/cover',
   requireAuth(),
   validate(setMediaSchema),
   controller.setCover
@@ -261,7 +261,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id(\\d+)/gallery',
+  '/:idOrSlug/gallery',
   requireAuth(),
   validate(setMediaSchema),
   controller.addGallery
@@ -285,7 +285,7 @@ registry.registerPath({
   }
 });
 router.post(
-  '/:id(\\d+)/artists',
+  '/:idOrSlug/artists',
   requireAuth(),
   validate(linkArtistSchema),
   controller.linkArtist
@@ -309,7 +309,7 @@ registry.registerPath({
   }
 });
 router.delete(
-  '/:id(\\d+)/artists/:artistId(\\d+)',
+  '/:idOrSlug/artists/:artistId',
   requireAuth(),
   controller.unlinkArtist
 );

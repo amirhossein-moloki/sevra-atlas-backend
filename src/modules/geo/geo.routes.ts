@@ -56,7 +56,7 @@ registry.registerPath({
     },
   },
 });
-router.get('/cities/:slug', controller.getCity);
+router.get('/cities/:idOrSlug', controller.getCity);
 
 registry.registerPath({
   method: 'get',
@@ -75,7 +75,7 @@ registry.registerPath({
     },
   },
 });
-router.get('/cities/:slug/neighborhoods', controller.getCityNeighborhoods);
+router.get('/cities/:idOrSlug/neighborhoods', controller.getCityNeighborhoods);
 
 registry.registerPath({
   method: 'post',
@@ -175,7 +175,7 @@ registry.registerPath({
   },
 });
 router.patch(
-  '/cities/:id',
+  '/cities/:idOrSlug',
   requireAuth(),
   requireAdmin(),
   validate(updateCitySchema),
@@ -202,7 +202,7 @@ registry.registerPath({
   },
 });
 router.patch(
-  '/neighborhoods/:id',
+  '/neighborhoods/:idOrSlug',
   requireAuth(),
   requireAdmin(),
   validate(updateNeighborhoodSchema),

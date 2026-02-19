@@ -1,6 +1,6 @@
 import { prisma } from '../../shared/db/prisma';
 import { ApiError } from '../../shared/errors/ApiError';
-import { PaymentStatus, EntityType } from '@prisma/client';
+import { PaymentStatus, EntityType, Prisma } from '@prisma/client';
 import { zibalProvider } from './zibal.provider';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { logger } from '../../shared/logger/logger';
@@ -178,10 +178,10 @@ export class PaymentsService {
             status: PaymentStatus.VERIFIED,
             providerRefNumber: verifyResponse.refNumber?.toString(),
             metadata: {
-              ...((payment.metadata as object) || {}),
-              verifyResponse: verifyResponse as any,
+              ...((payment.metadata as Record<string, unknown>) || {}),
+              verifyResponse: verifyResponse as unknown as Prisma.InputJsonValue,
               cardNumber: verifyResponse.cardNumber
-            },
+            } as Prisma.InputJsonValue,
           },
         });
 

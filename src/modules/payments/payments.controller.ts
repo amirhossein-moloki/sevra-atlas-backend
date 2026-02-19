@@ -36,9 +36,11 @@ export class PaymentsController {
       });
 
       return sendOk(res, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error({ error, userId: userId.toString() }, 'Failed to init Zibal payment');
-      return sendFail(res, 'PAYMENT_INIT_FAILED', error.message || 'Internal error', error.statusCode || 500);
+      const message = error instanceof Error ? error.message : 'Internal error';
+      const statusCode = (error as { statusCode?: number })?.statusCode || 500;
+      return sendFail(res, 'PAYMENT_INIT_FAILED', message, statusCode);
     }
   }
 
@@ -70,9 +72,11 @@ export class PaymentsController {
         trackId: result.payment.providerTrackId,
         redirectUrl
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error({ error, trackId }, 'Zibal callback handling failed');
-      return sendFail(res, 'CALLBACK_FAILED', error.message || 'Internal error', error.statusCode || 500);
+      const message = error instanceof Error ? error.message : 'Internal error';
+      const statusCode = (error as { statusCode?: number })?.statusCode || 500;
+      return sendFail(res, 'CALLBACK_FAILED', message, statusCode);
     }
   }
 
@@ -87,8 +91,10 @@ export class PaymentsController {
       }
 
       return sendOk(res, payment);
-    } catch (error: any) {
-      return sendFail(res, 'ERROR', error.message, error.statusCode || 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Internal error';
+      const statusCode = (error as { statusCode?: number })?.statusCode || 500;
+      return sendFail(res, 'ERROR', message, statusCode);
     }
   }
 }

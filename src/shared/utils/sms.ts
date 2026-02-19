@@ -80,7 +80,10 @@ export class SmsirProvider implements ISmsProvider {
 
 const getSmsProvider = (): ISmsProvider => {
   // Force mock provider in test or sandbox mode to avoid external dependencies
-  if (config.isTest || config.sandboxMode) {
+  const isTestEnv = config.isTest || process.env.NODE_ENV === 'test';
+  const isSandboxEnv = config.sandboxMode || process.env.SANDBOX_MODE === 'true';
+
+  if (isTestEnv || isSandboxEnv) {
     return new MockSmsProvider();
   }
 

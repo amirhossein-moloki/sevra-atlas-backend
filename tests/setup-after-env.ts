@@ -5,8 +5,9 @@ import { prisma } from '../src/shared/db/prisma';
 import { closeRedisConnections } from '../src/shared/redis/redis';
 import { mediaWorker } from '../src/modules/workers/media.worker';
 import { mediaQueue } from '../src/shared/queues/media.queue';
+import { billingWorker, billingQueue } from '../src/modules/workers/billing.worker';
 
-const openapiPath = path.join(__dirname, '../openapi.json');
+const openapiPath = path.join(process.cwd(), 'openapi.json');
 
 if (fs.existsSync(openapiPath)) {
   jestOpenAPI(openapiPath);
@@ -18,17 +19,31 @@ afterAll(async () => {
   // Global cleanup to prevent open handles in tests
   console.log('--- Starting Global Teardown ---');
   try {
-    // 1. Close workers and queues
-    if (mediaWorker) {
-      console.log('Closing Media Worker...');
-      await mediaWorker.close(true);
-    }
-    if (mediaQueue) {
-      console.log('Closing Media Queue...');
-      await mediaQueue.close();
+    // 1. Close workers
+    const workers = [mediaWorker, billingWorker];
+    for (const worker of workers) {
+      if (worker) {
+        try {
+           console.log(`Closing Worker ${worker.name}...`);
+           await worker.close(true);
+        } catch (e) {
+           console.warn(`Error closing worker ${worker?.name}:`, e);
+        }
+      }
     }
 
-    // 2. Clear all pending timers/intervals if possible (Jest handles this mostly but ioredis/bullmq might have some)
+    // 2. Close queues
+    const queues = [mediaQueue, billingQueue];
+    for (const queue of queues) {
+      if (queue) {
+        try {
+          console.log(`Closing Queue ${queue.name}...`);
+          await queue.close();
+        } catch (e) {
+          console.warn(`Error closing queue ${queue?.name}:`, e);
+        }
+      }
+    }
 
     // 3. Disconnect Database
     if (prisma) {
@@ -44,7 +59,6 @@ afterAll(async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     console.log('--- Teardown Complete ---');
   } catch (error) {
-    // Silent fail in teardown
     console.error('Error during global teardown:', error);
   }
 });

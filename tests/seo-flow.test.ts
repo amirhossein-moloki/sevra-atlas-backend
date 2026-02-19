@@ -31,7 +31,9 @@ describe('SEO Flow E2E', () => {
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { id: adminId } });
+    if (adminId) {
+      await prisma.user.deleteMany({ where: { id: adminId } });
+    }
   });
 
   it('should handle slug change for a Salon correctly', async () => {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { redis } from '../redis/redis';
 import { ApiError } from '../errors/ApiError';
 import { logger } from '../logger/logger';
+import { config } from '../../config';
 
 export const rateLimit = (
   prefix: string,
@@ -10,11 +11,12 @@ export const rateLimit = (
   keyGenerator?: (req: Request) => string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (
-      process.env.ENABLE_RATE_LIMIT === 'false' ||
-      process.env.NODE_ENV === 'test' ||
-      process.env.SANDBOX_MODE === 'true'
-    ) {
+    // Bypass in test/sandbox or if explicitly disabled
+    const isTest = config.isTest || process.env.NODE_ENV === 'test';
+    const isSandbox = config.sandboxMode || process.env.SANDBOX_MODE === 'true';
+    const isExplicitlyDisabled = process.env.ENABLE_RATE_LIMIT === 'false';
+
+    if (isTest || isSandbox || isExplicitlyDisabled) {
       return next();
     }
 

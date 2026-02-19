@@ -1,20 +1,16 @@
 services:
   test-runner:
-    image: node:20-alpine
+    image: node:20-slim
     container_name: sevra-test-runner
     working_dir: /app
-    # Variables are primarily pulled from .env.test
-    # We only use the environment block for values that MUST be set
-    # or to provide fallback for interpolation if used elsewhere.
     env_file:
       - .env.test
     environment:
-      - NODE_ENV=${NODE_ENV:-test}
-      - SANDBOX_MODE=${SANDBOX_MODE:-true}
-      # Hostnames for the runner to connect to internal services
-      - POSTGRES_HOST=${POSTGRES_HOST:-postgres-test}
-      - REDIS_HOST=${REDIS_HOST:-redis-test}
-      - REDIS_QUEUE_HOST=${REDIS_QUEUE_HOST:-redis-test}
+      - NODE_ENV=test
+      - SANDBOX_MODE=true
+      - POSTGRES_HOST=postgres-test
+      - REDIS_HOST=redis-test
+      - REDIS_QUEUE_HOST=redis-test
     volumes:
       - .:/app
       - test-results:/test-results
@@ -25,7 +21,7 @@ services:
         condition: service_healthy
     networks:
       - sevra-test-network
-    entrypoint: ["/bin/sh", "scripts/test-runner.sh"]
+    entrypoint: ["/bin/bash", "scripts/test-runner.sh"]
 
   postgres-test:
     image: postgres:15-alpine

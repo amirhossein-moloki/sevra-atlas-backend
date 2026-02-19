@@ -1,0 +1,341 @@
+{
+  "setup": {
+    "name": "00-setup",
+    "item": [
+      {
+        "name": "Setup: Get Provinces",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "GET",
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "geo",
+              "provinces"
+            ],
+            "protocol": ""
+          }
+        }
+      },
+      {
+        "name": "Setup: Get Cities",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "GET",
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "geo",
+              "cities"
+            ],
+            "query": [
+              {
+                "key": "provinceSlug",
+                "value": "{{provinceSlug}}"
+              }
+            ],
+            "protocol": ""
+          }
+        }
+      },
+      {
+        "name": "Setup: Get Services",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "GET",
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "services"
+            ],
+            "protocol": ""
+          }
+        }
+      },
+      {
+        "name": "Setup: Get Salons",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "GET",
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "salons"
+            ],
+            "protocol": ""
+          }
+        }
+      },
+      {
+        "name": "Setup: Get Artists",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "GET",
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "artists"
+            ],
+            "protocol": ""
+          }
+        }
+      },
+      {
+        "name": "Setup: Get Blog Posts",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "GET",
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "blog",
+              "posts"
+            ],
+            "protocol": ""
+          }
+        }
+      }
+    ]
+  },
+  "auth": {
+    "name": "01-auth",
+    "item": [
+      {
+        "name": "Auth: OTP Request",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"phoneNumber\":\"{{testPhoneNumber}}\"}"
+          },
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "otp",
+              "request"
+            ],
+            "protocol": ""
+          }
+        }
+      },
+      {
+        "name": "Auth: OTP Verify",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "\ntry {\n    const status = pm.response.code;\n    const requestName = pm.info.requestName;\n    let response;\n    try {\n        response = pm.response.json();\n    } catch(e) {\n        response = { _raw: pm.response.text().substring(0, 500) };\n    }\n\n    if (status >= 200 && status < 300 && response.data) {\n        const data = response.data;\n        const pathStr = pm.request.url.getPath();\n        \n        const setIfFound = (field, envVar) => {\n            if (data[field]) pm.environment.set(envVar, data[field]);\n            else if (Array.isArray(data) && data.length > 0 && data[0][field]) pm.environment.set(envVar, data[0][field]);\n        };\n\n        if (pathStr.includes('salons')) {\n            setIfFound('id', 'salonId');\n            setIfFound('slug', 'salonSlug');\n        }\n        if (pathStr.includes('artists')) {\n            setIfFound('id', 'artistId');\n            setIfFound('slug', 'artistSlug');\n        }\n        if (pathStr.includes('posts')) {\n            setIfFound('id', 'postId');\n            setIfFound('slug', 'postSlug');\n        }\n        if (pathStr.includes('reviews')) setIfFound('id', 'reviewId');\n        if (pathStr.includes('users') || pathStr.includes('me')) setIfFound('id', 'userId');\n        if (pathStr.includes('geo/cities')) {\n            setIfFound('id', 'cityId');\n            setIfFound('slug', 'citySlug');\n        }\n        if (pathStr.includes('geo/provinces')) {\n            setIfFound('id', 'provinceId');\n            setIfFound('slug', 'provinceSlug');\n        }\n        if (pathStr.includes('services')) {\n            setIfFound('id', 'serviceId');\n            setIfFound('slug', 'serviceSlug');\n        }\n    }\n\n    if (status < 200 || status >= 300) {\n        let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n        let errors = JSON.parse(errorLog);\n        errors.push({\n            requestName: requestName,\n            method: pm.request.method,\n            url: pm.request.url.toString(),\n            status: status,\n            responseSnippet: JSON.stringify(response).substring(0, 1000),\n            requestId: pm.response.headers.get(\"X-Request-ID\") || pm.response.headers.get(\"x-request-id\"),\n            timestamp: new Date().toISOString()\n        });\n        pm.environment.set(\"errorLog\", JSON.stringify(errors));\n    }\n} catch (e) {\n    let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n    let errors = JSON.parse(errorLog);\n    errors.push({\n        requestName: pm.info.requestName,\n        method: pm.request.method,\n        url: pm.request.url.toString(),\n        status: pm.response.code,\n        error: e.message,\n        timestamp: new Date().toISOString()\n    });\n    pm.environment.set(\"errorLog\", JSON.stringify(errors));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "\nconst url = pm.request.url.toString();\nconst body = pm.request.body ? (pm.request.body.raw || \"\") : \"\";\nconst combined = url + body;\nconst matches = combined.match(/{{([^}]+)}}/g);\nif (matches) {\n    for (const m of matches) {\n        const varName = m.replace(/{{|}}/g, '');\n        // Only ignore environment-seed variables, NOT entity IDs that should be captured\n        const coreVars = ['baseUrl', 'accessToken', 'refreshToken', 'uniqueSuffix', 'testEmail', 'testPhoneNumber', 'testOtpCode'];\n        if (coreVars.includes(varName)) continue;\n\n        if (!pm.environment.get(varName) && !pm.collectionVariables.get(varName)) {\n            console.log(\"Skipping request due to missing dependency: \" + varName);\n            let errorLog = pm.environment.get(\"errorLog\") || \"[]\";\n            let errors = JSON.parse(errorLog);\n            errors.push({\n                requestName: pm.info.requestName,\n                method: pm.request.method,\n                url: url,\n                status: \"SKIPPED\",\n                reason: \"Missing dependency: \" + varName,\n                timestamp: new Date().toISOString()\n            });\n            pm.environment.set(\"errorLog\", JSON.stringify(errors));\n            pm.execution.skip();\n            break;\n        }\n    }\n}\n\nif (!pm.environment.get(\"uniqueSuffix\")) {\n    pm.environment.set(\"uniqueSuffix\", Math.random().toString(36).substring(2, 7));\n}\n"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"phoneNumber\":\"{{testPhoneNumber}}\",\"code\":\"{{testOtpCode}}\"}"
+          },
+          "url": {
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "otp",
+              "verify"
+            ],
+            "protocol": ""
+          }
+        }
+      }
+    ]
+  }
+}

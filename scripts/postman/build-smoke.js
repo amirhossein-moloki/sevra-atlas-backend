@@ -26,11 +26,28 @@ const smokeCollection = {
         name: "Sevra Atlas - Smoke Suite",
         description: "Public and low-risk endpoints for quick verification."
     },
-    item: fullCollection.item.filter(item => smokeModules.includes(item.name))
-};
+    item: fullCollection.item
+        .filter(item => smokeModules.includes(item.name))
+        .map(folder => {
+            if (['00-setup', '01-auth'].includes(folder.name)) return folder;
 
-// Also keep only GET requests in the actual modules (geo, services, etc) for smoke if they are too large
-// but for now, keeping the whole folders is probably fine since they are mostly list endpoints.
+            // For other modules, only keep GET requests and subfolders that don't look like "create"
+            const filterRequests = (items) => {
+                return items.filter(item => {
+                    if (item.item) {
+                        item.item = filterRequests(item.item);
+                        return item.item.length > 0;
+                    }
+                    return item.request && item.request.method === 'GET';
+                });
+            };
+
+            return {
+                ...folder,
+                item: filterRequests(folder.item)
+            };
+        })
+};
 
 fs.writeFileSync('sevra-atlas-smoke.postman_collection.json', JSON.stringify(smokeCollection, null, 2));
 console.log('Smoke suite generated: sevra-atlas-smoke.postman_collection.json');

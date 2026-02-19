@@ -84,14 +84,23 @@ describe('Blog Module E2E', () => {
 
   afterAll(async () => {
     // Cleanup
-    await prisma.comment.deleteMany({ where: { userId: { in: [BigInt(adminId), BigInt(authorId), BigInt(userId)] } } });
+    const userIds = [adminId, authorId, userId].filter(Boolean).map(id => BigInt(id));
+    if (userIds.length > 0) {
+      await prisma.comment.deleteMany({ where: { userId: { in: userIds } } });
+      await prisma.post.deleteMany({ where: { authorId: { in: userIds } } });
+    }
     await prisma.postTag.deleteMany({});
-    await prisma.post.deleteMany({ where: { authorId: { in: [BigInt(adminId), BigInt(authorId)] } } });
     await prisma.tag.deleteMany({});
     await prisma.category.deleteMany({});
     await prisma.series.deleteMany({});
-    await prisma.authorProfile.deleteMany({ where: { userId: BigInt(authorId) } });
-    await prisma.user.deleteMany({ where: { id: { in: [BigInt(adminId), BigInt(authorId), BigInt(userId)] } } });
+
+    if (authorId) {
+      await prisma.authorProfile.deleteMany({ where: { userId: BigInt(authorId) } });
+    }
+
+    if (userIds.length > 0) {
+      await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+    }
     // Global cleanup handled in setup-after-env.ts
   });
 

@@ -99,7 +99,8 @@ echo "Executing tests..." | tee -a "$LOG_FILE"
 
 # Ensure we capture Jest's exit code
 set +e # Allow tests to fail without stopping the script
-npx jest --config jest.config.test-runner.js --runInBand --verbose 2>&1 | tee -a "$LOG_FILE"
+# Added --detectOpenHandles for debugging and --forceExit to ensure CI doesn't hang
+npx jest --config jest.config.test-runner.js --runInBand --verbose --detectOpenHandles --forceExit 2>&1 | tee -a "$LOG_FILE"
 TEST_EXIT_CODE=$?
 set -e
 

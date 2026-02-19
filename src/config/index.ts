@@ -77,6 +77,7 @@ export const config = {
   isProduction: envData.NODE_ENV === 'production',
   isDevelopment: envData.NODE_ENV === 'development',
   isTest: envData.NODE_ENV === 'test',
+  sandboxMode: envData.SANDBOX_MODE,
 
   server: {
     port: envData.PORT,

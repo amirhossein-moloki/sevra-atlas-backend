@@ -3,23 +3,18 @@ services:
     image: node:20-alpine
     container_name: sevra-test-runner
     working_dir: /app
-    # Use .env.test to ensure we don't accidentally use production secrets
+    # Variables are primarily pulled from .env.test
+    # We only use the environment block for values that MUST be set
+    # or to provide fallback for interpolation if used elsewhere.
     env_file:
       - .env.test
     environment:
-      - NODE_ENV=test
-      - SANDBOX_MODE=true
-      - ALLOW_PROD_WRITES=false
-      # Use internal service names by default
+      - NODE_ENV=${NODE_ENV:-test}
+      - SANDBOX_MODE=${SANDBOX_MODE:-true}
+      # Hostnames for the runner to connect to internal services
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres-test}
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - REDIS_HOST=${REDIS_HOST:-redis-test}
       - REDIS_QUEUE_HOST=${REDIS_QUEUE_HOST:-redis-test}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
-      # Pass through for script construction
-      - POSTGRES_USER=${POSTGRES_USER:-testuser}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-testpass}
-      - POSTGRES_DB=${POSTGRES_DB:-testdb}
     volumes:
       - .:/app
       - test-results:/test-results
@@ -34,6 +29,8 @@ services:
 
   postgres-test:
     image: postgres:15-alpine
+    env_file:
+      - .env.test
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-testuser}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testpass}
@@ -50,8 +47,13 @@ services:
 
   redis-test:
     image: redis:7-alpine
+    env_file:
+      - .env.test
     networks:
-      - sevra-test-network
+      sevra-test-network:
+        aliases:
+          - redis_cache
+          - redis_queue
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

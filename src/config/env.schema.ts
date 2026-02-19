@@ -89,6 +89,9 @@ export const envSchema = z.object({
 
   // Misc
   EMAIL: z.string().optional(),
+
+  // Sandbox mode for E2E
+  SANDBOX_MODE: booleanSchema.default(false),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

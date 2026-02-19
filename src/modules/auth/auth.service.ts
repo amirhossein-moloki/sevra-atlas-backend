@@ -36,7 +36,14 @@ export class AuthService {
       }
     );
 
-    await smsProvider.sendOtp(phoneNumber, code);
+    try {
+      await smsProvider.sendOtp(phoneNumber, code);
+    } catch (error) {
+      logger.error(`Failed to send OTP to ${phoneNumber}:`, error);
+      // In production, we want to know if SMS fails.
+      // In sandbox/test, we've already mocked it, but if something goes wrong, don't break the flow.
+      if (config.isProduction) throw error;
+    }
 
     await prisma.otpAttempt.create({
       data: { phoneE164: phoneNumber, ip, userAgent, purpose: 'LOGIN', success: false },

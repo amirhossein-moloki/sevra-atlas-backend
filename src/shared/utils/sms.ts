@@ -79,6 +79,11 @@ export class SmsirProvider implements ISmsProvider {
 }
 
 const getSmsProvider = (): ISmsProvider => {
+  // Force mock provider in test or sandbox mode to avoid external dependencies
+  if (config.isTest || config.sandboxMode) {
+    return new MockSmsProvider();
+  }
+
   switch (config.sms.provider) {
     case 'kavenegar':
       return new KavenegarSmsProvider(config.sms.apiKey || '');

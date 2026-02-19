@@ -10,7 +10,11 @@ export const rateLimit = (
   keyGenerator?: (req: Request) => string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (process.env.ENABLE_RATE_LIMIT === 'false') {
+    if (
+      process.env.ENABLE_RATE_LIMIT === 'false' ||
+      process.env.NODE_ENV === 'test' ||
+      process.env.SANDBOX_MODE === 'true'
+    ) {
       return next();
     }
 

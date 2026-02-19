@@ -72,7 +72,10 @@ describe('Admin Endpoints Stability', () => {
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { id: { in: [adminId, moderatorId, userId] } } });
+    const ids = [adminId, moderatorId, userId].filter(id => id !== undefined);
+    if (ids.length > 0) {
+      await prisma.user.deleteMany({ where: { id: { in: ids } } });
+    }
   });
 
   describe('SEO Meta Management', () => {

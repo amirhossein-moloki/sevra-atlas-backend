@@ -427,10 +427,15 @@ describe('Critical Business Flows E2E', () => {
 
     afterAll(async () => {
         if (salonId) {
-            await prisma.verificationRequest.deleteMany({ where: { salonId: BigInt(salonId) } });
-            await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
+            const sId = BigInt(salonId);
+            await prisma.verificationRequest.deleteMany({ where: { salonId: sId } });
+            await prisma.salon.deleteMany({ where: { id: sId } });
         }
-        await prisma.user.deleteMany({ where: { phoneNumber: { in: ['+989000000005', '+989000000006'] } } });
+        // Ensure the phone numbers used in the test are properly cleaned up
+        const phoneList = ['+989000000005', '+989000000006'].filter(Boolean);
+        if (phoneList.length > 0) {
+            await prisma.user.deleteMany({ where: { phoneNumber: { in: phoneList } } });
+        }
     });
 
     it('should complete the verification lifecycle', async () => {

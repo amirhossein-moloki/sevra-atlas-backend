@@ -90,11 +90,15 @@ describe('Salons & Permissions', () => {
   });
 
   afterAll(async () => {
-    await prisma.salon.deleteMany({ where: { primaryOwnerId: salonOwnerId } });
+    if (salonOwnerId) {
+      await prisma.salon.deleteMany({ where: { primaryOwnerId: salonOwnerId } });
+    }
     await prisma.user.deleteMany({
       where: { phoneNumber: { in: ['+989000000001', '+989000000002'] } }
     });
-    await prisma.user.deleteMany({ where: { id: salonOwnerId } });
+    if (salonOwnerId) {
+      await prisma.user.deleteMany({ where: { id: salonOwnerId } });
+    }
   });
 
   it('should list salons', async () => {

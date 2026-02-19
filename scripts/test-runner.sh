@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Exit on any error
 set -e
@@ -15,25 +15,25 @@ echo "--- Starting Test Runner [$(date)] ---" | tee -a "$LOG_FILE"
 export NODE_ENV=${NODE_ENV:-test}
 export SANDBOX_MODE=${SANDBOX_MODE:-true}
 export SKIP_CRITICAL_SECRETS_CHECK=${SKIP_CRITICAL_SECRETS_CHECK:-true}
+export ALLOW_PROD_WRITES=false
 
 echo "Running in NODE_ENV=$NODE_ENV (Sandbox: $SANDBOX_MODE)" | tee -a "$LOG_FILE"
 
-# 2. Install necessary system dependencies for alpine (only if missing)
+# 2. Install necessary system dependencies for debian/slim
 echo "Checking system dependencies..." | tee -a "$LOG_FILE"
 if ! command -v pg_isready >/dev/null 2>&1 || ! command -v nc >/dev/null 2>&1; then
-  echo "Installing system dependencies (alpine)..." | tee -a "$LOG_FILE"
-  apk add --no-cache netcat-openbsd postgresql-client openssl libc6-compat | tee -a "$LOG_FILE"
+  echo "Installing system dependencies (debian/slim)..." | tee -a "$LOG_FILE"
+  apt-get update && apt-get install -y netcat-openbsd postgresql-client openssl libssl-dev procps | tee -a "$LOG_FILE"
 else
   echo "System dependencies already installed." | tee -a "$LOG_FILE"
 fi
 
 # 3. Install node dependencies
-# In a containerized environment, we prefer npm ci for reproducibility
 if [ ! -d "node_modules" ]; then
   echo "node_modules not found. Installing node dependencies..." | tee -a "$LOG_FILE"
   npm ci --include=dev | tee -a "$LOG_FILE"
 else
-  echo "node_modules found. Skipping full install (to force reinstall, remove node_modules or use --build)." | tee -a "$LOG_FILE"
+  echo "node_modules found. Skipping full install." | tee -a "$LOG_FILE"
 fi
 
 # 4. Wait for Postgres
@@ -41,6 +41,7 @@ PG_HOST=${POSTGRES_HOST:-postgres-test}
 PG_PORT=${POSTGRES_PORT:-5432}
 PG_USER=${POSTGRES_USER:-testuser}
 PG_DB=${POSTGRES_DB:-testdb}
+PG_PASS=${POSTGRES_PASSWORD:-testpass}
 
 echo "Waiting for Postgres at ${PG_HOST}:${PG_PORT}..." | tee -a "$LOG_FILE"
 MAX_RETRIES=30
@@ -76,7 +77,7 @@ echo "Generating Prisma Client..." | tee -a "$LOG_FILE"
 npx prisma generate | tee -a "$LOG_FILE"
 
 # 7. Construct URLs for app
-export DATABASE_URL="postgresql://${PG_USER}:${POSTGRES_PASSWORD:-testpass}@${PG_HOST}:${PG_PORT}/${PG_DB}?schema=public"
+export DATABASE_URL="postgresql://${PG_USER}:${PG_PASS}@${PG_HOST}:${PG_PORT}/${PG_DB}?schema=public"
 
 if [ -n "$REDIS_PASSWORD" ]; then
   export REDIS_URL="redis://:${REDIS_PASSWORD}@${REDIS_H}:6379"
@@ -97,7 +98,6 @@ npm run openapi:generate | tee -a "$LOG_FILE"
 # 10. Execute tests
 echo "Executing tests..." | tee -a "$LOG_FILE"
 
-# Ensure we capture Jest's exit code
 set +e # Allow tests to fail without stopping the script
 # Added --detectOpenHandles for debugging and --forceExit to ensure CI doesn't hang
 npx jest --config jest.config.test-runner.js --runInBand --verbose --detectOpenHandles --forceExit 2>&1 | tee -a "$LOG_FILE"
@@ -105,8 +105,4 @@ TEST_EXIT_CODE=$?
 set -e
 
 echo "--- Test Runner Finished with code $TEST_EXIT_CODE ---" | tee -a "$LOG_FILE"
-
-# Final report path info
-echo "Results available in: /test-results" | tee -a "$LOG_FILE"
-
 exit $TEST_EXIT_CODE

@@ -1,0 +1,320 @@
+[
+  {
+    "name": " / me / Update current user profile",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / admin / salons / {id} / status / Update salon status (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / admin / artists / {id} / status / Update artist status (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / geo / cities / {idOrSlug} / Update a city (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / geo / cities / Create a city (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / services / Create a service (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / services / {id} / Update a service (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / media / Register a media item manually",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / media / {id} / Update media metadata",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / seo / redirects / Create a redirect rule (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / seo / meta / Set SEO meta for an entity (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / Create a salon",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / {idOrSlug} / Update a salon",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / {idOrSlug} / services / Assign services to salon",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / {idOrSlug} / avatar / Set salon avatar",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / {idOrSlug} / cover / Set salon cover",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / {idOrSlug} / gallery / Add to salon gallery",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / salons / {idOrSlug} / artists / Link artist to salon",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / Create an artist",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / {idOrSlug} / Update an artist",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / {idOrSlug} / avatar / Set artist avatar",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / {idOrSlug} / cover / Set artist cover",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / {idOrSlug} / gallery / Add to artist gallery",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / {idOrSlug} / certifications / Add certification to artist",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / artists / {idOrSlug} / certifications / {certId} / Update artist certification",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / specialties / Create a specialty (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / specialties / {id} / Update a specialty (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / posts / Create a blog post (Author/Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / posts / {slug} / Update a blog post (Author/Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / posts / {slug} / comments / Create a comment for a post",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / taxonomy / categories / Create category (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / taxonomy / categories / {id} / Update category (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / taxonomy / tags / Create tag (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / taxonomy / tags / {id} / Update tag (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / taxonomy / series / Create series (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / taxonomy / series / {id} / Update series (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / reactions / Add reaction to post",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / pages / Create page (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / pages / {id} / Update page (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / menus / Create menu (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / menus / {id} / Update menu (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / menu-items / Create menu item (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / misc / menu-items / {id} / Update menu item (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / authors / Create author (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / blog / authors / {id} / Update author (Admin)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / reviews / Create a review",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / follow / Follow an entity",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / follow / Unfollow an entity",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / save / Save an entity",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / save / Unsave an entity",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / reports / Create a report",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / verification / request / Request verification",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  },
+  {
+    "name": " / verification / {id} / Review verification request (Staff)",
+    "url": "",
+    "hasPlaceholderInUrl": false,
+    "hasPlaceholderInBody": true
+  }
+]

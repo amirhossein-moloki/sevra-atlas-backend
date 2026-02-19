@@ -1,0 +1,1970 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/otp/request",
+    "tags": [
+      "Auth"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/auth.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/otp/verify",
+    "tags": [
+      "Auth"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/auth.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/refresh",
+    "tags": [
+      "Auth"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/logout",
+    "tags": [
+      "Auth"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/logout-all",
+    "tags": [
+      "Auth"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/follows",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/saves",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/users",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/admin/users/{id}/role",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/admin/users/{id}/status",
+    "tags": [
+      "Users"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/geo/provinces",
+    "tags": [
+      "Geo"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/geo.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/geo/provinces",
+    "tags": [
+      "Geo"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/geo.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/geo/provinces/{slug}/cities",
+    "tags": [
+      "Geo"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/geo/cities/{idOrSlug}",
+    "tags": [
+      "Geo"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/geo/cities/{idOrSlug}",
+    "tags": [
+      "Geo"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/geo/cities/{idOrSlug}/neighborhoods",
+    "tags": [
+      "Geo"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/geo/cities",
+    "tags": [
+      "Geo"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/geo/neighborhoods",
+    "tags": [
+      "Geo"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/geo/neighborhoods/{idOrSlug}",
+    "tags": [
+      "Geo"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/services",
+    "tags": [
+      "Services"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/services",
+    "tags": [
+      "Services"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/services/{slug}",
+    "tags": [
+      "Services"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/services/categories",
+    "tags": [
+      "Services"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/services/{id}",
+    "tags": [
+      "Services"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/services/{id}",
+    "tags": [
+      "Services"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/media",
+    "tags": [
+      "Media"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/media",
+    "tags": [
+      "Media"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/media/upload",
+    "tags": [
+      "Media"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/media/{id}/status",
+    "tags": [
+      "Media"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/media/{id}",
+    "tags": [
+      "Media"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/media/{id}",
+    "tags": [
+      "Media"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/media/{id}",
+    "tags": [
+      "Media"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/media/{id}/download",
+    "tags": [
+      "Media"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/seo/redirects/resolve",
+    "tags": [
+      "SEO"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/seo/meta",
+    "tags": [
+      "SEO"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/admin.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/seo/redirects",
+    "tags": [
+      "SEO"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/seo/sitemap/rebuild",
+    "tags": [
+      "SEO"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/admin.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/salons",
+    "tags": [
+      "Salons"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts",
+      "tests/salons.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/salons",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts",
+      "tests/salons.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/salons/{idOrSlug}",
+    "tags": [
+      "Salons"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/salons/{idOrSlug}",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts",
+      "tests/seo-flow.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/salons/{idOrSlug}",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/salons/{idOrSlug}/reviews",
+    "tags": [
+      "Salons"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/salons/{idOrSlug}/services",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/salons/{idOrSlug}/services/{serviceId}",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/salons/{idOrSlug}/avatar",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/salons/{idOrSlug}/cover",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/salons/{idOrSlug}/gallery",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/salons/{idOrSlug}/artists",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/salons/{idOrSlug}/artists/{artistId}",
+    "tags": [
+      "Salons"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/artists",
+    "tags": [
+      "Artists"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/artists.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/artists",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/artists.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/artists/specialties",
+    "tags": [
+      "Artists"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/artists/{idOrSlug}",
+    "tags": [
+      "Artists"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/artists/{idOrSlug}",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/artists/{idOrSlug}",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/artists/{idOrSlug}/reviews",
+    "tags": [
+      "Artists"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/artists/{idOrSlug}/avatar",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/artists/{idOrSlug}/cover",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/artists/{idOrSlug}/gallery",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/artists/{idOrSlug}/certifications",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/artists/{idOrSlug}/certifications/{certId}",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/artists/{idOrSlug}/certifications/{certId}",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/artists/{idOrSlug}/certifications/{certId}/verify",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/artists/{idOrSlug}/specialties",
+    "tags": [
+      "Artists"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/specialties",
+    "tags": [
+      "Specialties"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/specialties",
+    "tags": [
+      "Specialties"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/specialties/{id}",
+    "tags": [
+      "Specialties"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/specialties/{id}",
+    "tags": [
+      "Specialties"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/posts",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts/{slug}",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/posts/{slug}",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts",
+      "tests/seo-flow.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/posts/{slug}",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts/slug/{slug}",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts/{slug}/similar",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts/{slug}/same-category",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts/{slug}/related",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/posts/{slug}/comments",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/posts/{slug}/comments",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/posts/{slug}/publish",
+    "tags": [
+      "Blog Posts"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/reviews",
+    "tags": [
+      "Reviews"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/reviews/{id}/vote",
+    "tags": [
+      "Reviews"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/reviews/{id}",
+    "tags": [
+      "Reviews"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/follow",
+    "tags": [
+      "Follows"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/follow",
+    "tags": [
+      "Follows"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/follow/me",
+    "tags": [
+      "Follows"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/save",
+    "tags": [
+      "Saves"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/save",
+    "tags": [
+      "Saves"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/save/me",
+    "tags": [
+      "Saves"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/reports",
+    "tags": [
+      "Reports"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/reports",
+    "tags": [
+      "Reports"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/reports/{id}/status",
+    "tags": [
+      "Reports"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/verification/request",
+    "tags": [
+      "Verification"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/admin.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/verification/requests",
+    "tags": [
+      "Verification"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/admin.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/verification/{id}",
+    "tags": [
+      "Verification"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/admin.test.ts",
+      "tests/dynamic-api.test.ts",
+      "tests/e2e-flows.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/dashboard",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/stats",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/taxonomy/blog/categories/reorder",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/taxonomy/services/categories/reorder",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/taxonomy/artists/specialties/reorder",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/admin/salons/{id}/status",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/admin/artists/{id}/status",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/queues/health",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/jobs/{queue}/{id}",
+    "tags": [
+      "Admin"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/health",
+    "tags": [
+      "Health"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/health/ready",
+    "tags": [
+      "Health"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscriptions/plans",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscriptions/assign",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscriptions/suspend",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscriptions/override-score",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscriptions/stats",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscriptions/analytics",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscriptions/export-billing",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscriptions/check-expirations",
+    "tags": [
+      "Subscriptions"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/growth/invites",
+    "tags": [
+      "Growth"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/growth/stats",
+    "tags": [
+      "Growth"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/payments/zibal/init",
+    "tags": [
+      "Payments"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/payments/zibal/callback",
+    "tags": [
+      "Payments"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/payments/{id}",
+    "tags": [
+      "Payments"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/search",
+    "tags": [
+      "Search"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/taxonomy/categories",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/taxonomy/categories",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/taxonomy/categories/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/taxonomy/categories/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/taxonomy/categories/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/taxonomy/tags",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/taxonomy/tags",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/taxonomy/tags/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/taxonomy/tags/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/taxonomy/tags/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/taxonomy/series",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/taxonomy/series",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/taxonomy/series/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/taxonomy/series/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/taxonomy/series/{id}",
+    "tags": [
+      "Blog Taxonomy"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/misc/revisions/{postId}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/misc/reactions",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/misc/pages",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/misc/pages",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/misc/pages/{slug}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/misc/pages/{id}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/misc/pages/{id}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/misc/menus/{location}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/misc/menus",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/misc/menus/{id}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/misc/menus/{id}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/misc/menu-items",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/misc/menu-items/{id}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/misc/menu-items/{id}",
+    "tags": [
+      "Blog Misc"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/authors",
+    "tags": [
+      "Blog Authors"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/blog/authors",
+    "tags": [
+      "Blog Authors"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/authors/{id}",
+    "tags": [
+      "Blog Authors"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/authors/{id}",
+    "tags": [
+      "Blog Authors"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/authors/{id}",
+    "tags": [
+      "Blog Authors"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/blog/comments",
+    "tags": [
+      "Blog Comments"
+    ],
+    "auth": false,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/blog/comments/{id}/status",
+    "tags": [
+      "Blog Comments"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/blog.test.ts",
+      "tests/dynamic-api.test.ts"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/blog/comments/{id}",
+    "tags": [
+      "Blog Comments"
+    ],
+    "auth": true,
+    "tested": true,
+    "files": [
+      "tests/dynamic-api.test.ts"
+    ]
+  }
+]

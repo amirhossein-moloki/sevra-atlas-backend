@@ -65,8 +65,6 @@ function parseEnv(filePath) {
 
 function parseDbUrl(url) {
     if (!url) return {};
-    // Handles postgresql://jules:password@postgres:5432/sevra_atlas?schema=public
-    // and postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
     const match = url.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
     if (match) {
         return {
@@ -83,7 +81,6 @@ function buildEnvironment(name, envFile, composeFile, fallbackUrl) {
     const env = parseEnv(envFile);
     const baseUrl = getBaseUrlFromCompose(composeFile) || env.BASE_URL || fallbackUrl;
 
-    // Try to get DB info from ENV first, then parse DATABASE_URL
     let dbInfo = {};
     if (env.DATABASE_URL) {
         dbInfo = parseDbUrl(env.DATABASE_URL);
@@ -95,12 +92,16 @@ function buildEnvironment(name, envFile, composeFile, fallbackUrl) {
         { key: 'baseUrl', value: baseUrl, enabled: true },
         { key: 'accessToken', value: '', enabled: true },
         { key: 'refreshToken', value: '', enabled: true },
-        { key: 'dbHost', value: dbInfo.dbHost || env.POSTGRES_HOST || 'localhost', enabled: true },
-        { key: 'dbPort', value: dbInfo.dbPort || env.POSTGRES_PORT || '5432', enabled: true },
-        { key: 'dbName', value: dbInfo.dbName || env.POSTGRES_DB || 'sevra_atlas', enabled: true },
+        { key: 'testPhoneNumber', value: '09120000000', enabled: true },
+        { key: 'testOtpCode', value: '123456', enabled: true },
+        { key: 'uniqueSuffix', value: Math.random().toString(36).substring(2, 7), enabled: true },
         { key: 'errorLog', value: '[]', enabled: true },
         { key: 'lastRequestId', value: '', enabled: true }
     ];
+
+    // Add Slugs
+    const slugs = ['provinceSlug', 'citySlug', 'salonSlug', 'artistSlug', 'postSlug', 'serviceSlug'];
+    slugs.forEach(s => values.push({ key: s, value: '', enabled: true }));
 
     prismaModels.forEach(model => {
         const varName = model.name.charAt(0).toLowerCase() + model.name.slice(1) + 'Id';

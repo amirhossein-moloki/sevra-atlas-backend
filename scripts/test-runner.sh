@@ -48,7 +48,16 @@ npm run openapi:generate | tee -a "$LOG_FILE"
 # 8. Construct DATABASE_URL from components (ensures internal container networking)
 export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?schema=public"
 
-# 9. Execute tests and capture output while preserving exit code
+# 9. Construct Redis URLs from components
+if [ -n "$REDIS_PASSWORD" ]; then
+  export REDIS_URL="redis://:${REDIS_PASSWORD}@${REDIS_HOST:-redis_cache}:6379"
+  export REDIS_QUEUE_URL="redis://:${REDIS_PASSWORD}@${REDIS_QUEUE_HOST:-redis_queue}:6379"
+else
+  export REDIS_URL="redis://${REDIS_HOST:-redis_cache}:6379"
+  export REDIS_QUEUE_URL="redis://${REDIS_QUEUE_HOST:-redis_queue}:6379"
+fi
+
+# 10. Execute tests and capture output while preserving exit code
 echo "Executing tests..." | tee -a "$LOG_FILE"
 
 # Try to enable pipefail to capture Jest's exit code when piping to tee

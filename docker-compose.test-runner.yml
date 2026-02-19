@@ -3,24 +3,65 @@ services:
     image: node:20-alpine
     container_name: sevra-test-runner
     working_dir: /app
+    # Use .env.test to ensure we don't accidentally use production secrets
     env_file:
-      - .env.production
+      - .env.test
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=test
       - SANDBOX_MODE=true
-      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - ALLOW_PROD_WRITES=false
+      # Use internal service names by default
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres-test}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-      - REDIS_HOST=${REDIS_HOST:-redis_cache}
-      - REDIS_QUEUE_HOST=${REDIS_QUEUE_HOST:-redis_queue}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST:-redis-test}
+      - REDIS_QUEUE_HOST=${REDIS_QUEUE_HOST:-redis-test}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      # Pass through for script construction
+      - POSTGRES_USER=${POSTGRES_USER:-testuser}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-testpass}
+      - POSTGRES_DB=${POSTGRES_DB:-testdb}
     volumes:
       - .:/app
-      - ./test-results:/test-results
+      - test-results:/test-results
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
     networks:
-      - sevra-prod-network
+      - sevra-test-network
     entrypoint: ["/bin/sh", "scripts/test-runner.sh"]
 
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-testuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testpass}
+      POSTGRES_DB: ${POSTGRES_DB:-testdb}
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - sevra-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-testuser} -d $${POSTGRES_DB:-testdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-test:
+    image: redis:7-alpine
+    networks:
+      - sevra-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 networks:
-  sevra-prod-network:
-    external: true
-    name: sevra-atlas-backend_sevra-prod-network
+  sevra-test-network:
+    name: sevra-test-net
+    driver: bridge
+
+volumes:
+  test-results:

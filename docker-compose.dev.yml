@@ -2,9 +2,9 @@ services:
   postgres-dev:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: jules
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: sevra_atlas_dev
+      POSTGRES_USER: ${POSTGRES_USER:-jules}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-sevra_atlas_dev}
     ports:
       - "5432:5432"
     volumes:
@@ -29,11 +29,11 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://jules:password@postgres-dev:5432/sevra_atlas_dev?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-jules}:${POSTGRES_PASSWORD:-password}@postgres-dev:5432/${POSTGRES_DB:-sevra_atlas_dev}?schema=public
       - REDIS_URL=redis://redis-dev:6379
       - REDIS_QUEUE_URL=redis://redis-dev:6379
-      - JWT_ACCESS_SECRET=dev_secret
-      - JWT_REFRESH_SECRET=dev_secret
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-dev_secret}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-dev_secret}
     ports:
       - "3000:3000"
     depends_on:
@@ -45,6 +45,7 @@ services:
 
 networks:
   sevra-dev-network:
+    name: sevra-dev-net
     driver: bridge
 
 volumes:

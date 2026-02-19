@@ -57,6 +57,8 @@ services:
       context: .
       dockerfile: Dockerfile.api
     env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-jules}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-sevra_atlas}?schema=public
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,7 +90,6 @@ services:
       - uploads_data:/app/uploads
     networks:
       - sevra-network
-    # Port 3000 is exposed for Nginx
     ports:
       - "3000:3000"
 
@@ -131,7 +132,7 @@ services:
       - ./proxy/certbot/www:/var/www/certbot:ro
       - uploads_data:/app/uploads:ro
     environment:
-      - DOMAIN=${DOMAIN}
+      - DOMAIN=${DOMAIN:-localhost}
     depends_on:
       - api
     networks:
@@ -153,6 +154,7 @@ services:
 
 networks:
   sevra-network:
+    name: sevra-dev-net
     driver: bridge
 
 volumes:

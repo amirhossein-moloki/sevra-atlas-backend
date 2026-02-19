@@ -103,6 +103,7 @@
     "autocannon": "^8.0.0",
     "eslint": "^9.39.2",
     "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
     "jest-mock-extended": "^4.0.0",
     "jest-openapi": "^0.14.2",
     "nodemon": "^3.1.0",

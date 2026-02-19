@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  test-runner:
+    image: node:20-alpine
+    container_name: sevra-test-runner
+    working_dir: /app
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - SANDBOX_MODE=true
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis_cache
+      - REDIS_QUEUE_HOST=redis_queue
+    volumes:
+      - .:/app
+      - ./test-results:/test-results
+    networks:
+      - sevra-prod-network
+    entrypoint: ["/bin/sh", "scripts/test-runner.sh"]
+
+networks:
+  sevra-prod-network:
+    external: true
+    name: sevra-atlas-backend_sevra-prod-network

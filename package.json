@@ -19,6 +19,7 @@
     "seed:heavy": "SEED_VOLUME=large node dist/prisma/seed.js",
     "openapi:generate": "ts-node src/scripts/generate-openapi.ts",
     "verify:prod": "ts-node scripts/verify-production-config.ts",
+    "admin:create": "ts-node scripts/admin-create.ts",
     "test:contract": "npm run openapi:generate && ts-node scripts/audit-routes.ts",
     "test:audit": "npm run openapi:generate && ts-node scripts/test-coverage-audit.ts",
     "test:prod_safe": "NODE_ENV=production jest --testPathPattern=tests/prod_safe",

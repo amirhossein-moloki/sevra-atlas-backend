@@ -28,6 +28,14 @@ export const getAuthHeader = (token: string) => {
   return { 'Authorization': `Bearer ${token}` };
 };
 
+export const getJsonAuthHeader = (token: string) => {
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+};
+
 export const checkProdWriteGuard = () => {
   if (process.env.NODE_ENV === 'production') {
     if (process.env.SANDBOX_MODE === 'true' || process.env.ALLOW_PROD_WRITES === 'true') {

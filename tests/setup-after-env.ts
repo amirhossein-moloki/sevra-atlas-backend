@@ -2,12 +2,47 @@ import jestOpenAPI from 'jest-openapi';
 import path from 'path';
 import * as fs from 'fs';
 import { prisma } from '../src/shared/db/prisma';
+import { UserRole } from '@prisma/client';
 import { closeRedisConnections } from '../src/shared/redis/redis';
 import { mediaWorker } from '../src/modules/workers/media.worker';
 import { mediaQueue } from '../src/shared/queues/media.queue';
 import { billingWorker, billingQueue } from '../src/modules/workers/billing.worker';
 
 const openapiPath = path.join(process.cwd(), 'openapi.json');
+
+beforeAll(async () => {
+  // Ensure test users exist for authentication in dynamic tests
+  // We use fixed IDs if possible, or at least common ones used in test-utils.ts
+  const testUsers = [
+    { id: 1, role: UserRole.ADMIN, username: 'test_admin', email: 'admin@example.com' },
+    { id: 2, role: UserRole.USER, username: 'test_user', email: 'user@example.com' },
+    { id: 3, role: UserRole.ARTIST, username: 'test_artist', email: 'artist@example.com' },
+    { id: 4, role: UserRole.SALON, username: 'test_salon_owner', email: 'salon@example.com' },
+  ];
+
+  for (const user of testUsers) {
+    await prisma.user.upsert({
+      where: { id: BigInt(user.id) },
+      update: {
+        role: user.role,
+        isActive: true,
+        deletedAt: null,
+      },
+      create: {
+        id: BigInt(user.id),
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isActive: true,
+        firstName: 'Test',
+        lastName: user.role.toLowerCase(),
+        isStaff: user.role === UserRole.ADMIN,
+        phoneNumber: `+98900000000${user.id}`,
+        referralCode: `TEST${user.id}`,
+      },
+    });
+  }
+});
 
 console.log(`--- Initializing jest-openapi with spec: ${openapiPath} ---`);
 if (fs.existsSync(openapiPath)) {

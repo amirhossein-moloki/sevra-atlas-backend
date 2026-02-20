@@ -44,4 +44,6 @@ export function withApiFailure(detailsSchema: z.ZodTypeAny = z.record(z.any()).n
   });
 }
 
+registry.register('ApiFailure', withApiFailure());
+
 export { z };

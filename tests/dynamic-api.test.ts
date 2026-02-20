@@ -82,7 +82,9 @@ describe('Dynamic OpenAPI Coverage', () => {
 
         const token = createTokenForRole(UserRole.ADMIN);
         const res = await (request(app) as any)[e.method](testPath)
-            .set(getAuthHeader(token));
+            .set(getAuthHeader(token))
+            .set('Content-Type', 'application/json')
+            .send(isWrite ? {} : undefined);
 
         expect(res).toSatisfyApiSpec();
     });
@@ -92,7 +94,9 @@ describe('Dynamic OpenAPI Coverage', () => {
             if (checkProdWriteGuard()) return;
             const userToken = createTokenForRole(UserRole.USER);
             const res = await (request(app) as any)[e.method](testPath)
-                .set(getAuthHeader(userToken));
+                .set(getAuthHeader(userToken))
+                .set('Content-Type', 'application/json')
+                .send({});
 
             if (res.status === 403 || res.status === 401) {
                 expect(res).toSatisfyApiSpec();

@@ -13,6 +13,12 @@ export async function introspectApi(): Promise<ApiPagination[]> {
 
   // Basic heuristic: check routes files for 'pageSize' defaults
   const routesDir = path.join(process.cwd(), 'src/modules');
+
+  if (!fs.existsSync(routesDir)) {
+    console.log(`[Seeder] Source modules directory not found at ${routesDir}, skipping introspection.`);
+    return getFallbackPagination();
+  }
+
   const modules = fs.readdirSync(routesDir);
 
   for (const mod of modules) {
@@ -31,13 +37,24 @@ export async function introspectApi(): Promise<ApiPagination[]> {
   }
 
   // Fallbacks as per user instructions
-  if (!pagination.find(p => p.model === 'Salon')) pagination.push({ model: 'Salon', pageSize: 20, route: '/api/v1/salons' });
-  if (!pagination.find(p => p.model === 'Artist')) pagination.push({ model: 'Artist', pageSize: 20, route: '/api/v1/artists' });
-  if (!pagination.find(p => p.model === 'Post')) pagination.push({ model: 'Post', pageSize: 12, route: '/api/v1/blog/posts' });
-  if (!pagination.find(p => p.model === 'Review')) pagination.push({ model: 'Review', pageSize: 10, route: '/api/v1/reviews' });
-  if (!pagination.find(p => p.model === 'Comment')) pagination.push({ model: 'Comment', pageSize: 10, route: '/api/v1/blog/comments' });
+  const fallbacks = getFallbackPagination();
+  for (const f of fallbacks) {
+    if (!pagination.find(p => p.model === f.model)) {
+      pagination.push(f);
+    }
+  }
 
   return pagination;
+}
+
+function getFallbackPagination(): ApiPagination[] {
+  return [
+    { model: 'Salon', pageSize: 20, route: '/api/v1/salons' },
+    { model: 'Artist', pageSize: 20, route: '/api/v1/artists' },
+    { model: 'Post', pageSize: 12, route: '/api/v1/blog/posts' },
+    { model: 'Review', pageSize: 10, route: '/api/v1/reviews' },
+    { model: 'Comment', pageSize: 10, route: '/api/v1/blog/comments' },
+  ];
 }
 
 export async function getDbCounts(prisma: PrismaClient) {

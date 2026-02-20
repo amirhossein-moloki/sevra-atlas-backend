@@ -15,34 +15,34 @@ export class ArtistsController {
     return resolveId(identifier, (idOrSlug) => artistsService.findArtistByIdentifier(idOrSlug), 'Artist');
   };
 
-  async getArtists(req: Request, res: Response) {
+  getArtists = async (req: Request, res: Response) => {
     const result = await artistsService.getArtists(req.query);
     res.json(result);
-  }
+  };
 
-  async listSpecialties(req: Request, res: Response) {
+  listSpecialties = async (req: Request, res: Response) => {
     const result = await artistsService.listSpecialties();
     res.json(result);
-  }
+  };
 
-  async createSpecialty(req: Request, res: Response) {
+  createSpecialty = async (req: Request, res: Response) => {
     const result = await artistsService.createSpecialty(req.body);
     res.status(201).json(result);
-  }
+  };
 
-  async updateSpecialty(req: Request, res: Response) {
+  updateSpecialty = async (req: Request, res: Response) => {
     const id = safeBigInt(req.params.id);
     const result = await artistsService.updateSpecialty(id, req.body);
     res.json(result);
-  }
+  };
 
-  async deleteSpecialty(req: Request, res: Response) {
+  deleteSpecialty = async (req: Request, res: Response) => {
     const id = safeBigInt(req.params.id);
     const result = await artistsService.deleteSpecialty(id);
     res.json(result);
-  }
+  };
 
-  async getArtist(req: Request, res: Response) {
+  getArtist = async (req: Request, res: Response) => {
     const result = await artistsService.getArtistBySlug(req.params.slug);
 
     // Background click tracking
@@ -56,14 +56,14 @@ export class ArtistsController {
     );
 
     res.json(result);
-  }
+  };
 
-  async createArtist(req: Request, res: Response) {
+  createArtist = async (req: Request, res: Response) => {
     const result = await artistsService.createArtist(req.body, req.user!.id);
     res.status(201).json(result);
-  }
+  };
 
-  async updateArtist(req: Request, res: Response) {
+  updateArtist = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateArtist(
@@ -73,9 +73,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async deleteArtist(req: Request, res: Response) {
+  deleteArtist = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteArtist(
@@ -84,9 +84,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async setAvatar(req: Request, res: Response) {
+  setAvatar = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
@@ -97,9 +97,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async setCover(req: Request, res: Response) {
+  setCover = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
@@ -110,9 +110,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async addGallery(req: Request, res: Response) {
+  addGallery = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
@@ -123,9 +123,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async addCertification(req: Request, res: Response) {
+  addCertification = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.addCertification(
@@ -135,9 +135,9 @@ export class ArtistsController {
       adminMode
     );
     res.status(201).json(result);
-  }
+  };
 
-  async updateCertification(req: Request, res: Response) {
+  updateCertification = async (req: Request, res: Response) => {
     const certId = safeBigInt(req.params.certId, 'certId');
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateCertification(
@@ -147,9 +147,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async deleteCertification(req: Request, res: Response) {
+  deleteCertification = async (req: Request, res: Response) => {
     const certId = safeBigInt(req.params.certId, 'certId');
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteCertification(
@@ -158,9 +158,9 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 
-  async verifyCertification(req: Request, res: Response) {
+  verifyCertification = async (req: Request, res: Response) => {
     const certId = safeBigInt(req.params.certId, 'certId');
     const result = await artistsService.verifyCertification(
       certId,
@@ -168,9 +168,9 @@ export class ArtistsController {
       req.user!.id
     );
     res.json(result);
-  }
+  };
 
-  async assignSpecialties(req: Request, res: Response) {
+  assignSpecialties = async (req: Request, res: Response) => {
     const id = await this.resolveArtistId(req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
@@ -182,5 +182,5 @@ export class ArtistsController {
       adminMode
     );
     res.json(result);
-  }
+  };
 }

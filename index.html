@@ -20244,6 +20244,12 @@
             $('adminLoginResult').classList.remove('hidden');
         }
 
+        function closeModal() {
+            $('modalOverlay').classList.add('hidden');
+            $('modalOverlay').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
         initUI();
     </script>
 </body>

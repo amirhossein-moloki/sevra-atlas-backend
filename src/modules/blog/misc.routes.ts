@@ -69,10 +69,10 @@ router.get('/pages', controller.listPages);
 
 registry.registerPath({
   method: 'get',
-  path: '/blog/misc/pages/{slug}',
+  path: '/blog/misc/pages/{id}',
   summary: 'Get page by slug',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Page details',
@@ -149,10 +149,10 @@ router.delete('/pages/:id', requireAuth(), requireAdmin(), controller.deletePage
 
 registry.registerPath({
   method: 'get',
-  path: '/blog/misc/menus/{location}',
+  path: '/blog/misc/menus/{id}',
   summary: 'Get menu by location',
   tags: [tag],
-  parameters: [{ name: 'location', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Menu details',

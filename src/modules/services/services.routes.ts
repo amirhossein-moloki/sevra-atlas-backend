@@ -26,10 +26,10 @@ router.get('/', controller.listCategories);
 
 registry.registerPath({
   method: 'get',
-  path: '/services/{slug}',
+  path: '/services/{id}',
   summary: 'Get service details',
   tags: [tag],
-  parameters: [{ name: 'slug', in: 'path', schema: { type: 'string' }, required: true }],
+  parameters: [{ name: 'id', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
     200: {
       description: 'Service details',

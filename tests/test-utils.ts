@@ -20,8 +20,16 @@ export const generateUniqueToken = () => {
   return crypto.randomBytes(32).toString('hex');
 };
 
-export const createTokenForRole = (role: UserRole, userId: string = '1') => {
-  return generateAccessToken({ sub: userId, role });
+export const createTokenForRole = (role: UserRole, userId?: string) => {
+  const defaultIds: Record<string, string> = {
+    [UserRole.ADMIN]: '1',
+    [UserRole.USER]: '2',
+    [UserRole.ARTIST]: '3',
+    [UserRole.SALON]: '4',
+    [UserRole.AUTHOR]: '5',
+    [UserRole.MODERATOR]: '6',
+  };
+  return generateAccessToken({ sub: userId || defaultIds[role] || '1', role });
 };
 
 export const getAuthHeader = (token: string) => {

@@ -31,8 +31,11 @@ export const rateLimit = (
     const bypassToken = process.env.RATE_LIMIT_BYPASS_TOKEN;
 
     if (
+      req.method === 'OPTIONS' ||
       (req.ip && whitelist.includes(req.ip)) ||
-      (bypassToken && req.headers['x-rate-limit-bypass'] === bypassToken)
+      (bypassToken &&
+        (req.headers['x-rate-limit-bypass'] === bypassToken ||
+          req.headers['x-rate-limit-bypass-token'] === bypassToken))
     ) {
       return next();
     }

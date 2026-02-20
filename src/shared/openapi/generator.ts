@@ -114,24 +114,21 @@ function fixNullableSchemas(obj: any) {
         obj.allOf = obj.allOf.filter((item: any) => item !== nullablePart);
       }
 
-      // If only one $ref remains, pull it up
-      if (obj.allOf.length === 1 && obj.allOf[0].$ref) {
+      // If only one $ref remains, we pull it up ONLY if it's not nullable.
+      // In OAS 3.0, a $ref with siblings (like nullable) is technically invalid or ignored.
+      // So if it's nullable, we KEEP it in allOf to be safe and compliant.
+      if (!obj.nullable && obj.allOf.length === 1 && obj.allOf[0].$ref) {
         obj.$ref = obj.allOf[0].$ref;
         delete obj.allOf;
       }
     }
   }
 
-  // If we find nullable: true without a type, and it's not a $ref/union itself,
+  // If we find nullable: true without a type,
   // we add type: 'object' because in this codebase, registered schemas are objects.
-  if (
-    obj.nullable === true &&
-    !obj.type &&
-    !obj.$ref &&
-    !obj.oneOf &&
-    !obj.anyOf &&
-    !obj.allOf
-  ) {
+  // This avoids AJV error: "nullable" cannot be used without "type"
+  // For OAS 3.0, adding "type: object" alongside allOf/anyOf is allowed and helps AJV.
+  if (obj.nullable === true && !obj.type) {
     obj.type = 'object';
   }
 }

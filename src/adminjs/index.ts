@@ -10,9 +10,9 @@ import { config } from '../config';
 export async function initAdminJS(app: Express, prisma: PrismaClient) {
     console.log('Initializing AdminJS...');
     try {
-        const { default: AdminJS } = await (eval('import("adminjs")') as Promise<typeof import('adminjs')>);
-        const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<typeof import('@adminjs/express')>);
-        const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<typeof import('@adminjs/prisma')>);
+        const { default: AdminJS } = await (eval('import("adminjs")') as Promise<any>);
+        const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<any>);
+        const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<any>);
 
         // Use factory functions for ESM/CJS compatibility
         const { createComponentLoader } = await import('./component-loader');

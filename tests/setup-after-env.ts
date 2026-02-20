@@ -20,30 +20,31 @@ afterAll(async () => {
   console.log('--- Starting Global Teardown ---');
   try {
     // 1. Close workers
-    const workers = [mediaWorker, billingWorker];
-    for (const worker of workers) {
-      if (worker) {
+    const workers = [mediaWorker, billingWorker].filter(Boolean);
+    await Promise.all(
+      workers.map(async (worker) => {
         try {
-           console.log(`Closing Worker ${worker.name}...`);
-           await worker.close(true);
+          console.log(`Closing Worker ${worker.name}...`);
+          // Use force=true to ensure immediate closure
+          await worker.close(true);
         } catch (e) {
-           console.warn(`Error closing worker ${worker?.name}:`, e);
+          console.warn(`Error closing worker ${worker.name}:`, e);
         }
-      }
-    }
+      })
+    );
 
     // 2. Close queues
-    const queues = [mediaQueue, billingQueue];
-    for (const queue of queues) {
-      if (queue) {
+    const queues = [mediaQueue, billingQueue].filter(Boolean);
+    await Promise.all(
+      queues.map(async (queue) => {
         try {
           console.log(`Closing Queue ${queue.name}...`);
           await queue.close();
         } catch (e) {
-          console.warn(`Error closing queue ${queue?.name}:`, e);
+          console.warn(`Error closing queue ${queue.name}:`, e);
         }
-      }
-    }
+      })
+    );
 
     // 3. Disconnect Database
     if (prisma) {
@@ -54,6 +55,14 @@ afterAll(async () => {
     // 4. Close Redis connections last
     console.log('Closing Redis connections...');
     await closeRedisConnections(true);
+
+    // 5. Clear metrics interval if any
+    try {
+      const promClient = await import('prom-client');
+      promClient.register.clear();
+    } catch (_e) {
+      // Ignore if prom-client is not available
+    }
 
     // Give it a small window for everything to settle
     await new Promise(resolve => setTimeout(resolve, 500));

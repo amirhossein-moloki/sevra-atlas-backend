@@ -14,9 +14,14 @@ export const rateLimit = (
     // Bypass in test/sandbox or if explicitly disabled
     const isTest = config.isTest || process.env.NODE_ENV === 'test';
     const isSandbox = config.sandboxMode || process.env.SANDBOX_MODE === 'true';
-    const isExplicitlyDisabled = process.env.ENABLE_RATE_LIMIT === 'false';
 
-    if (isTest || isSandbox || isExplicitlyDisabled) {
+    // Explicitly enabled takes precedence for testing the middleware itself
+    const isExplicitlyEnabled = process.env.ENABLE_RATE_LIMIT === 'true';
+    const isExplicitlyDisabled =
+      process.env.ENABLE_RATE_LIMIT === 'false' ||
+      process.env.RATE_LIMIT_ENABLED === 'false';
+
+    if (!isExplicitlyEnabled && (isTest || isSandbox || isExplicitlyDisabled)) {
       return next();
     }
 

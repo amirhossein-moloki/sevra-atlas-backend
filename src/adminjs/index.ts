@@ -8,20 +8,24 @@ import { config } from '../config';
  * Using dynamic imports because AdminJS and its plugins are ESM.
  */
 export async function initAdminJS(app: Express, prisma: PrismaClient) {
+    if (config.worker.isWorker) {
+        return null;
+    }
+
     console.log('Initializing AdminJS...');
     try {
         const { default: AdminJS } = await (eval('import("adminjs")') as Promise<any>);
         const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<any>);
         const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<any>);
 
+        AdminJS.registerAdapter({ Resource, Database });
+
         // Use factory functions for ESM/CJS compatibility
         const { createComponentLoader } = await import('./component-loader');
         const { createResources } = await import('./resources');
 
         const { componentLoader, COMPONENTS } = await createComponentLoader();
-        const resources = createResources(COMPONENTS);
-
-        AdminJS.registerAdapter({ Resource, Database });
+        const resources = createResources(prisma, COMPONENTS);
 
         const adminOptions: AdminJSOptions = {
             resources: [

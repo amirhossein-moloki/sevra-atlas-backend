@@ -1,5 +1,4 @@
 import type { ActionRequest } from 'adminjs';
-import { prisma } from '../shared/db/prisma';
 import bcrypt from 'bcrypt';
 import sanitizeHtml from 'sanitize-html';
 import { config } from '../config';
@@ -15,10 +14,10 @@ const sanitizeOptions = {
  * Using a factory function to avoid static imports of ESM-only dependencies
  * and to receive injected components.
  */
-export const createResources = (COMPONENTS: any) => {
+export const createResources = (prisma: any, COMPONENTS: any) => {
   return {
     userResource: {
-      resource: { model: prisma.user, client: prisma },
+      resource: prisma.user,
       options: {
         navigation: { name: 'Users', icon: 'User' },
         properties: {
@@ -54,7 +53,7 @@ export const createResources = (COMPONENTS: any) => {
     },
 
     postResource: {
-      resource: { model: prisma.post, client: prisma },
+      resource: prisma.post,
       options: {
         navigation: { name: 'Blog', icon: 'Document' },
         properties: {
@@ -87,7 +86,7 @@ export const createResources = (COMPONENTS: any) => {
     },
 
     pageResource: {
-      resource: { model: prisma.page, client: prisma },
+      resource: prisma.page,
       options: {
         navigation: { name: 'Blog', icon: 'Book' },
         properties: {
@@ -120,7 +119,7 @@ export const createResources = (COMPONENTS: any) => {
     },
 
     commentResource: {
-      resource: { model: prisma.comment, client: prisma },
+      resource: prisma.comment,
       options: {
         navigation: { name: 'Blog', icon: 'Comment' },
         properties: {

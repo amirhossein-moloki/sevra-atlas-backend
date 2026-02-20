@@ -26,6 +26,9 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
+# Copy seeder datasets to dist
+RUN mkdir -p dist/scripts/seeder/datasets && cp -r scripts/seeder/datasets/* dist/scripts/seeder/datasets/
+
 # Remove development dependencies
 RUN npm prune --production
 

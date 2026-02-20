@@ -14,10 +14,10 @@ const sanitizeOptions = {
  * Using a factory function to avoid static imports of ESM-only dependencies
  * and to receive injected components.
  */
-export const createResources = (prisma: any, COMPONENTS: any) => {
+export const createResources = (prisma: any, COMPONENTS: any, getModelByName: any) => {
   return {
     userResource: {
-      resource: prisma.user,
+      resource: { model: getModelByName('User'), client: prisma },
       options: {
         navigation: { name: 'Users', icon: 'User' },
         properties: {
@@ -53,7 +53,7 @@ export const createResources = (prisma: any, COMPONENTS: any) => {
     },
 
     postResource: {
-      resource: prisma.post,
+      resource: { model: getModelByName('Post'), client: prisma },
       options: {
         navigation: { name: 'Blog', icon: 'Document' },
         properties: {
@@ -86,7 +86,7 @@ export const createResources = (prisma: any, COMPONENTS: any) => {
     },
 
     pageResource: {
-      resource: prisma.page,
+      resource: { model: getModelByName('Page'), client: prisma },
       options: {
         navigation: { name: 'Blog', icon: 'Book' },
         properties: {
@@ -119,7 +119,7 @@ export const createResources = (prisma: any, COMPONENTS: any) => {
     },
 
     commentResource: {
-      resource: prisma.comment,
+      resource: { model: getModelByName('Comment'), client: prisma },
       options: {
         navigation: { name: 'Blog', icon: 'Comment' },
         properties: {

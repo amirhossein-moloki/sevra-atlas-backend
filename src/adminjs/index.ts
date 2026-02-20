@@ -16,7 +16,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
     try {
         const { default: AdminJS } = await (eval('import("adminjs")') as Promise<any>);
         const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<any>);
-        const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<any>);
+        const { Resource, Database, getModelByName } = await (eval('import("@adminjs/prisma")') as Promise<any>);
 
         AdminJS.registerAdapter({ Resource, Database });
 
@@ -25,7 +25,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
         const { createResources } = await import('./resources');
 
         const { componentLoader, COMPONENTS } = await createComponentLoader();
-        const resources = createResources(prisma, COMPONENTS);
+        const resources = createResources(prisma, COMPONENTS, getModelByName);
 
         const adminOptions: AdminJSOptions = {
             resources: [

@@ -5,12 +5,17 @@ import { logger } from '../logger/logger';
 import { config } from '../../config';
 
 export const rateLimit = (
-  prefix: string,
-  limit: number,
-  windowSeconds: number,
-  keyGenerator?: (req: Request) => string
+  _prefix: string,
+  _limit: number,
+  _windowSeconds: number,
+  _keyGenerator?: (req: Request) => string
 ) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (_req: Request, _res: Response, next: NextFunction) => {
+    // RATE LIMIT DISABLED GLOBALLY PER USER REQUEST
+    // Original strategies are documented in RATE_LIMIT_STRATEGIES.md
+    return next();
+
+    /*
     // Bypass in test/sandbox or if explicitly disabled
     const isTest = process.env.NODE_ENV === 'test' || config.isTest;
     const isSandbox = process.env.SANDBOX_MODE === 'true' || config.sandboxMode;
@@ -62,5 +67,6 @@ export const rateLimit = (
     }
 
     next();
+    */
   };
 };

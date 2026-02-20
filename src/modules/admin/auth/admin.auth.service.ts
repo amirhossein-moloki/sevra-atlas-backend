@@ -26,7 +26,7 @@ export class AdminAuthService {
       throw new ApiError(401, 'Invalid credentials');
     }
 
-    if (![UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(user.role)) {
+    if (!([UserRole.ADMIN, UserRole.SUPER_ADMIN] as UserRole[]).includes(user.role)) {
       logger.warn(`Failed admin login attempt: Non-admin role (${user.role}) for user ${user.id}`);
       throw new ApiError(403, 'Access denied. Admin role required.');
     }

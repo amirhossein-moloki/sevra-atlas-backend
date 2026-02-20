@@ -142,7 +142,13 @@ app.use(
 );
 
 // responseMiddleware must be after OpenApiValidator to wrap responses before they are validated
-app.use(responseMiddleware);
+// We skip it for /backoffice because AdminJS has its own response handling and complex circular objects
+app.use((req, res, next) => {
+  if (req.path.startsWith('/backoffice')) {
+    return next();
+  }
+  responseMiddleware(req, res, next);
+});
 
 app.use('/api/v1', routes);
 

@@ -18,35 +18,17 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
 
         AdminJS.registerAdapter({ Resource, Database });
 
-        // Prisma 5 metadata extraction helper
-        interface PrismaInternal {
-          _runtimeDataModel?: { models: Record<string, { name: string; fields: unknown[] }> };
-          _baseDmmf?: { datamodel: { models: { name: string; fields: unknown[] }[] } };
-        }
-        const prismaInternal = prisma as unknown as PrismaInternal;
-        let models: Record<string, { name: string; fields: unknown[] }> = {};
-
-        if (prismaInternal._runtimeDataModel) {
-            models = prismaInternal._runtimeDataModel.models;
-        } else if (prismaInternal._baseDmmf) {
-            models = Object.fromEntries(prismaInternal._baseDmmf.datamodel.models.map(m => [m.name, m]));
-        }
-
         const getModelResource = (modelName: string, options: Record<string, unknown>) => {
-            const modelMetadata = models[modelName];
-            if (!modelMetadata) {
-                console.warn(`Model metadata for ${modelName} not found in Prisma DMMF`);
-                return {
-                    resource: prisma[modelName.toLowerCase() as keyof typeof prisma],
-                    options
-                };
+            // Prisma model names in the client are usually lowercase (e.g. prisma.user)
+            const modelDelegate = (prisma as any)[modelName.toLowerCase()] || (prisma as any)[modelName];
+
+            if (!modelDelegate) {
+                console.warn(`Model delegate for ${modelName} not found in Prisma client`);
             }
+
             return {
                 resource: {
-                    model: {
-                        name: modelName,
-                        fields: modelMetadata.fields,
-                    },
+                    model: modelDelegate,
                     client: prisma,
                 },
                 options,

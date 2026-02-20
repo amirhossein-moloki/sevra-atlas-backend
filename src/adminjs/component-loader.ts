@@ -3,7 +3,7 @@
  * Using a factory function to defer loading ESM-only dependencies.
  */
 export const createComponentLoader = async () => {
-    const { ComponentLoader } = await (eval('import("adminjs")') as Promise<typeof import('adminjs')>);
+    const { ComponentLoader } = await (eval('import("adminjs")') as Promise<any>);
     const componentLoader = new ComponentLoader();
 
     const COMPONENTS = {

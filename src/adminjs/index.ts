@@ -13,34 +13,22 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
         const { default: AdminJS } = await (eval('import("adminjs")') as Promise<typeof import('adminjs')>);
         const { default: AdminJSExpress } = await (eval('import("@adminjs/express")') as Promise<typeof import('@adminjs/express')>);
         const { Resource, Database } = await (eval('import("@adminjs/prisma")') as Promise<typeof import('@adminjs/prisma')>);
-        const resources = await import('./resources');
-        const { componentLoader } = await import('./component-loader');
+
+        // Use factory functions for ESM/CJS compatibility
+        const { createComponentLoader } = await import('./component-loader');
+        const { createResources } = await import('./resources');
+
+        const { componentLoader, COMPONENTS } = await createComponentLoader();
+        const resources = createResources(COMPONENTS);
 
         AdminJS.registerAdapter({ Resource, Database });
 
-        const getModelResource = (modelName: string, options: Record<string, unknown>) => {
-            // Prisma model names in the client are usually lowercase (e.g. prisma.user)
-            const modelDelegate = (prisma as any)[modelName.toLowerCase()] || (prisma as any)[modelName];
-
-            if (!modelDelegate) {
-                console.warn(`Model delegate for ${modelName} not found in Prisma client`);
-            }
-
-            return {
-                resource: {
-                    model: modelDelegate,
-                    client: prisma,
-                },
-                options,
-            };
-        };
-
         const adminOptions: AdminJSOptions = {
             resources: [
-                getModelResource('User', resources.userResource.options),
-                getModelResource('Post', resources.postResource.options),
-                getModelResource('Page', resources.pageResource.options),
-                getModelResource('Comment', resources.commentResource.options),
+                resources.userResource,
+                resources.postResource,
+                resources.pageResource,
+                resources.commentResource,
             ],
             rootPath: '/backoffice',
             branding: {

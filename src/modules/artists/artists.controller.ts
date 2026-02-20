@@ -6,6 +6,7 @@ import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { EntityType } from '@prisma/client';
 import { resolveId } from '../../shared/utils/resolver/idResolver';
 import { runInBackground } from '../../shared/utils/background';
+import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 
 const artistsService = new ArtistsService();
 const subService = new SubscriptionsService();
@@ -43,7 +44,8 @@ export class ArtistsController {
   };
 
   getArtist = async (req: Request, res: Response) => {
-    const result = await artistsService.getArtistBySlug(req.params.slug);
+    const identifier = req.params.idOrSlug || req.params.slug;
+    const result = await artistsService.getArtistBySlug(identifier);
 
     // Background click tracking
     runInBackground(
@@ -58,13 +60,13 @@ export class ArtistsController {
     res.json(result);
   };
 
-  createArtist = async (req: Request, res: Response) => {
+  createArtist = async (req: AuthRequest, res: Response) => {
     const result = await artistsService.createArtist(req.body, req.user!.id);
     res.status(201).json(result);
   };
 
-  updateArtist = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  updateArtist = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateArtist(
       id,
@@ -75,8 +77,8 @@ export class ArtistsController {
     res.json(result);
   };
 
-  deleteArtist = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  deleteArtist = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteArtist(
       id,
@@ -86,8 +88,8 @@ export class ArtistsController {
     res.json(result);
   };
 
-  setAvatar = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  setAvatar = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       id,
@@ -99,8 +101,8 @@ export class ArtistsController {
     res.json(result);
   };
 
-  setCover = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  setCover = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       id,
@@ -112,8 +114,8 @@ export class ArtistsController {
     res.json(result);
   };
 
-  addGallery = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  addGallery = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.attachMedia(
       id,
@@ -125,8 +127,8 @@ export class ArtistsController {
     res.json(result);
   };
 
-  addCertification = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  addCertification = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.addCertification(
       id,
@@ -137,7 +139,7 @@ export class ArtistsController {
     res.status(201).json(result);
   };
 
-  updateCertification = async (req: Request, res: Response) => {
+  updateCertification = async (req: AuthRequest, res: Response) => {
     const certId = safeBigInt(req.params.certId, 'certId');
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.updateCertification(
@@ -149,7 +151,7 @@ export class ArtistsController {
     res.json(result);
   };
 
-  deleteCertification = async (req: Request, res: Response) => {
+  deleteCertification = async (req: AuthRequest, res: Response) => {
     const certId = safeBigInt(req.params.certId, 'certId');
     const adminMode = isAdmin(req.user?.role);
     const result = await artistsService.deleteCertification(
@@ -160,7 +162,7 @@ export class ArtistsController {
     res.json(result);
   };
 
-  verifyCertification = async (req: Request, res: Response) => {
+  verifyCertification = async (req: AuthRequest, res: Response) => {
     const certId = safeBigInt(req.params.certId, 'certId');
     const result = await artistsService.verifyCertification(
       certId,
@@ -170,8 +172,8 @@ export class ArtistsController {
     res.json(result);
   };
 
-  assignSpecialties = async (req: Request, res: Response) => {
-    const id = await this.resolveArtistId(req.params.id);
+  assignSpecialties = async (req: AuthRequest, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
     const result = await artistsService.assignSpecialties(

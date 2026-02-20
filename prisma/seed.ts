@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
+import * as fs from 'fs';
 
 async function main() {
   console.log('Redirecting to modular seeder...');
@@ -10,15 +11,28 @@ async function main() {
   let command: string;
   let args: string[];
 
-  if (isProduction || isDist) {
+  // Define potential paths for the orchestrator
+  const distOrchestrator = isDist
+    ? path.join(__dirname, '../scripts/seeder/orchestrator.js')
+    : path.join(__dirname, '../dist/scripts/seeder/orchestrator.js');
+
+  const sourceOrchestrator = isDist
+    ? path.join(__dirname, '../../scripts/seeder/orchestrator.ts')
+    : path.join(__dirname, '../scripts/seeder/orchestrator.ts');
+
+  if (fs.existsSync(distOrchestrator)) {
+    console.log(`Found compiled orchestrator at: ${distOrchestrator}`);
     command = 'node';
-    // When running from dist/prisma/seed.js, the orchestrator is at ../scripts/seeder/orchestrator.js
-    const orchestratorPath = path.join(__dirname, '../scripts/seeder/orchestrator.js');
-    args = [orchestratorPath, ...process.argv.slice(2)];
-  } else {
+    args = [distOrchestrator, ...process.argv.slice(2)];
+  } else if (fs.existsSync(sourceOrchestrator)) {
+    console.log(`Found source orchestrator at: ${sourceOrchestrator}`);
     command = 'npx';
-    const orchestratorPath = path.join(__dirname, '../scripts/seeder/orchestrator.ts');
-    args = ['ts-node', orchestratorPath, ...process.argv.slice(2)];
+    args = ['ts-node', sourceOrchestrator, ...process.argv.slice(2)];
+  } else {
+    console.error('Could not find orchestrator at:');
+    console.error(`- ${distOrchestrator}`);
+    console.error(`- ${sourceOrchestrator}`);
+    process.exit(1);
   }
 
   console.log(`Running seeder with command: ${command} ${args.join(' ')}`);

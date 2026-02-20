@@ -29,7 +29,8 @@ const envData = _env.success
   ? _env.data
   : {
       ...envSchema.partial().parse(process.env),
-      NODE_ENV: (process.env.NODE_ENV as any) || 'development'
+      NODE_ENV: (process.env.NODE_ENV as any) || 'development',
+      LOG_LEVEL: (process.env.LOG_LEVEL as any) || 'info'
     } as EnvData;
 
 // Extra production checks for missing secrets

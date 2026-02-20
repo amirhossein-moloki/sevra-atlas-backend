@@ -93,43 +93,63 @@ function fixNullableSchemas(obj: any) {
     return;
   }
 
+  // Recurse into all properties first
   for (const key in obj) {
     if (typeof obj[key] === 'object' && obj[key] !== null) {
       fixNullableSchemas(obj[key]);
     }
   }
 
-  // Handle allOf with nullable referenced schemas
-  if (obj.allOf && Array.isArray(obj.allOf)) {
-    const nullablePart = obj.allOf.find((item: any) => item.nullable === true);
-    if (nullablePart) {
-      obj.nullable = true;
-      delete nullablePart.nullable;
+  // 1. Handle $ref with nullable sibling (invalid in OAS 3.0)
+  if (obj.$ref && obj.nullable === true) {
+    const ref = obj.$ref;
+    delete obj.$ref;
+    obj.allOf = [{ $ref: ref }];
+    // Continue processing as an allOf schema
+  }
 
-      // Clean up empty or type-only parts
-      if (
-        Object.keys(nullablePart).length === 0 ||
-        (Object.keys(nullablePart).length === 1 && nullablePart.type === 'object')
-      ) {
-        obj.allOf = obj.allOf.filter((item: any) => item !== nullablePart);
-      }
+  // 2. Handle unions (allOf, anyOf, oneOf) with nullable branches
+  const unionKeywords = ['allOf', 'anyOf', 'oneOf'] as const;
+  for (const keyword of unionKeywords) {
+    if (obj[keyword] && Array.isArray(obj[keyword])) {
+      const branches = obj[keyword];
+      const nullableIndex = branches.findIndex((item: any) => item && item.nullable === true);
 
-      // If only one $ref remains, we pull it up ONLY if it's not nullable.
-      // In OAS 3.0, a $ref with siblings (like nullable) is technically invalid or ignored.
-      // So if it's nullable, we KEEP it in allOf to be safe and compliant.
-      if (!obj.nullable && obj.allOf.length === 1 && obj.allOf[0].$ref) {
-        obj.$ref = obj.allOf[0].$ref;
-        delete obj.allOf;
+      if (nullableIndex !== -1) {
+        obj.nullable = true;
+        const nullablePart = branches[nullableIndex];
+
+        // Remove the nullable flag from the branch
+        delete nullablePart.nullable;
+
+        // If the branch is now empty or only has a type: object, remove it
+        if (
+          Object.keys(nullablePart).length === 0 ||
+          (Object.keys(nullablePart).length === 1 && nullablePart.type === 'object')
+        ) {
+          obj[keyword] = branches.filter((_: any, i: number) => i !== nullableIndex);
+        }
       }
     }
   }
 
-  // If we find nullable: true without a type,
-  // we add type: 'object' because in this codebase, registered schemas are objects.
-  // This avoids AJV error: "nullable" cannot be used without "type"
-  // For OAS 3.0, adding "type: object" alongside allOf/anyOf is allowed and helps AJV.
+  // 3. Final fix for Ajv: "nullable" cannot be used without "type"
   if (obj.nullable === true && !obj.type) {
-    obj.type = 'object';
+    // Try to infer type from unions
+    for (const keyword of unionKeywords) {
+      if (obj[keyword] && Array.isArray(obj[keyword])) {
+        const typePart = obj[keyword].find((item: any) => item && item.type);
+        if (typePart) {
+          obj.type = typePart.type;
+          break;
+        }
+      }
+    }
+
+    // Default to 'object' if still no type, as most registered schemas are objects
+    if (!obj.type) {
+      obj.type = 'object';
+    }
   }
 }
 

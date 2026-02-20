@@ -7,6 +7,17 @@ This guide covers the deployment of Sevra Atlas using Docker Compose.
 - Domain name pointed to the server IP
 - Ports 80 and 443 open
 
+## Server Preparation (Recommended)
+
+### Redis Optimization
+For Redis to handle background saving (BGSAVE) correctly under memory pressure, it is recommended to set `vm.overcommit_memory=1` on the host machine.
+
+```bash
+sudo sysctl -w vm.overcommit_memory=1
+echo 'vm.overcommit_memory=1' | sudo tee /etc/sysctl.d/99-redis.conf
+sudo sysctl --system
+```
+
 ## Deployment Steps
 
 ### 1. Prepare Environment

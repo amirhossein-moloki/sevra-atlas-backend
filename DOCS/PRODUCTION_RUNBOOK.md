@@ -3,6 +3,14 @@
 ## 🚀 Deployment & Updates
 
 ### Fresh Deployment
+0. **Server Preparation (Recommended)**
+   Set `vm.overcommit_memory=1` on the host machine for Redis stability:
+   ```bash
+   sudo sysctl -w vm.overcommit_memory=1
+   echo 'vm.overcommit_memory=1' | sudo tee /etc/sysctl.d/99-redis.conf
+   sudo sysctl --system
+   ```
+
 1. **Clone repository & Prepare ENV**
    ```bash
    cp .env.example .env

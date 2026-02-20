@@ -54,8 +54,16 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
         const auth = {
             authenticate: async (email: string, password: string) => {
                 const { default: bcrypt } = await import('bcrypt');
-                const user = await prisma.user.findFirst({ where: { email } });
-                if (user && user.role === 'ADMIN' && user.password) {
+                const user = await prisma.user.findFirst({
+                    where: {
+                        OR: [
+                            { email },
+                            { username: email },
+                            { phoneNumber: email },
+                        ]
+                    }
+                });
+                if (user && ['ADMIN', 'SUPER_ADMIN'].includes(user.role) && user.password) {
                     const matched = await bcrypt.compare(password, user.password);
                     if (matched) return user;
                 }

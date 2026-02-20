@@ -28,6 +28,21 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
             },
           },
           id: { isVisible: { edit: false } },
+          role: {
+            availableValues: [
+              { value: 'USER', label: 'User' },
+              { value: 'SALON', label: 'Salon' },
+              { value: 'ARTIST', label: 'Artist' },
+              { value: 'AUTHOR', label: 'Author' },
+              { value: 'MODERATOR', label: 'Moderator' },
+              { value: 'ADMIN', label: 'Admin' },
+              { value: 'SUPER_ADMIN', label: 'Super Admin' },
+            ],
+            isVisible: {
+              edit: ({ currentAdmin }: any) => currentAdmin?.role === 'SUPER_ADMIN',
+              list: true, show: true, filter: true
+            },
+          },
         },
         actions: {
           new: {
@@ -47,6 +62,38 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
               }
               return request;
             },
+          },
+          setPassword: {
+            actionType: 'record',
+            icon: 'Password',
+            isAccessible: ({ currentAdmin, record }: any) => {
+              // Super admin can change anyone's password
+              if (currentAdmin?.role === 'SUPER_ADMIN') return true;
+              // Admin can change non-admin/non-superadmin passwords
+              if (currentAdmin?.role === 'ADMIN' && record?.params.role !== 'ADMIN' && record?.params.role !== 'SUPER_ADMIN') return true;
+              return false;
+            },
+            handler: async (request, response, context) => {
+              const { record, resource, currentAdmin } = context;
+              if (request.method === 'get') {
+                return { record: record.toJSON(currentAdmin) };
+              }
+              const { password } = request.payload;
+              if (!password || password.length < 6) {
+                return {
+                  record: record.toJSON(currentAdmin),
+                  notice: { message: 'Password must be at least 6 characters long', type: 'error' },
+                };
+              }
+              const hashedPassword = await bcrypt.hash(password, config.security.bcryptRounds);
+              await record.update({ password: hashedPassword });
+              return {
+                record: record.toJSON(currentAdmin),
+                notice: { message: 'Password updated successfully', type: 'success' },
+                redirectUrl: resource.href({ actionName: 'show', recordId: record.id() }),
+              };
+            },
+            component: COMPONENTS.SetPassword,
           },
         },
       },

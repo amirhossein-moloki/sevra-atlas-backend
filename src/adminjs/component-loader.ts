@@ -8,6 +8,7 @@ export const createComponentLoader = async () => {
 
     const COMPONENTS = {
         RichTextEditor: componentLoader.add('RichTextEditor', './components/RichTextEditor'),
+        SetPassword: componentLoader.add('SetPassword', './components/SetPassword'),
     };
 
     return { componentLoader, COMPONENTS };

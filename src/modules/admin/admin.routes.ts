@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AdminController } from './admin.controller';
 import { AdminTaxonomyController } from './taxonomy.controller';
+import adminAuthRoutes from './auth/admin.auth.routes';
 import { requireAuth, requireAdmin } from '../../shared/middlewares/auth.middleware';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { statsQuerySchema } from './admin.validators';
@@ -9,6 +10,8 @@ import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
 const router = Router();
 const controller = new AdminController();
 const taxonomyController = new AdminTaxonomyController();
+
+router.use('/auth', adminAuthRoutes);
 
 const tag = 'Admin';
 

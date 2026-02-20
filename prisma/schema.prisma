@@ -59,6 +59,7 @@ enum UserRole {
   AUTHOR
   MODERATOR
   ADMIN
+  SUPER_ADMIN
 }
 
 enum AccountStatus {

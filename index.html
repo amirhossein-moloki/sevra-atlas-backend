@@ -86,6 +86,55 @@
     </header>
 
     <main class="flex-1 max-w-7xl mx-auto w-full p-6 space-y-6">
+        <!-- Admin Login Section -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Admin Quick Login
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Identifier (Email/Username/Phone)</label>
+                    <input id="adminIdentifier" type="text" placeholder="admin@example.com"
+                        class="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Password</label>
+                    <input id="adminPassword" type="password" placeholder="••••••••"
+                        class="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <button id="adminLoginBtn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-md text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                    Login as Admin
+                </button>
+            </div>
+            <div id="adminLoginResult" class="hidden mt-4 p-4 bg-slate-950 border border-slate-800 rounded-lg">
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-green-400 uppercase tracking-widest">Login Successful</span>
+                        <button id="clearAdminToken" class="text-[10px] text-slate-500 hover:text-red-400 underline">Clear Tokens</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] uppercase text-slate-500 font-bold">Access Token</label>
+                            <div id="displayAccessToken" class="text-[10px] font-mono bg-slate-900 p-2 rounded break-all border border-slate-800 text-indigo-300"></div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] uppercase text-slate-500 font-bold">Refresh Token</label>
+                            <div id="displayRefreshToken" class="text-[10px] font-mono bg-slate-900 p-2 rounded break-all border border-slate-800 text-slate-400"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-800">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold mb-2 block">Quick Test Authenticated Endpoint</label>
+                        <div class="flex gap-2">
+                            <input id="testEndpoint" type="text" value="/me" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-indigo-200">
+                            <button id="testEndpointBtn" class="bg-slate-800 hover:bg-slate-700 px-4 py-1.5 rounded text-[10px] font-bold uppercase transition-all">Call API</button>
+                        </div>
+                        <pre id="testEndpointResult" class="hidden mt-2 p-3 bg-slate-950 border border-slate-800 rounded text-[10px] overflow-x-auto max-h-40 custom-scrollbar text-slate-300"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Summary Stats -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
@@ -20112,6 +20161,94 @@
         window.onclick = (e) => {
             if (e.target === $('modalOverlay')) closeModal();
         };
+
+        // Admin Login Logic
+        $('adminLoginBtn').onclick = async () => {
+            const identifier = $('adminIdentifier').value;
+            const password = $('adminPassword').value;
+            const baseUrl = $('baseUrl').value.replace(/\/$/, '');
+
+            if (!identifier || !password) return alert('Enter credentials');
+
+            $('adminLoginBtn').disabled = true;
+            $('adminLoginBtn').textContent = 'Logging in...';
+
+            try {
+                const res = await fetch(`${baseUrl}/admin/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+
+                const json = await res.json();
+                if (res.ok) {
+                    const { accessToken, refreshToken } = json.data;
+                    localStorage.setItem('ADMIN_TOKEN', accessToken);
+                    localStorage.setItem('ADMIN_REFRESH_TOKEN', refreshToken);
+
+                    $('displayAccessToken').textContent = accessToken;
+                    $('displayRefreshToken').textContent = refreshToken;
+                    $('adminLoginResult').classList.remove('hidden');
+
+                    // Update existing tests to use the new token
+                    generateTests();
+                    renderResults(currentFilter);
+                } else {
+                    alert('Login failed: ' + (json.error?.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            } finally {
+                $('adminLoginBtn').disabled = false;
+                $('adminLoginBtn').textContent = 'Login as Admin';
+            }
+        };
+
+        $('clearAdminToken').onclick = () => {
+            localStorage.removeItem('ADMIN_TOKEN');
+            localStorage.removeItem('ADMIN_REFRESH_TOKEN');
+            $('adminLoginResult').classList.add('hidden');
+            generateTests();
+            renderResults(currentFilter);
+        };
+
+        // Authenticated Test Logic
+        $('testEndpointBtn').onclick = async () => {
+            const endpoint = $('testEndpoint').value;
+            const token = localStorage.getItem('ADMIN_TOKEN');
+            const baseUrl = $('baseUrl').value.replace(/\/$/, '');
+
+            if (!token) return alert('Not logged in');
+
+            $('testEndpointBtn').disabled = true;
+            try {
+                const res = await fetch(`${baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                $('testEndpointResult').textContent = JSON.stringify(json, null, 2);
+                $('testEndpointResult').classList.remove('hidden');
+            } catch (err) {
+                $('testEndpointResult').textContent = 'Error: ' + err.message;
+                $('testEndpointResult').classList.remove('hidden');
+            } finally {
+                $('testEndpointBtn').disabled = false;
+            }
+        };
+
+        // Check for existing token on load
+        const savedToken = localStorage.getItem('ADMIN_TOKEN');
+        if (savedToken) {
+            $('displayAccessToken').textContent = savedToken;
+            $('displayRefreshToken').textContent = localStorage.getItem('ADMIN_REFRESH_TOKEN');
+            $('adminLoginResult').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            $('modalOverlay').classList.add('hidden');
+            $('modalOverlay').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
 
         initUI();
     </script>

@@ -72,7 +72,7 @@ describe('Admin Endpoints Stability', () => {
   });
 
   afterAll(async () => {
-    const ids = [adminId, moderatorId, userId].filter(id => id !== undefined);
+    const ids = [adminId, moderatorId, userId].filter(id => !!id);
     if (ids.length > 0) {
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
     }

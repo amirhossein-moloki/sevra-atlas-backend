@@ -23,8 +23,14 @@ if (!_env.success) {
   }
 }
 
+// Fallback to partial parsing or defaults for testing stability
 type EnvData = z.infer<typeof envSchema>;
-const envData = _env.success ? _env.data : {} as EnvData;
+const envData = _env.success
+  ? _env.data
+  : {
+      ...envSchema.partial().parse(process.env),
+      NODE_ENV: (process.env.NODE_ENV as any) || 'development'
+    } as EnvData;
 
 // Extra production checks for missing secrets
 if (nodeEnv === 'production') {

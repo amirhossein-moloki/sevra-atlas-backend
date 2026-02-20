@@ -9,10 +9,12 @@ import { billingWorker, billingQueue } from '../src/modules/workers/billing.work
 
 const openapiPath = path.join(process.cwd(), 'openapi.json');
 
+console.log(`--- Initializing jest-openapi with spec: ${openapiPath} ---`);
 if (fs.existsSync(openapiPath)) {
   jestOpenAPI(openapiPath);
+  console.log('--- jest-openapi initialized successfully ---');
 } else {
-  console.warn('openapi.json not found, toSatisfyApiSpec() will not work.');
+  console.warn(`!!! openapi.json not found at ${openapiPath}, toSatisfyApiSpec() will fail !!!`);
 }
 
 afterAll(async () => {
@@ -60,12 +62,16 @@ afterAll(async () => {
     try {
       const promClient = await import('prom-client');
       promClient.register.clear();
+      // Stop default metrics collection if it was started
+      if ((promClient as any).defaultMetrics && typeof (promClient as any).defaultMetrics.stop === 'function') {
+        (promClient as any).defaultMetrics.stop();
+      }
     } catch (_e) {
       // Ignore if prom-client is not available
     }
 
     // Give it a small window for everything to settle
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 200));
     console.log('--- Teardown Complete ---');
   } catch (error) {
     console.error('Error during global teardown:', error);

@@ -35,7 +35,30 @@
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Base API URL</label>
                     <input id="baseUrl" type="text" value="http://localhost:3000/api/v1"
-                        class="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 transition-all">
+                        class="bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 transition-all">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Rate Limit Mode</label>
+                    <select id="rlMode" class="bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        <option value="conservative">Conservative (1 req/s)</option>
+                        <option value="normal" selected>Normal (2 req/s)</option>
+                        <option value="aggressive">Aggressive (4 req/s)</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div id="customRLControls" class="hidden flex gap-2">
+                    <div class="flex flex-col w-16">
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1">RPM</label>
+                        <input id="rlRpm" type="number" value="90" class="bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm">
+                    </div>
+                    <div class="flex flex-col w-20">
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1">Delay (ms)</label>
+                        <input id="rlDelay" type="number" value="650" class="bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm">
+                    </div>
+                    <div class="flex flex-col w-16">
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1">Conc.</label>
+                        <input id="rlConcurrency" type="number" value="4" class="bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm">
+                    </div>
                 </div>
                 <div class="flex flex-col items-center">
                     <label class="text-[10px] uppercase font-bold text-slate-500 mb-1">Safe Mode</label>
@@ -84,6 +107,26 @@
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
                 <div class="text-slate-500 text-xs font-bold uppercase mb-1">Skipped</div>
                 <div id="statSkipped" class="text-2xl font-bold text-slate-500">0</div>
+            </div>
+        </div>
+
+        <!-- Rate Limit & Scheduler Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900/50 border border-slate-800 p-3 rounded-lg">
+                <div class="text-slate-500 text-[10px] font-bold uppercase">Current RPS</div>
+                <div id="statRPS" class="text-lg font-mono font-bold text-indigo-400">0.0</div>
+            </div>
+            <div class="bg-slate-900/50 border border-slate-800 p-3 rounded-lg">
+                <div class="text-slate-500 text-[10px] font-bold uppercase">Queued</div>
+                <div id="statQueued" class="text-lg font-mono font-bold text-slate-300">0</div>
+            </div>
+            <div class="bg-slate-900/50 border border-slate-800 p-3 rounded-lg">
+                <div class="text-slate-500 text-[10px] font-bold uppercase">Cooldown</div>
+                <div id="statCooldown" class="text-lg font-mono font-bold text-amber-400">0ms</div>
+            </div>
+            <div class="bg-slate-900/50 border border-slate-800 p-3 rounded-lg">
+                <div class="text-slate-500 text-[10px] font-bold uppercase">Last 429 Time</div>
+                <div id="statLast429" class="text-lg font-mono font-bold text-red-400">-</div>
             </div>
         </div>
 
@@ -19395,7 +19438,15 @@
             discoveryDone: false,
             isRunning: false,
             safeMode: true,
-            isProd: false
+            isProd: false,
+            // Rate Limit State
+            rpm: 120,
+            delay: 500,
+            lastRequestTime: 0,
+            cooldownUntil: 0,
+            last429Time: null,
+            history: [], // For RPS calculation
+            throttleDelay: 500
         };
         const escapeHTML = (str) => {
             if (!str) return "";
@@ -19445,8 +19496,58 @@
             $('safeModeToggle').onchange = (e) => {
                 state.safeMode = e.target.checked;
             };
+
+            $('rlMode').onchange = (e) => {
+                const mode = e.target.value;
+                const customControls = $('customRLControls');
+                if (mode === 'custom') {
+                    customControls.classList.remove('hidden');
+                } else {
+                    customControls.classList.add('hidden');
+                    if (mode === 'conservative') {
+                        state.rpm = 60;
+                        state.throttleDelay = 1000;
+                        state.concurrency = 1;
+                    } else if (mode === 'normal') {
+                        state.rpm = 120;
+                        state.throttleDelay = 500;
+                        state.concurrency = 4;
+                    } else if (mode === 'aggressive') {
+                        state.rpm = 240;
+                        state.throttleDelay = 250;
+                        state.concurrency = 8;
+                    }
+                    $('rlRpm').value = state.rpm;
+                    $('rlDelay').value = state.throttleDelay;
+                    $('rlConcurrency').value = state.concurrency;
+                }
+            };
+
+            $('rlRpm').oninput = (e) => state.rpm = parseInt(e.target.value) || 60;
+            $('rlDelay').oninput = (e) => state.throttleDelay = parseInt(e.target.value) || 500;
+            $('rlConcurrency').oninput = (e) => state.concurrency = parseInt(e.target.value) || 1;
+
+            // Start stats ticker
+            setInterval(updateStatsUI, 200);
+
             generateTests();
             renderResults("all");
+        }
+
+        function updateStatsUI() {
+            const now = Date.now();
+            // Calculate RPS (last 5 seconds)
+            state.history = state.history.filter(t => now - t < 5000);
+            const rps = (state.history.length / 5).toFixed(1);
+
+            $('statRPS').textContent = rps;
+            $('statQueued').textContent = state.queue.length;
+
+            const cooldownLeft = Math.max(0, state.cooldownUntil - now);
+            $('statCooldown').textContent = cooldownLeft > 0 ? `${cooldownLeft}ms` : '0ms';
+
+            $('statLast429').textContent = state.last429Time ?
+                new Date(state.last429Time).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
         }
 
         function checkProd(url) {
@@ -19498,6 +19599,34 @@
                 return;
             }
 
+            // 1. Wait for Global Cooldown (if any hit 429)
+            let now = Date.now();
+            if (state.cooldownUntil > now) {
+                const wait = state.cooldownUntil - now;
+                console.log(`Global cooldown active. Waiting ${wait}ms...`);
+                await sleep(wait);
+            }
+
+            // 2. Global Throttle: ensure inter-request delay
+            // We use a simpler throttle: wait for our turn
+            now = Date.now();
+            const nextAllowed = state.lastRequestTime + state.throttleDelay;
+            if (now < nextAllowed) {
+                const wait = nextAllowed - now;
+                await sleep(wait);
+            }
+            state.lastRequestTime = Date.now();
+            state.history.push(Date.now());
+
+            // 3. Safe Mode slower speed for writes (POST/PATCH/PUT/DELETE)
+            if (state.safeMode && ['POST', 'PATCH', 'PUT', 'DELETE'].includes(test.method)) {
+                // Ensure at least 1 second gap for writes in safe mode
+                const sinceLast = Date.now() - state.lastRequestTime;
+                if (sinceLast < 1000) {
+                    await sleep(1000 - sinceLast);
+                }
+            }
+
             const timeout = 15000;
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -19525,6 +19654,31 @@
                     body = text;
                 }
                 clearTimeout(id);
+
+                // Handle 429 Rate Limit
+                if (response.status === 429) {
+                    state.last429Time = Date.now();
+                    const retryAfter = response.headers.get('Retry-After');
+                    let waitMs = 0;
+                    if (retryAfter) {
+                        waitMs = isNaN(retryAfter) ? (new Date(retryAfter) - Date.now()) : parseInt(retryAfter) * 1000;
+                    } else {
+                        // Exponential backoff with jitter: 1s, 2s, 4s, 8s (max 15s)
+                        waitMs = Math.min(15000, Math.pow(2, attempt - 1) * 1000 + (Math.random() * 1000));
+                    }
+
+                    state.cooldownUntil = Date.now() + waitMs;
+                    console.warn(`Rate Limited (429) on ${test.path}. Waiting ${waitMs}ms. Attempt ${attempt}`);
+
+                    if (attempt < 5) {
+                        await sleep(waitMs);
+                        return runRequest(test, attempt + 1);
+                    } else {
+                        test.result = 'FAIL';
+                        test.error = 'Rate Limit Exceeded (429) after max retries';
+                        return;
+                    }
+                }
 
                 // Retry logic: only 5xx or network errors
                 if (response.status >= 500 && attempt < 3) {
@@ -19572,32 +19726,58 @@
             updateStats();
         }
 
-        async function processQueue() {
-            if (state.activeCount >= state.concurrency || state.queue.length === 0) return;
+        async function runWorker() {
+            while (state.queue.length > 0) {
+                const test = state.queue.shift();
+                state.activeCount++;
+                $('runningIndicator').classList.remove('hidden');
 
-            const test = state.queue.shift();
-            state.activeCount++;
-            $('runningIndicator').classList.remove('hidden');
-            $('queueStatus').textContent = `Running (${state.activeCount} active, ${state.queue.length} left)`;
+                await runRequest(test);
 
-            await runRequest(test);
-
-            state.activeCount--;
-            if (state.activeCount === 0 && state.queue.length === 0) {
-                $('runningIndicator').classList.add('hidden');
-                $('queueStatus').textContent = 'Completed';
-                state.isRunning = false;
+                state.activeCount--;
             }
-            processQueue();
         }
 
-        function enqueueTests(testsToRun) {
-            testsToRun.forEach(t => {
+        async function runStage(stage, name) {
+            if (stage.length === 0) return;
+            state.queue = [...stage];
+            stage.forEach(t => {
                 t.result = 'PENDING';
                 updateRow(t);
-                state.queue.push(t);
             });
-            for(let i=0; i<state.concurrency; i++) processQueue();
+
+            $('queueStatus').textContent = `Stage: ${name} (${stage.length} tests)`;
+
+            const workers = [];
+            const count = Math.min(state.concurrency, stage.length);
+            for (let i = 0; i < count; i++) {
+                workers.push(runWorker());
+            }
+            await Promise.all(workers);
+
+            if (state.isRunning) {
+                $('queueStatus').textContent = `Stage ${name} complete. Cooling down...`;
+                await sleep(3000); // 3s pause between stages
+            }
+        }
+
+        async function enqueueTests(testsToRun) {
+            state.isRunning = true;
+
+            // Phase 1: Discovery & Reads (GET)
+            const stage1 = testsToRun.filter(t => t.method === 'GET');
+            // Phase 2: Creates (POST)
+            const stage2 = testsToRun.filter(t => t.method === 'POST');
+            // Phase 3: Updates/Deletes (Others)
+            const stage3 = testsToRun.filter(t => !['GET', 'POST'].includes(t.method));
+
+            await runStage(stage1, "Discovery & Reads");
+            await runStage(stage2, "Creation (POST)");
+            await runStage(stage3, "Updates & Deletions");
+
+            state.isRunning = false;
+            $('runningIndicator').classList.add('hidden');
+            $('queueStatus').textContent = 'All Stages Completed';
         }
 
         function injectPrefix(obj) {
@@ -19826,16 +20006,23 @@
             if (state.discoveryDone) return;
             $('queueStatus').textContent = 'Discovering resource IDs...';
             const resources = Object.entries(blueprint.resourceDiscovery);
-            const promises = resources.map(async ([key, path]) => {
+
+            for (const [key, path] of resources) {
+                // Throttle discovery too
+                const now = Date.now();
+                const nextAllowed = state.lastRequestTime + state.throttleDelay;
+                if (now < nextAllowed) await sleep(nextAllowed - now);
+                state.lastRequestTime = Date.now();
+                state.history.push(Date.now());
+
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s discovery timeout
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
                 try {
                     const url = $('baseUrl').value.replace(/\/$/, '') + path;
                     const res = await fetch(url, { signal: controller.signal });
                     const json = await res.json();
                     const list = json.data?.data || json.data || [];
                     if (Array.isArray(list) && list.length > 0) {
-                        // Prefer items starting with TEST_PREFIX
                         let item = list.find(i => {
                             const val = i.name || i.title || i.slug || "";
                             return String(val).startsWith(TEST_PREFIX);
@@ -19843,14 +20030,14 @@
 
                         state.discoveredIds[key + 'Id'] = item.id || item.slug;
                         state.discoveredIds[key + 'Slug'] = item.slug;
+                        console.log(`Discovered ${key}:`, item.id || item.slug);
                     }
                 } catch (e) {
-                    console.warn('Discovery failed for ' + key);
+                    console.warn('Discovery failed for ' + key, e);
                 } finally {
                     clearTimeout(timeoutId);
                 }
-            });
-            await Promise.all(promises);
+            }
             state.discoveryDone = true;
         }
         let currentFilter = 'all';

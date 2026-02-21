@@ -24,14 +24,17 @@ const withAudit = (actionName: string, resourceId: string) => {
       const { currentAdmin, record } = context;
       // We only log successful POST requests (mutations)
       if (request.method === 'post' && response.record && !response.record.errors) {
+        // Cast to any because the Express adapter augments ActionRequest with headers and ip at runtime,
+        // but these are not present in the base ActionRequest type.
+        const req = request as any;
         await recordAuditLog({
           userId: currentAdmin?.id ? BigInt(currentAdmin.id) : undefined,
           action: actionName.toUpperCase(),
           entityType: resourceId,
           entityId: record?.id()?.toString(),
           payload: request.payload,
-          ip: request.headers['x-forwarded-for']?.toString() || request.ip,
-          userAgent: request.headers['user-agent']?.toString(),
+          ip: req.headers?.['x-forwarded-for']?.toString() || req.ip,
+          userAgent: req.headers?.['user-agent']?.toString(),
         });
       }
       return response;

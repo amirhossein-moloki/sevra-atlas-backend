@@ -74,6 +74,13 @@ For detailed operations and troubleshooting, see the [Production Operations Runb
 ## Documentation
 Access Swagger UI at `http://localhost:3000/api-docs`.
 
+## Administrative Access
+The backoffice is available at `/backoffice`. By default, no admin users are created. To create a super admin, run:
+
+```bash
+npm run admin:create -- --identifier <email|username|phone> --password <pass> --role SUPER_ADMIN
+```
+
 ## Deployment
 The project uses GitHub Actions for CI/CD.
 

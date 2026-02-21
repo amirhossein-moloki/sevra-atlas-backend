@@ -35,6 +35,8 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 resources.commentResource,
             ],
             rootPath: '/backoffice',
+            loginPath: '/backoffice/login',
+            logoutPath: '/backoffice/logout',
             branding: {
                 companyName: 'Sevra Atlas',
                 logo: false,
@@ -75,7 +77,11 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
 
         const router = AdminJSExpress.buildAuthenticatedRouter(
             admin,
-            auth,
+            {
+                ...auth,
+                loginPath: '/backoffice/login',
+                logoutPath: '/backoffice/logout',
+            },
             null,
             {
                 resave: false,

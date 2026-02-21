@@ -68,6 +68,21 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
 
         const admin = new AdminJS(adminOptions);
 
+        if (config.isProduction) {
+            console.log('Bundling AdminJS assets...');
+            await admin.initialize();
+        } else {
+            admin.watch();
+        }
+
+        const { RedisStore } = await (eval('import("connect-redis")') as Promise<any>);
+        const { redisCache } = await import('../shared/redis/redis');
+
+        const store = new RedisStore({
+            client: redisCache,
+            prefix: 'adminjs_session:',
+        });
+
         // Authentication logic
         const auth = {
             authenticate: async (identifier: string, password: string) => {
@@ -83,7 +98,14 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 });
                 if (user && ['ADMIN', 'SUPER_ADMIN'].includes(user.role) && user.password) {
                     const matched = await bcrypt.compare(password, user.password);
-                    if (matched) return user;
+                    if (matched) {
+                        // Return session-safe user object without BigInt
+                        return {
+                            id: user.id.toString(),
+                            email: user.email,
+                            role: user.role,
+                        };
+                    }
                 }
                 return null;
             },
@@ -103,6 +125,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 resave: false,
                 saveUninitialized: false,
                 secret: config.admin.sessionSecret,
+                store,
                 cookie: {
                     httpOnly: true,
                     secure: config.isProduction,

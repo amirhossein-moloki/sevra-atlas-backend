@@ -2,6 +2,7 @@ import type { ActionContext, ActionRequest, ActionResponse } from 'adminjs';
 import bcrypt from 'bcrypt';
 import sanitizeHtml from 'sanitize-html';
 import { config } from '../config';
+import { recordAuditLog } from '../shared/utils/audit';
 
 const sanitizeOptions = {
   allowedTags: ['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br'],
@@ -14,6 +15,30 @@ const sanitizeOptions = {
  * Using a factory function to avoid static imports of ESM-only dependencies
  * and to receive injected components.
  */
+/**
+ * Helper to wrap an AdminJS action with audit logging.
+ */
+const withAudit = (actionName: string, resourceId: string) => {
+  return {
+    after: async (response: ActionResponse, request: ActionRequest, context: ActionContext) => {
+      const { currentAdmin, record } = context;
+      // We only log successful POST requests (mutations)
+      if (request.method === 'post' && response.record && !response.record.errors) {
+        await recordAuditLog({
+          userId: currentAdmin?.id ? BigInt(currentAdmin.id) : undefined,
+          action: actionName.toUpperCase(),
+          entityType: resourceId,
+          entityId: record?.id()?.toString(),
+          payload: request.payload,
+          ip: request.headers['x-forwarded-for']?.toString() || request.ip,
+          userAgent: request.headers['user-agent']?.toString(),
+        });
+      }
+      return response;
+    },
+  };
+};
+
 export const createResources = (prisma: any, COMPONENTS: any, getModelByName: any) => {
   const userModel = getModelByName('User');
 
@@ -109,6 +134,9 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
         properties: commonUserProperties,
         actions: {
           ...commonUserActions,
+          new: { ...commonUserActions.new, ...withAudit('create', 'User') },
+          edit: { ...commonUserActions.edit, ...withAudit('update', 'User') },
+          delete: { ...withAudit('delete', 'User') },
           list: {
             before: async (request: ActionRequest) => {
               // Default to regular users if no filter is applied
@@ -133,6 +161,9 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
         properties: commonUserProperties,
         actions: {
           ...commonUserActions,
+          new: { ...commonUserActions.new, ...withAudit('create', 'Admin') },
+          edit: { ...commonUserActions.edit, ...withAudit('update', 'Admin') },
+          delete: { ...withAudit('delete', 'Admin') },
           list: {
             before: async (request: ActionRequest) => {
               // Default to admins if no filter is applied
@@ -221,6 +252,76 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
         navigation: { name: 'Blog', icon: 'Comment' },
         properties: {
           id: { isVisible: { edit: false } },
+        },
+      },
+    },
+
+    salonResource: {
+      resource: { model: getModelByName('Salon'), client: prisma },
+      options: {
+        navigation: { name: 'Directory', icon: 'Home' },
+        properties: {
+          id: { isVisible: { edit: false } },
+          visibilityScore: { isVisible: { edit: false } },
+          avgRating: { isVisible: { edit: false } },
+          reviewCount: { isVisible: { edit: false } },
+        },
+        actions: {
+          new: { ...withAudit('create', 'Salon') },
+          edit: { ...withAudit('update', 'Salon') },
+          delete: { ...withAudit('delete', 'Salon') },
+        },
+      },
+    },
+
+    artistResource: {
+      resource: { model: getModelByName('Artist'), client: prisma },
+      options: {
+        navigation: { name: 'Directory', icon: 'UserCheck' },
+        properties: {
+          id: { isVisible: { edit: false } },
+          visibilityScore: { isVisible: { edit: false } },
+          avgRating: { isVisible: { edit: false } },
+          reviewCount: { isVisible: { edit: false } },
+        },
+        actions: {
+          new: { ...withAudit('create', 'Artist') },
+          edit: { ...withAudit('update', 'Artist') },
+          delete: { ...withAudit('delete', 'Artist') },
+        },
+      },
+    },
+
+    paymentResource: {
+      resource: { model: getModelByName('Payment'), client: prisma },
+      options: {
+        navigation: { name: 'Billing', icon: 'CreditCard' },
+        properties: {
+          id: { isVisible: { edit: false } },
+          idempotencyKey: { isVisible: { edit: false } },
+          providerTrackId: { isVisible: { list: true, filter: true, show: true, edit: false } },
+        },
+        actions: {
+          new: { isAccessible: false },
+          delete: {
+            ...withAudit('delete', 'Payment'),
+            isAccessible: ({ currentAdmin }: any) => currentAdmin?.role === 'SUPER_ADMIN',
+          },
+        },
+      },
+    },
+
+    verificationResource: {
+      resource: { model: getModelByName('VerificationRequest'), client: prisma },
+      options: {
+        navigation: { name: 'Directory', icon: 'CheckSquare' },
+        properties: {
+          id: { isVisible: { edit: false } },
+        },
+        actions: {
+          new: { ...withAudit('create', 'VerificationRequest') },
+          edit: { ...withAudit('update', 'VerificationRequest') },
+          delete: { ...withAudit('delete', 'VerificationRequest') },
         },
       },
     },

@@ -18,7 +18,8 @@ async function main() {
   const roleArg = getArg('role') || 'ADMIN';
 
   if (!identifier || !password) {
-    console.log('Usage: ts-node scripts/admin-create.ts --identifier <email/username/phone> --password <pass> [--firstName <name>] [--lastName <name>] [--role <ADMIN/SUPER_ADMIN>]');
+    console.log('Usage: npm run admin:create -- --identifier <email/username/phone> --password <pass> [--firstName <name>] [--lastName <name>] [--role <ADMIN/SUPER_ADMIN>]');
+    console.log('In production: npm run admin:create:prod -- --identifier <email/username/phone> --password <pass> ...');
     process.exit(1);
   }
 

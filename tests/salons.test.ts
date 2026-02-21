@@ -92,13 +92,10 @@ describe('Salons & Permissions', () => {
   afterAll(async () => {
     if (salonOwnerId) {
       await prisma.salon.deleteMany({ where: { primaryOwnerId: salonOwnerId } });
-    }
-    await prisma.user.deleteMany({
-      where: { phoneNumber: { in: ['+989000000001', '+989000000002'] } }
-    });
-    if (salonOwnerId) {
       await prisma.user.deleteMany({ where: { id: salonOwnerId } });
     }
+    // We do NOT delete global test users (+989000000001, +989000000002)
+    // as they are managed by setup-after-env.ts and used by other tests.
   });
 
   it('should list salons', async () => {

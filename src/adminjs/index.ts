@@ -26,6 +26,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
 
         const { componentLoader, COMPONENTS } = await createComponentLoader();
         const resources = createResources(prisma, COMPONENTS, getModelByName);
+        const { getDashboardData } = await import('./handlers/dashboard.handler');
 
         const adminOptions: AdminJSOptions = {
             resources: [
@@ -38,19 +39,28 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 resources.artistResource,
                 resources.paymentResource,
                 resources.verificationResource,
+                resources.auditLogResource,
             ],
             rootPath: '/backoffice',
             loginPath: '/backoffice/login',
             logoutPath: '/backoffice/logout',
             branding: {
-                companyName: 'Sevra Atlas',
+                companyName: 'Sevra Atlas Enterprise',
                 logo: false,
                 withMadeWithLove: false,
+                theme: {
+                    colors: {
+                        primary100: '#4263eb',
+                        accent: '#4263eb',
+                        love: '#e03131',
+                    },
+                },
             },
             dashboard: {
                 handler: async () => {
-                    return { message: 'Welcome to Sevra Atlas Backoffice' };
+                    return await getDashboardData(prisma);
                 },
+                component: COMPONENTS.Dashboard,
             },
             componentLoader,
             locale: {

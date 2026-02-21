@@ -104,8 +104,12 @@ function fixNullableSchemas(obj: any) {
   if (obj.$ref && obj.nullable === true) {
     const ref = obj.$ref;
     delete obj.$ref;
-    obj.allOf = [{ $ref: ref }];
-    // Continue processing as an allOf schema
+    // Use anyOf with a null-only branch to satisfy both OAS 3.0 and Ajv
+    // allOf is avoided because null would need to satisfy the $ref branch (which rejects null)
+    obj.anyOf = [
+      { $ref: ref },
+      { type: 'object', nullable: true, enum: [null] },
+    ];
   }
 
   // 2. Handle unions (allOf, anyOf, oneOf) with nullable branches
@@ -117,38 +121,42 @@ function fixNullableSchemas(obj: any) {
 
       if (nullableIndex !== -1) {
         obj.nullable = true;
-        const nullablePart = branches[nullableIndex];
 
-        // Remove the nullable flag from the branch
-        delete nullablePart.nullable;
-
-        // If the branch is now empty or only has a type: object, remove it
-        if (
-          Object.keys(nullablePart).length === 0 ||
-          (Object.keys(nullablePart).length === 1 && nullablePart.type === 'object')
-        ) {
-          obj[keyword] = branches.filter((_: any, i: number) => i !== nullableIndex);
+        // If it's an allOf, we MUST convert it to anyOf to allow the null value
+        // to skip the other branches that might reject it
+        if (keyword === 'allOf') {
+          const currentAllOf = [...branches];
+          delete obj.allOf;
+          obj.anyOf = [
+            { allOf: currentAllOf.filter((_, i) => i !== nullableIndex) },
+            { type: 'object', nullable: true, enum: [null] },
+          ];
+        } else {
+          // For anyOf/oneOf, replace the nullable branch with a strict null-only branch
+          obj[keyword][nullableIndex] = { type: 'object', nullable: true, enum: [null] };
         }
       }
     }
   }
 
   // 3. Final fix for Ajv: "nullable" cannot be used without "type"
-  if (obj.nullable === true && !obj.type) {
-    // Try to infer type from unions
-    for (const keyword of unionKeywords) {
-      if (obj[keyword] && Array.isArray(obj[keyword])) {
-        const typePart = obj[keyword].find((item: any) => item && item.type);
-        if (typePart) {
-          obj.type = typePart.type;
-          break;
+  if (obj.nullable === true) {
+    if (!obj.type) {
+      // Try to infer type from unions
+      for (const keyword of unionKeywords) {
+        if (obj[keyword] && Array.isArray(obj[keyword])) {
+          const typePart = obj[keyword].find((item: any) => item && item.type);
+          if (typePart) {
+            obj.type = typePart.type;
+            break;
+          }
         }
       }
-    }
 
-    // Default to 'object' if still no type, as most registered schemas are objects
-    if (!obj.type) {
-      obj.type = 'object';
+      // Default to 'object' if still no type, as most registered schemas are objects
+      if (!obj.type) {
+        obj.type = 'object';
+      }
     }
   }
 }

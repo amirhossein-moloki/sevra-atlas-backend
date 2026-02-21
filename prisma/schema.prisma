@@ -253,6 +253,7 @@ model User {
   refreshTokens   RefreshToken[] @relation("UserRefreshTokens")
   invitesSent     Invite[]       @relation("InvitesSent")
   payments        Payment[]
+  auditLogs       AuditLog[]
 
   @@map("users_user")
   @@index([cityId])
@@ -1417,4 +1418,22 @@ model Save {
   @@unique([userId, targetType, salonId, artistId, postId])
   @@index([userId, createdAt])
   @@index([targetType, createdAt])
+}
+
+model AuditLog {
+  id          BigInt   @id @default(autoincrement())
+  userId      BigInt?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entityType  String?
+  entityId    String?
+  payload     Json?    @default("{}")
+  ip          String?  @db.VarChar(45)
+  userAgent   String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

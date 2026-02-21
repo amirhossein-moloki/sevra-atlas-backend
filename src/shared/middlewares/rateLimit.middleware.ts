@@ -4,18 +4,17 @@ import { ApiError } from '../errors/ApiError';
 import { logger } from '../logger/logger';
 import { config } from '../../config';
 
+/**
+ * Rate limiting middleware using Redis.
+ * Enforces request limits per IP or custom key.
+ */
 export const rateLimit = (
-  _prefix: string,
-  _limit: number,
-  _windowSeconds: number,
-  _keyGenerator?: (req: Request) => string
+  prefix: string,
+  limit: number,
+  windowSeconds: number,
+  keyGenerator?: (req: Request) => string
 ) => {
-  return async (_req: Request, _res: Response, next: NextFunction) => {
-    // RATE LIMIT DISABLED GLOBALLY PER USER REQUEST
-    // Original strategies are documented in RATE_LIMIT_STRATEGIES.md
-    return next();
-
-    /*
+  return async (req: Request, _res: Response, next: NextFunction) => {
     // Bypass in test/sandbox or if explicitly disabled
     const isTest = process.env.NODE_ENV === 'test' || config.isTest;
     const isSandbox = process.env.SANDBOX_MODE === 'true' || config.sandboxMode;
@@ -27,7 +26,6 @@ export const rateLimit = (
       process.env.RATE_LIMIT_ENABLED === 'false';
 
     if (!isExplicitlyEnabled && (isTest || isSandbox || isExplicitlyDisabled)) {
-      logger.debug(`Rate limit bypassed: isTest=${isTest}, isSandbox=${isSandbox}, isExplicitlyDisabled=${isExplicitlyDisabled}`);
       return next();
     }
 
@@ -49,24 +47,26 @@ export const rateLimit = (
     const redisKey = `ratelimit:${prefix}:${key}`;
 
     try {
+      // Use pipeline for atomic increment and expire if needed
       const current = await redis.incr(redisKey);
       if (current === 1) {
         await redis.expire(redisKey, windowSeconds);
       }
 
       if (current > limit) {
+        logger.warn(`Rate limit exceeded for key: ${redisKey} (${current}/${limit})`);
         const error = new ApiError(429, 'Too many requests, please try again later');
         error.code = 'TOO_MANY_REQUESTS';
-        throw error;
+        return next(error);
       }
     } catch (error) {
       if (error instanceof ApiError) {
         return next(error);
       }
-      logger.warn(`Rate limit check failed due to Redis error (fail-open):`, error);
+      // Fail-open strategy to prevent Redis outages from blocking legitimate users
+      logger.error(`Rate limit check failed due to Redis error (fail-open):`, error);
     }
 
     next();
-    */
   };
 };

@@ -21,6 +21,8 @@ import { config } from './config';
 
 const app = express();
 
+const BACKOFFICE_PATH = '/backoffice';
+
 if (config.isProduction) {
   app.set('trust proxy', config.server.trustProxy);
 }
@@ -66,7 +68,7 @@ const adminCSP = helmet({
 
 // Apply CSP conditionally: strict by default, relaxed for /backoffice
 app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith('/backoffice')) {
+  if (req.path.startsWith(BACKOFFICE_PATH)) {
     adminCSP(req, res, next);
   } else {
     strictCSP(req, res, next);
@@ -79,8 +81,25 @@ app.use(cors({
   credentials: config.cors.allowCredentials,
 }));
 app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Body parser middlewares defined once to avoid re-initialization on every request
+const jsonParser = express.json();
+const urlencodedParser = express.urlencoded({ extended: true });
+
+// Skip body parsing for AdminJS routes as it handles them internally via formidable
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith(BACKOFFICE_PATH)) {
+    return next();
+  }
+  jsonParser(req, res, next);
+});
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith(BACKOFFICE_PATH)) {
+    return next();
+  }
+  urlencodedParser(req, res, next);
+});
 
 // Global Rate Limit
 app.use(rateLimit('global', config.security.rateLimit.max, config.security.rateLimit.windowS));
@@ -137,14 +156,14 @@ app.use(
       coerceTypes: true,
     },
     ignoreUndocumented: false,
-    ignorePaths: /^\/backoffice/, // Ignore AdminJS routes from OpenAPI validation
+    ignorePaths: new RegExp(`^${BACKOFFICE_PATH}`), // Ignore AdminJS routes from OpenAPI validation
   })
 );
 
 // responseMiddleware must be after OpenApiValidator to wrap responses before they are validated
 // We skip it for /backoffice because AdminJS has its own response handling and complex circular objects
 app.use((req, res, next) => {
-  if (req.path.startsWith('/backoffice')) {
+  if (req.path.startsWith(BACKOFFICE_PATH)) {
     return next();
   }
   responseMiddleware(req, res, next);

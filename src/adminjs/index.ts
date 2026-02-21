@@ -29,6 +29,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
 
         const adminOptions: AdminJSOptions = {
             resources: [
+                resources.adminResource,
                 resources.userResource,
                 resources.postResource,
                 resources.pageResource,
@@ -48,22 +49,26 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 },
             },
             componentLoader,
+            locale: {
+                translations: {
+                    labels: {
+                        loginWelcome: 'Sevra Atlas Backoffice',
+                    },
+                    properties: {
+                        email: 'Username',
+                    },
+                },
+            },
         };
 
         const admin = new AdminJS(adminOptions);
 
         // Authentication logic
         const auth = {
-            authenticate: async (email: string, password: string) => {
+            authenticate: async (username: string, password: string) => {
                 const { default: bcrypt } = await import('bcrypt');
                 const user = await prisma.user.findFirst({
-                    where: {
-                        OR: [
-                            { email },
-                            { username: email },
-                            { phoneNumber: email },
-                        ]
-                    }
+                    where: { username }
                 });
                 if (user && ['ADMIN', 'SUPER_ADMIN'].includes(user.role) && user.password) {
                     const matched = await bcrypt.compare(password, user.password);

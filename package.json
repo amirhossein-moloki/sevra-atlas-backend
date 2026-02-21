@@ -35,6 +35,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@adminjs/design-system": "^4.1.1",
     "@adminjs/express": "^6.1.1",
     "@adminjs/prisma": "^5.0.4",
     "@asteasolutions/zod-to-openapi": "^7.3.4",
@@ -67,6 +68,7 @@
     "sanitize-html": "^2.17.0",
     "sharp": "^0.34.5",
     "sms-typescript": "^2.0.2",
+    "styled-components": "^6.3.11",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "zibal": "^1.0.2",
@@ -96,6 +98,7 @@
     "@types/react-dom": "^18.3.7",
     "@types/sanitize-html": "^2.16.0",
     "@types/sharp": "^0.31.1",
+    "@types/styled-components": "^5.1.36",
     "@types/supertest": "^6.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",

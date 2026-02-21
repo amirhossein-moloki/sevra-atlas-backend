@@ -50,6 +50,7 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
             },
             componentLoader,
             locale: {
+                language: 'en',
                 translations: {
                     labels: {
                         loginWelcome: 'Sevra Atlas Backoffice',

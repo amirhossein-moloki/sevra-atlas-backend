@@ -4,8 +4,8 @@ This project uses **AdminJS** for the administrative backend, providing a user-f
 
 ## Access
 - **Path**: `/backoffice`
-- **Login**: Use your account email and password.
-- **Authorization**: Only users with the `ADMIN` role are permitted to log in.
+- **Login**: Use your account identifier (Username, Email, or Phone Number) and password.
+- **Authorization**: Only users with the `ADMIN` or `SUPER_ADMIN` roles are permitted to log in.
 
 ## Configuration
 The following environment variables are required for AdminJS:

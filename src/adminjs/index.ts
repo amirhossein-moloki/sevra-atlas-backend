@@ -76,10 +76,10 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
         }
 
         const { RedisStore } = await (eval('import("connect-redis")') as Promise<any>);
-        const { redisCache } = await import('../shared/redis/redis');
+        const { redisSession } = await import('../shared/redis/redis');
 
         const store = new RedisStore({
-            client: redisCache,
+            client: redisSession,
             prefix: 'adminjs_session:',
         });
 
@@ -126,10 +126,14 @@ export async function initAdminJS(app: Express, prisma: PrismaClient) {
                 saveUninitialized: false,
                 secret: config.admin.sessionSecret,
                 store,
+                name: 'adminjs.sid', // Distinct cookie name
                 cookie: {
                     httpOnly: true,
                     secure: config.isProduction,
+                    sameSite: 'lax',
+                    maxAge: 24 * 60 * 60 * 1000, // 24 hours
                 },
+                proxy: config.isProduction, // Required for secure cookies behind proxy
             }
         );
 

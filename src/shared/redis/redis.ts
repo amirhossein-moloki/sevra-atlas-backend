@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { createClient } from 'redis';
 import { config } from '../../config';
 import { logger } from '../logger/logger';
 
@@ -28,6 +29,19 @@ redisCache.on('error', (err) => logger.error('Redis Cache error', err));
 redisQueue.on('connect', () => logger.info('Connected to Redis Queue'));
 redisQueue.on('error', (err) => logger.error('Redis Queue error', err));
 
+/**
+ * Dedicated node-redis client for express-session/connect-redis.
+ * connect-redis v7+ works best with node-redis or ioredis, but node-redis is more stable
+ * for session management in some environments.
+ */
+export const redisSession = createClient({
+  url: config.redis.url,
+  password: config.redis.password,
+});
+
+redisSession.on('error', (err) => logger.error('Redis Session Error', err));
+redisSession.connect().catch((err) => logger.error('Redis Session Connection Error', err));
+
 // Deprecated export for backward compatibility during migration
 export const redis = redisCache;
 
@@ -36,10 +50,12 @@ export const closeRedisConnections = async (force = false) => {
     if (force) {
       redisCache.disconnect();
       redisQueue.disconnect();
+      await redisSession.disconnect();
     } else {
       await Promise.all([
         redisCache.quit(),
-        redisQueue.quit()
+        redisQueue.quit(),
+        redisSession.quit()
       ]);
     }
   } catch (_error) {

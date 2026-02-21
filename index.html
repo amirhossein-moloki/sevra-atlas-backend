@@ -86,42 +86,42 @@
     </header>
 
     <main class="flex-1 max-w-7xl mx-auto w-full p-6 space-y-6">
-        <!-- Admin Login Section -->
+        <!-- Quick Login Section -->
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-xl">
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                Admin Quick Login
+                Quick Login
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div class="flex flex-col gap-1">
-                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Identifier (Email/Username/Phone)</label>
-                    <input id="adminIdentifier" type="text" placeholder="admin@example.com"
+                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Login Type</label>
+                    <select id="loginType" class="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        <option value="admin">Admin Login</option>
+                        <option value="user">User OTP (Verify)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Identifier / Phone</label>
+                    <input id="adminIdentifier" type="text" placeholder="admin@example.com / 0912..."
                         class="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                 </div>
                 <div class="flex flex-col gap-1">
-                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Password</label>
-                    <input id="adminPassword" type="password" placeholder="••••••••"
+                    <label class="text-[10px] uppercase font-bold text-slate-500 ml-1">Password / OTP</label>
+                    <input id="adminPassword" type="password" placeholder="•••••••• / 123456"
                         class="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                 </div>
                 <button id="adminLoginBtn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-md text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
-                    Login as Admin
+                    Perform Login
                 </button>
             </div>
             <div id="adminLoginResult" class="hidden mt-4 p-4 bg-slate-950 border border-slate-800 rounded-lg">
                 <div class="flex flex-col gap-2">
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-green-400 uppercase tracking-widest">Login Successful</span>
-                        <button id="clearAdminToken" class="text-[10px] text-slate-500 hover:text-red-400 underline">Clear Tokens</button>
+                        <span class="text-xs font-bold text-green-400 uppercase tracking-widest">Active Tokens</span>
+                        <button id="clearAdminToken" class="text-[10px] text-slate-500 hover:text-red-400 underline">Clear All Tokens</button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex flex-col gap-1">
-                            <label class="text-[10px] uppercase text-slate-500 font-bold">Access Token</label>
-                            <div id="displayAccessToken" class="text-[10px] font-mono bg-slate-900 p-2 rounded break-all border border-slate-800 text-indigo-300"></div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-[10px] uppercase text-slate-500 font-bold">Refresh Token</label>
-                            <div id="displayRefreshToken" class="text-[10px] font-mono bg-slate-900 p-2 rounded break-all border border-slate-800 text-slate-400"></div>
-                        </div>
+                    <div id="tokensList" class="grid grid-cols-1 gap-2 mt-2">
+                        <!-- Tokens shown here -->
                     </div>
                     <div class="mt-4 pt-4 border-t border-slate-800">
                         <label class="text-[10px] uppercase text-slate-500 font-bold mb-2 block">Quick Test Authenticated Endpoint</label>
@@ -19504,11 +19504,15 @@
             return p.innerHTML;
         };
 
-        const ROLES = ['ANONYMOUS', 'USER', 'ADMIN', 'STAFF'];
+        const ROLES = ['ANONYMOUS', 'USER', 'SALON', 'ARTIST', 'AUTHOR', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'];
         const TOKEN_MAP = {
             'USER': 'USER_TOKEN',
+            'SALON': 'SALON_TOKEN',
+            'ARTIST': 'ARTIST_TOKEN',
+            'AUTHOR': 'AUTHOR_TOKEN',
+            'MODERATOR': 'MODERATOR_TOKEN',
             'ADMIN': 'ADMIN_TOKEN',
-            'STAFF': 'STAFF_TOKEN'
+            'SUPER_ADMIN': 'SUPER_ADMIN_TOKEN'
         };
 
         const TEST_PREFIX = "__e2e_test__";
@@ -19756,6 +19760,26 @@
                     test.receivedStatus = response.status;
                     test.responseBody = body;
 
+                    // Capture tokens automatically
+                    if (response.ok && body?.data?.accessToken) {
+                        const url = test.path.toLowerCase();
+                        let roleToSave = null;
+                        if (url.includes('/admin/auth/login')) roleToSave = 'ADMIN';
+                        else if (url.includes('/auth/otp/verify')) roleToSave = 'USER';
+                        else if (url.includes('/auth/login')) roleToSave = 'USER';
+
+                        if (roleToSave) {
+                            const tokenKey = TOKEN_MAP[roleToSave] || (url.includes('/admin/') ? 'ADMIN_TOKEN' : 'USER_TOKEN');
+                            localStorage.setItem(tokenKey, body.data.accessToken);
+                            if (body.data.refreshToken) {
+                                localStorage.setItem(tokenKey.replace('_TOKEN', '_REFRESH_TOKEN'), body.data.refreshToken);
+                            }
+                            console.log(`Automatically captured ${roleToSave} token`);
+                            updateTokenDisplays();
+                            generateTests();
+                        }
+                    }
+
                     // Contract Validation
                     const expectedStatuses = Object.keys(test.expectedResponses || {}).map(Number);
                     if (expectedStatuses.length > 0 && !expectedStatuses.includes(response.status)) {
@@ -19870,11 +19894,37 @@
                 }
             }
 
+            // Query param substitution
+            const queryParams = new URLSearchParams();
+            if (ep.parameters) {
+                ep.parameters.forEach(p => {
+                    if (p.in === 'query') {
+                        let val = null;
+                        const name = p.name.toLowerCase();
+                        if (name === 'q') val = 'تهران';
+                        else if (name === 'city') val = state.discoveredIds['citySlug'] || 'tehran';
+                        else if (name === 'province') val = state.discoveredIds['provinceSlug'] || 'tehran-province';
+                        else if (name === 'role') val = 'USER';
+                        else if (name === 'status') val = 'ACTIVE';
+                        else if (name === 'page') val = '1';
+                        else if (name === 'pagesize') val = '10';
+                        else if (name === 'sort') val = 'new';
+                        else if (name.includes('id') && state.discoveredIds[p.name]) {
+                             val = state.discoveredIds[p.name];
+                        }
+
+                        if (val) queryParams.append(p.name, val);
+                    }
+                });
+            }
+            const queryString = queryParams.toString();
+            const finalPath = path + (queryString ? '?' + queryString : '');
+
             const test = {
                 id: Math.random().toString(36).substr(2, 9),
                 method: ep.method,
-                path: path,
-                fullUrl: $('baseUrl').value.replace(/\/$/, '') + path,
+                path: finalPath,
+                fullUrl: $('baseUrl').value.replace(/\/$/, '') + finalPath,
                 scenarioName,
                 role,
                 token,
@@ -20068,7 +20118,11 @@
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
                 try {
                     const url = $('baseUrl').value.replace(/\/$/, '') + path;
-                    const res = await fetch(url, { signal: controller.signal });
+                    const headers = { 'Accept': 'application/json' };
+                    const token = localStorage.getItem('ADMIN_TOKEN') || localStorage.getItem('USER_TOKEN');
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                    const res = await fetch(url, { headers, signal: controller.signal });
                     const json = await res.json();
                     const list = json.data?.data || json.data || [];
                     if (Array.isArray(list) && list.length > 0) {
@@ -20162,8 +20216,38 @@
             if (e.target === $('modalOverlay')) closeModal();
         };
 
-        // Admin Login Logic
+        function updateTokenDisplays() {
+            const container = $('tokensList');
+            container.innerHTML = '';
+            let hasAny = false;
+
+            Object.entries(TOKEN_MAP).forEach(([role, key]) => {
+                const token = localStorage.getItem(key);
+                if (token) {
+                    hasAny = true;
+                    const div = document.createElement('div');
+                    div.className = "flex flex-col gap-1 p-2 bg-slate-900 border border-slate-800 rounded";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">${role}</span>
+                            <button onclick="localStorage.removeItem('${key}'); updateTokenDisplays(); generateTests(); renderResults(currentFilter);" class="text-[8px] text-red-500 hover:underline">Remove</button>
+                        </div>
+                        <div class="text-[10px] font-mono break-all text-slate-400 truncate">${token}</div>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+
+            if (hasAny) {
+                $('adminLoginResult').classList.remove('hidden');
+            } else {
+                $('adminLoginResult').classList.add('hidden');
+            }
+        }
+
+        // Login Logic
         $('adminLoginBtn').onclick = async () => {
+            const type = $('loginType').value;
             const identifier = $('adminIdentifier').value;
             const password = $('adminPassword').value;
             const baseUrl = $('baseUrl').value.replace(/\/$/, '');
@@ -20171,26 +20255,30 @@
             if (!identifier || !password) return alert('Enter credentials');
 
             $('adminLoginBtn').disabled = true;
-            $('adminLoginBtn').textContent = 'Logging in...';
+            $('adminLoginBtn').textContent = 'Processing...';
 
             try {
-                const res = await fetch(`${baseUrl}/admin/auth/login`, {
+                const url = type === 'admin' ? '/admin/auth/login' : '/auth/otp/verify';
+                const body = type === 'admin'
+                    ? { identifier, password }
+                    : { phoneNumber: identifier, code: password };
+
+                const res = await fetch(`${baseUrl}${url}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, password })
+                    body: JSON.stringify(body)
                 });
 
                 const json = await res.json();
                 if (res.ok) {
-                    const { accessToken, refreshToken } = json.data;
-                    localStorage.setItem('ADMIN_TOKEN', accessToken);
-                    localStorage.setItem('ADMIN_REFRESH_TOKEN', refreshToken);
+                    const { accessToken, refreshToken, user } = json.data;
+                    const role = user?.role || (type === 'admin' ? 'ADMIN' : 'USER');
+                    const tokenKey = TOKEN_MAP[role] || (type === 'admin' ? 'ADMIN_TOKEN' : 'USER_TOKEN');
 
-                    $('displayAccessToken').textContent = accessToken;
-                    $('displayRefreshToken').textContent = refreshToken;
-                    $('adminLoginResult').classList.remove('hidden');
+                    localStorage.setItem(tokenKey, accessToken);
+                    if (refreshToken) localStorage.setItem(tokenKey.replace('_TOKEN', '_REFRESH_TOKEN'), refreshToken);
 
-                    // Update existing tests to use the new token
+                    updateTokenDisplays();
                     generateTests();
                     renderResults(currentFilter);
                 } else {
@@ -20200,14 +20288,16 @@
                 alert('Network error: ' + err.message);
             } finally {
                 $('adminLoginBtn').disabled = false;
-                $('adminLoginBtn').textContent = 'Login as Admin';
+                $('adminLoginBtn').textContent = 'Perform Login';
             }
         };
 
         $('clearAdminToken').onclick = () => {
-            localStorage.removeItem('ADMIN_TOKEN');
-            localStorage.removeItem('ADMIN_REFRESH_TOKEN');
-            $('adminLoginResult').classList.add('hidden');
+            Object.values(TOKEN_MAP).forEach(key => {
+                localStorage.removeItem(key);
+                localStorage.removeItem(key.replace('_TOKEN', '_REFRESH_TOKEN'));
+            });
+            updateTokenDisplays();
             generateTests();
             renderResults(currentFilter);
         };
@@ -20236,13 +20326,8 @@
             }
         };
 
-        // Check for existing token on load
-        const savedToken = localStorage.getItem('ADMIN_TOKEN');
-        if (savedToken) {
-            $('displayAccessToken').textContent = savedToken;
-            $('displayRefreshToken').textContent = localStorage.getItem('ADMIN_REFRESH_TOKEN');
-            $('adminLoginResult').classList.remove('hidden');
-        }
+        // Check for existing tokens on load
+        updateTokenDisplays();
 
         function closeModal() {
             $('modalOverlay').classList.add('hidden');

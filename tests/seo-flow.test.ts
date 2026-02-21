@@ -31,9 +31,8 @@ describe('SEO Flow E2E', () => {
   });
 
   afterAll(async () => {
-    if (adminId) {
-      await prisma.user.deleteMany({ where: { id: adminId } });
-    }
+    // We do NOT delete the global admin user (+989000000001)
+    // Cleanup other data created in tests if necessary
   });
 
   it('should handle slug change for a Salon correctly', async () => {

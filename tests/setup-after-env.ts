@@ -10,7 +10,11 @@ import { billingWorker, billingQueue } from '../src/modules/workers/billing.work
 
 const openapiPath = path.join(process.cwd(), 'openapi.json');
 
+let isGlobalSeeded = false;
+
 beforeAll(async () => {
+  if (isGlobalSeeded) return;
+
   // Ensure test users exist for authentication in dynamic tests
   // We use fixed IDs if possible, or at least common ones used in test-utils.ts
   const testUsers = [
@@ -18,6 +22,8 @@ beforeAll(async () => {
     { id: 2, role: UserRole.USER, username: 'test_user', email: 'user@example.com' },
     { id: 3, role: UserRole.ARTIST, username: 'test_artist', email: 'artist@example.com' },
     { id: 4, role: UserRole.SALON, username: 'test_salon_owner', email: 'salon@example.com' },
+    { id: 5, role: UserRole.AUTHOR, username: 'test_author', email: 'author@example.com' },
+    { id: 6, role: UserRole.MODERATOR, username: 'test_moderator', email: 'moderator@example.com' },
   ];
 
   for (const user of testUsers) {
@@ -36,12 +42,21 @@ beforeAll(async () => {
         isActive: true,
         firstName: 'Test',
         lastName: user.role.toLowerCase(),
-        isStaff: user.role === UserRole.ADMIN,
+        isStaff: user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR,
         phoneNumber: `+98900000000${user.id}`,
         referralCode: `TEST${user.id}`,
       },
     });
   }
+
+  // Sync sequence to avoid collisions with future auto-increments
+  try {
+    await prisma.$executeRawUnsafe(`SELECT setval('users_user_id_seq', (SELECT MAX(id) FROM "users_user"));`);
+  } catch (e) {
+    console.warn('Failed to sync users_user_id_seq:', e);
+  }
+
+  isGlobalSeeded = true;
 });
 
 console.log(`--- Initializing jest-openapi with spec: ${openapiPath} ---`);

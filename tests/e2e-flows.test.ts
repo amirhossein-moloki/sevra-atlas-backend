@@ -132,7 +132,7 @@ describe('Critical Business Flows E2E', () => {
         .send({
           firstName: 'Salon',
           lastName: 'Owner',
-          email: 'owner@example.com'
+          email: `owner_${Date.now()}_${Math.floor(Math.random()*1000)}@example.com`
         });
 
       expect(profileRes.status).toBe(200);
@@ -298,7 +298,10 @@ describe('Critical Business Flows E2E', () => {
         await prisma.slugHistory.deleteMany({ where: { entityId: BigInt(salonId) } });
         await prisma.salon.deleteMany({ where: { id: BigInt(salonId) } });
       }
-      await prisma.user.deleteMany({ where: { phoneNumber: '+989000000003' } });
+      // Note: adminPhone user cleanup is handled by global or if we want to be specific:
+      if (adminPhone) {
+        await prisma.user.deleteMany({ where: { phoneNumber: adminPhone } });
+      }
     });
 
     it('should handle slug update and properly resolve SEO redirects', async () => {
@@ -414,9 +417,9 @@ describe('Critical Business Flows E2E', () => {
             isStaff: true,
             isActive: true,
             referralCode: 'VADM' + Math.floor(Math.random()*1000),
-            firstName: '',
-            lastName: '',
-            email: ''
+            firstName: 'Admin',
+            lastName: 'Verify',
+            email: `admin_verify_${Date.now()}_${Math.floor(Math.random()*1000)}@e2e.com`
           }
       });
       await request(app).post('/api/v1/auth/otp/request').send({ phoneNumber: adminPhone });
@@ -432,7 +435,7 @@ describe('Critical Business Flows E2E', () => {
             await prisma.salon.deleteMany({ where: { id: sId } });
         }
         // Ensure the phone numbers used in the test are properly cleaned up
-        const phoneList = ['+989000000005', '+989000000006'].filter(Boolean);
+        const phoneList = [userPhone, adminPhone].filter(Boolean);
         if (phoneList.length > 0) {
             await prisma.user.deleteMany({ where: { phoneNumber: { in: phoneList } } });
         }

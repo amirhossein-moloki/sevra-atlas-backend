@@ -19,6 +19,6 @@
     },
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src/**/*", "prisma/seed.ts", "scripts/seeder/**/*"],
+  "include": ["src/**/*", "prisma/seed.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "tests", "dist"]
 }

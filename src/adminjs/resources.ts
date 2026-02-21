@@ -1,4 +1,4 @@
-import type { ActionRequest } from 'adminjs';
+import type { ActionContext, ActionRequest, ActionResponse } from 'adminjs';
 import bcrypt from 'bcrypt';
 import sanitizeHtml from 'sanitize-html';
 import { config } from '../config';
@@ -73,12 +73,16 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
               if (currentAdmin?.role === 'ADMIN' && record?.params.role !== 'ADMIN' && record?.params.role !== 'SUPER_ADMIN') return true;
               return false;
             },
-            handler: async (request, response, context) => {
+            handler: async (request: ActionRequest, response: ActionResponse, context: ActionContext) => {
               const { record, resource, currentAdmin } = context;
+              if (!record) {
+                throw new Error('Record not found');
+              }
               if (request.method === 'get') {
                 return { record: record.toJSON(currentAdmin) };
               }
-              const { password } = request.payload;
+              const payload = request.payload || {};
+              const { password } = payload;
               if (!password || password.length < 6) {
                 return {
                   record: record.toJSON(currentAdmin),
@@ -90,7 +94,7 @@ export const createResources = (prisma: any, COMPONENTS: any, getModelByName: an
               return {
                 record: record.toJSON(currentAdmin),
                 notice: { message: 'Password updated successfully', type: 'success' },
-                redirectUrl: resource.href({ actionName: 'show', recordId: record.id() }),
+                redirectUrl: (resource as any).href({ actionName: 'show', recordId: record.id() }),
               };
             },
             component: COMPONENTS.SetPassword,

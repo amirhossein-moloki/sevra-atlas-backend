@@ -19,6 +19,11 @@ import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import { generateOpenApiSpec } from './shared/openapi/generator';
 import { config } from './config';
 
+// Global BigInt serialization fix for JSON.stringify (used by express-session and others)
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 const app = express();
 
 const BACKOFFICE_PATH = '/backoffice';

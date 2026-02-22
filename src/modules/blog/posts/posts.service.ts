@@ -18,7 +18,7 @@ export class PostsService {
     const {
       page = 1, pageSize = 10, q, ordering,
       published_after, published_before, category, tag, author,
-      is_hot, series, visibility
+      is_hot, series, visibility, service
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } = query as any;
     
@@ -60,6 +60,15 @@ export class PostsService {
     }
     if (is_hot === 'true') where.isHot = true;
     if (series) where.series = { slug: series };
+    if (service) {
+      where.services = {
+        some: {
+          service: {
+            slug: service
+          }
+        }
+      };
+    }
     if (visibility) where.visibility = visibility as PostVisibility;
     if (author) {
       if (!isNaN(Number(author))) {

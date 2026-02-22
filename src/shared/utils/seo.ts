@@ -71,7 +71,7 @@ export const initSeoMeta = async (
   });
 
   // Update entity link if applicable
-  const linkedModels: EntityType[] = ['SALON', 'ARTIST', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY'];
+  const linkedModels: EntityType[] = ['SALON', 'ARTIST', 'BLOG_POST', 'BLOG_PAGE', 'CITY', 'PROVINCE', 'CATEGORY', 'SERVICE'];
   const modelName = getPrismaModelName(entityType);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (modelName && linkedModels.includes(entityType) && (client as any)[modelName]) {
@@ -96,6 +96,7 @@ function getPrismaModelName(entityType: EntityType): string | null {
     case 'CITY': return 'city';
     case 'PROVINCE': return 'province';
     case 'CATEGORY': return 'category';
+    case 'SERVICE': return 'serviceDefinition';
     default: return null;
   }
 }

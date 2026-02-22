@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { GrowthService } from './growth.service';
+import { safeBigInt } from '../../shared/utils/bigint';
 
 const service = new GrowthService();
 
@@ -19,5 +20,19 @@ export class GrowthController {
 
     const stats = await service.getInviterStats(BigInt(userId));
     res.json({ success: true, data: stats });
+  }
+
+  async trackLeadEvent(req: Request, res: Response) {
+    const { eventType, sourcePostId, targetSalonId } = req.body;
+    const userId = req.user?.id;
+
+    const event = await service.trackLeadEvent({
+      eventType,
+      sourcePostId: sourcePostId ? safeBigInt(sourcePostId, 'sourcePostId') : undefined,
+      targetSalonId: targetSalonId ? safeBigInt(targetSalonId, 'targetSalonId') : undefined,
+      userId: userId ? BigInt(userId) : undefined,
+    });
+
+    res.json({ success: true, data: event });
   }
 }

@@ -81,4 +81,15 @@ export class GrowthService {
       })),
     };
   }
+
+  async trackLeadEvent(data: { eventType: string, sourcePostId?: bigint, targetSalonId?: bigint, userId?: bigint }) {
+    return prisma.leadEvent.create({
+      data: {
+        eventType: data.eventType,
+        sourcePostId: data.sourcePostId,
+        targetSalonId: data.targetSalonId,
+        userId: data.userId,
+      },
+    });
+  }
 }

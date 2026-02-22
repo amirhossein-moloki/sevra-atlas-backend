@@ -18,6 +18,7 @@ import * as OpenApiValidator from 'express-openapi-validator';
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 import { generateOpenApiSpec } from './shared/openapi/generator';
 import { config } from './config';
+import * as yaml from 'js-yaml';
 
 // Global BigInt serialization fix for JSON.stringify (used by express-session and others)
 (BigInt.prototype as any).toJSON = function () {
@@ -147,6 +148,16 @@ const swaggerSpec = generateOpenApiSpec();
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Direct OpenAPI Spec access
+app.get('/openapi.json', (req, res) => {
+  res.json(swaggerSpec);
+});
+
+app.get('/openapi.yaml', (req, res) => {
+  res.setHeader('Content-Type', 'text/yaml');
+  res.send(yaml.dump(swaggerSpec));
+});
 
 // OpenAPI Validation
 app.use(

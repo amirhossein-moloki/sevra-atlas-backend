@@ -37,8 +37,8 @@ export const updateMenuSchema = z.object({
 
 export const createMenuItemSchema = z.object({
   body: z.object({
-    menuId: z.string().openapi({ type: 'string' }),
-    parentId: z.string().optional().nullable().openapi({ type: 'string' }),
+    menuId: z.string(),
+    parentId: z.string().optional().nullable(),
     label: z.string().min(1).max(255),
     url: z.string().min(1).max(255),
     order: z.number().int().optional().default(0),

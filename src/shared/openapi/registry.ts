@@ -32,7 +32,7 @@ export function withApiSuccess<T extends z.ZodTypeAny>(dataSchema: T) {
   });
 }
 
-export function withApiFailure(detailsSchema: z.ZodTypeAny = z.record(z.any()).nullable().openapi({ type: 'object', nullable: true })) {
+export function withApiFailure(detailsSchema: z.ZodTypeAny = z.record(z.any()).nullable()) {
   return z.object({
     success: z.literal(false),
     error: z.object({

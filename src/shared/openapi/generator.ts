@@ -2,6 +2,7 @@ import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 import { registry } from './registry';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
 
 export function generateOpenApiSpec() {
   // Register security schemes
@@ -163,7 +164,11 @@ function fixNullableSchemas(obj: any) {
 
 export function writeOpenApiSpec() {
   const spec = generateOpenApiSpec();
-  const filePath = path.join(process.cwd(), 'openapi.json');
-  fs.writeFileSync(filePath, JSON.stringify(spec, null, 2), 'utf-8');
-  console.log(`OpenAPI spec written to ${filePath}`);
+  const jsonPath = path.join(process.cwd(), 'openapi.json');
+  const yamlPath = path.join(process.cwd(), 'openapi.yaml');
+
+  fs.writeFileSync(jsonPath, JSON.stringify(spec, null, 2), 'utf-8');
+  fs.writeFileSync(yamlPath, yaml.dump(spec), 'utf-8');
+
+  console.log(`OpenAPI spec written to ${jsonPath} and ${yamlPath}`);
 }

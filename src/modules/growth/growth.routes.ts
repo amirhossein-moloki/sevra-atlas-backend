@@ -3,6 +3,8 @@ import { GrowthController } from './growth.controller';
 import { requireAuth } from '../../shared/middlewares/auth.middleware';
 import { rateLimit } from '../../shared/middlewares/rateLimit.middleware';
 import { registry, withApiSuccess, z } from '../../shared/openapi/registry';
+import { validate } from '../../shared/middlewares/validate.middleware';
+import { leadEventSchema } from './growth.validators';
 
 const router = Router();
 const controller = new GrowthController();
@@ -45,5 +47,32 @@ registry.registerPath({
   }
 });
 router.get('/stats', requireAuth(), controller.getMyStats);
+
+registry.registerPath({
+  method: 'post',
+  path: '/growth/lead-event',
+  summary: 'Track a lead event (e.g. blog to salon)',
+  tags: [tag],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            eventType: z.enum(['blog_to_salon', 'blog_to_call']),
+            sourcePostId: z.number().optional(),
+            targetSalonId: z.number().optional(),
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Event tracked',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ id: z.string() })) } }
+    }
+  }
+});
+router.post('/lead-event', validate(leadEventSchema), controller.trackLeadEvent);
 
 export default router;

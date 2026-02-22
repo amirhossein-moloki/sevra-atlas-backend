@@ -124,6 +124,7 @@ enum EntityType {
   SERIES
   PLAN
   SUBSCRIPTION
+  SERVICE
 }
 
 enum PlanTier {
@@ -434,6 +435,8 @@ model Post {
   seoMetaId      BigInt?
   seoMeta        SeoMeta?       @relation(fields: [seoMetaId], references: [id], onDelete: SetNull)
 
+  services         PostService[]
+
   author           AuthorProfile @relation(fields: [authorId], references: [userId], onDelete: Cascade)
   category         Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   series           Series?       @relation(fields: [seriesId], references: [id], onDelete: SetNull)
@@ -622,6 +625,7 @@ model SeoMeta {
   city            City[]
   salon           Salon[]
   artist          Artist[]
+  service         ServiceDefinition[]
 
   title           String?       @db.VarChar(255)
   description     String?       @db.Text
@@ -852,6 +856,7 @@ model Salon {
   @@index([seoMetaId])
   @@index([visibilityScore(sort: Desc)])
   @@index([avgRating(sort: Desc)])
+  @@index([reviewCount(sort: Desc)])
   @@index([deletedAt])
 }
 
@@ -928,6 +933,7 @@ model Artist {
   @@index([seoMetaId])
   @@index([visibilityScore(sort: Desc)])
   @@index([avgRating(sort: Desc)])
+  @@index([reviewCount(sort: Desc)])
   @@index([deletedAt])
 }
 
@@ -1015,13 +1021,29 @@ model ServiceDefinition {
   description String? @db.Text
 
   salonLinks  SalonService[]
+  posts       PostService[]
+
+  seoMetaId   BigInt?
+  seoMeta     SeoMeta? @relation(fields: [seoMetaId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   @@index([categoryId])
+  @@index([seoMetaId])
   @@index([deletedAt])
+}
+
+model PostService {
+  postId    BigInt
+  serviceId BigInt
+
+  post      Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  service   ServiceDefinition @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([postId, serviceId])
+  @@index([serviceId])
 }
 
 model SalonService {
@@ -1436,4 +1458,17 @@ model AuditLog {
   @@index([action])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+model LeadEvent {
+  id          BigInt   @id @default(autoincrement())
+  eventType   String   @db.VarChar(50) // blog_to_salon | blog_to_call
+  sourcePostId BigInt?
+  targetSalonId BigInt?
+  userId      BigInt?
+  createdAt   DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([sourcePostId])
+  @@index([targetSalonId])
 }

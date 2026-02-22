@@ -83,7 +83,7 @@ registry.registerPath({
   responses: {
     200: {
       description: 'Sitemap rebuilding started',
-      content: { 'application/json': { schema: withApiSuccess(z.object({ message: z.string() })) } }
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean(), rebuilt: z.number() })) } }
     }
   }
 });

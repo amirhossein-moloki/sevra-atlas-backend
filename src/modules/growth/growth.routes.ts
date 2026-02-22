@@ -36,8 +36,8 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: withApiSuccess(z.object({
-            totalInvites: z.number(),
-            acceptedInvites: z.number(),
+            count: z.number(),
+            referrals: z.array(z.any()),
           }))
         }
       }

@@ -49,11 +49,32 @@ beforeAll(async () => {
     });
   }
 
-  // Sync sequence to avoid collisions with future auto-increments
-  try {
-    await prisma.$executeRawUnsafe(`SELECT setval('users_user_id_seq', (SELECT MAX(id) FROM "users_user"));`);
-  } catch (e) {
-    console.warn('Failed to sync users_user_id_seq:', e);
+  // Sync sequences to avoid collisions with future auto-increments
+  const tablesToSync = [
+    { table: 'users_user', sequence: 'users_user_id_seq' },
+    { table: 'Province', sequence: 'Province_id_seq' },
+    { table: 'City', sequence: 'City_id_seq' },
+    { table: 'Salon', sequence: 'Salon_id_seq' },
+    { table: 'Artist', sequence: 'Artist_id_seq' },
+    { table: 'blog_post', sequence: 'blog_post_id_seq' },
+    { table: 'blog_category', sequence: 'blog_category_id_seq' },
+    { table: 'ServiceCategory', sequence: 'ServiceCategory_id_seq' },
+    { table: 'ServiceDefinition', sequence: 'ServiceDefinition_id_seq' },
+    { table: 'payments', sequence: 'payments_id_seq' },
+    { table: 'billing_plan', sequence: 'billing_plan_id_seq' },
+  ];
+
+  for (const item of tablesToSync) {
+    try {
+      // Use $queryRawUnsafe to check if table is empty first to avoid errors with MAX(id)
+      const result = await prisma.$queryRawUnsafe<{ max: bigint }[]>(`SELECT MAX(id) as max FROM "${item.table}";`);
+      const maxId = result[0]?.max;
+      if (maxId) {
+        await prisma.$executeRawUnsafe(`SELECT setval('${item.sequence}', ${maxId});`);
+      }
+    } catch (e) {
+      console.warn(`Failed to sync sequence for ${item.table}:`, e);
+    }
   }
 
   isGlobalSeeded = true;

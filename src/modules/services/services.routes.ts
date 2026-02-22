@@ -37,7 +37,7 @@ registry.registerPath({
     },
   },
 });
-router.get('/:slug', controller.getService);
+router.get('/:id', controller.getService);
 
 registry.registerPath({
   method: 'post',

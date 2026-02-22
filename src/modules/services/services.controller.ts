@@ -10,7 +10,7 @@ export class ServicesController {
   }
 
   async getService(req: Request, res: Response) {
-    const result = await servicesService.getServiceBySlug(req.params.slug);
+    const result = await servicesService.getServiceBySlug(req.params.id || req.params.slug);
     res.json(result);
   }
 

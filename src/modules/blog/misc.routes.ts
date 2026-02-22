@@ -80,7 +80,7 @@ registry.registerPath({
     }
   }
 });
-router.get('/pages/:slug', controller.getPage);
+router.get('/pages/:id', controller.getPage);
 
 registry.registerPath({
   method: 'post',
@@ -160,7 +160,7 @@ registry.registerPath({
     }
   }
 });
-router.get('/menus/:location', controller.getMenu);
+router.get('/menus/:id', controller.getMenu);
 
 registry.registerPath({
   method: 'post',

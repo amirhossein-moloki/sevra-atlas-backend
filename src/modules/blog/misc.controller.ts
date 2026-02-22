@@ -23,12 +23,12 @@ export class BlogMiscController {
   }
 
   async getPage(req: Request, res: Response) {
-    const result = await blogMiscService.getPage(req.params.slug);
+    const result = await blogMiscService.getPage(req.params.id || req.params.slug);
     res.json(result);
   }
 
   async getMenu(req: Request, res: Response) {
-    const result = await blogMiscService.getMenu(req.params.location as MenuLocation);
+    const result = await blogMiscService.getMenu((req.params.id || req.params.location) as MenuLocation);
     res.json(result);
   }
 

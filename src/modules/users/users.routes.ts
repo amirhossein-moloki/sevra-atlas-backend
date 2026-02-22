@@ -115,15 +115,7 @@ registry.registerPath({
       description: 'List of users',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({
-            data: z.array(userSchema),
-            meta: z.object({
-              page: z.number(),
-              pageSize: z.number(),
-              total: z.number(),
-              totalPages: z.number(),
-            }),
-          })),
+          schema: withApiSuccess(z.array(userSchema)),
         },
       },
     },

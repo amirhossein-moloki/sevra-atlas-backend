@@ -9,14 +9,18 @@ import { UserRole } from '@prisma/client';
 import { logger } from '../../shared/logger/logger';
 import crypto from 'crypto';
 import { GrowthService } from '../growth/growth.service';
+import { normalizePhone } from '../../shared/utils/phone';
 
 const growthService = new GrowthService();
 
 export class AuthService {
-  async requestOtp(phoneNumber: string, ip?: string, userAgent?: string) {
+  async requestOtp(rawPhoneNumber: string, ip?: string, userAgent?: string) {
+    const phoneNumber = normalizePhone(rawPhoneNumber);
     const code = crypto.randomInt(100000, 1000000).toString();
     const redisKey = `otp:${phoneNumber}`;
     const expiresAt = new Date(Date.now() + config.auth.otp.ttl * 1000);
+
+    logger.debug(`Requesting OTP for ${phoneNumber} (normalized from ${rawPhoneNumber})`);
 
     // Use Redis with DB fallback
     await RedisFallback.execute(
@@ -24,8 +28,13 @@ export class AuthService {
       async () => {
         await redis.set(redisKey, code, 'EX', config.auth.otp.ttl);
         await redis.set(`${redisKey}:attempts`, 0, 'EX', config.auth.otp.ttl);
-        // Also clear any DB fallback record to keep it clean if Redis is working
-        await prisma.otp.deleteMany({ where: { phoneE164: phoneNumber } });
+        // Keep DB record as secondary backup instead of deleting it, to be truly resilient
+        // but mark it as from Redis source (not really needed but we keep it updated)
+        await prisma.otp.upsert({
+          where: { phoneE164: phoneNumber },
+          update: { code, expiresAt, attempts: 0 },
+          create: { phoneE164: phoneNumber, code, expiresAt, attempts: 0 },
+        });
       },
       async () => {
         await prisma.otp.upsert({
@@ -52,11 +61,14 @@ export class AuthService {
     return { message: 'OTP sent successfully' };
   }
 
-  async verifyOtp(phoneNumber: string, code: string, ip?: string, userAgent?: string, referralCode?: string) {
+  async verifyOtp(rawPhoneNumber: string, code: string, ip?: string, userAgent?: string, referralCode?: string) {
+    const phoneNumber = normalizePhone(rawPhoneNumber);
     const redisKey = `otp:${phoneNumber}`;
     let storedCode: string | null = null;
     let attempts = 0;
     let source: 'redis' | 'db' = 'redis';
+
+    logger.debug(`Verifying OTP for ${phoneNumber} (normalized from ${rawPhoneNumber})`);
 
     try {
       storedCode = await redis.get(redisKey);
@@ -73,10 +85,12 @@ export class AuthService {
         storedCode = otpRecord.code;
         attempts = otpRecord.attempts;
         source = 'db';
+        logger.debug(`OTP found in DB fallback for ${phoneNumber}`);
       }
     }
 
     if (!storedCode) {
+      logger.warn(`No OTP found for ${phoneNumber} in Redis or DB`);
       throw new ApiError(400, 'OTP expired or not requested');
     }
 

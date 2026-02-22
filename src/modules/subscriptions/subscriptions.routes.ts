@@ -190,7 +190,7 @@ registry.registerPath({
       description: 'Expirations checked',
       content: {
         'application/json': {
-          schema: withApiSuccess(z.object({ count: z.number() }))
+          schema: withApiSuccess(z.object({ processedCount: z.number() }))
         }
       }
     }

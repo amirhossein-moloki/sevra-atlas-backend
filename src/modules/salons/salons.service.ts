@@ -230,7 +230,20 @@ export class SalonsService {
     return { ok: true };
   }
 
-  async assignServices(id: bigint, serviceData: { serviceId: number; notes?: string }[], mode: 'append' | 'replace', userId: bigint, isAdmin: boolean) {
+  async assignServices(
+    id: bigint,
+    serviceData: {
+      serviceId: string;
+      priceToman?: string;
+      durationMin?: number;
+      isActive?: boolean;
+      notes?: string;
+      order?: number;
+    }[],
+    mode: 'append' | 'replace',
+    userId: bigint,
+    isAdmin: boolean
+  ) {
     return prisma.$transaction(async (tx) => {
       await this.checkOwnership(tx, id, userId, isAdmin);
 
@@ -241,7 +254,11 @@ export class SalonsService {
       const dataToUpsert = serviceData.map(item => ({
         salonId: id,
         serviceId: safeBigInt(item.serviceId, 'serviceId'),
+        priceToman: item.priceToman ? BigInt(item.priceToman) : null,
+        durationMin: item.durationMin,
+        isActive: item.isActive ?? true,
         notes: item.notes,
+        order: item.order ?? 0,
       }));
 
       if (mode === 'replace') {
@@ -251,23 +268,31 @@ export class SalonsService {
         });
       } else {
         const existing = await tx.salonService.findMany({
-          where: { salonId: id, serviceId: { in: dataToUpsert.map(d => d.serviceId) } }
+          where: {
+            salonId: id,
+            serviceId: { in: dataToUpsert.map(d => d.serviceId) },
+          },
         });
         const existingMap = new Map(existing.map(e => [e.serviceId, e]));
 
         const toCreate = dataToUpsert.filter(d => !existingMap.has(d.serviceId));
-        const toUpdate = dataToUpsert.filter(d => {
-          const ext = existingMap.get(d.serviceId);
-          return ext && ext.notes !== d.notes;
-        });
+        const toUpdate = dataToUpsert.filter(d => existingMap.has(d.serviceId));
 
         if (toCreate.length > 0) {
           await tx.salonService.createMany({ data: toCreate });
         }
         for (const item of toUpdate) {
           await tx.salonService.update({
-            where: { salonId_serviceId: { salonId: id, serviceId: item.serviceId } },
-            data: { notes: item.notes },
+            where: {
+              salonId_serviceId: { salonId: id, serviceId: item.serviceId },
+            },
+            data: {
+              priceToman: item.priceToman,
+              durationMin: item.durationMin,
+              isActive: item.isActive,
+              notes: item.notes,
+              order: item.order,
+            },
           });
         }
       }
@@ -378,5 +403,108 @@ export class SalonsService {
       where: { salonId_artistId: { salonId, artistId } },
     });
     return { ok: true };
+  }
+
+  async getSalonArtists(id: bigint) {
+    const salonArtists = await prisma.salonArtist.findMany({
+      where: { salonId: id },
+      include: {
+        artist: {
+          select: {
+            id: true,
+            fullName: true,
+            slug: true,
+            summary: true,
+            avgRating: true,
+            reviewCount: true,
+            verification: true,
+            status: true,
+            avatar: true,
+            city: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return salonArtists.map(sa => ({
+      artist: sa.artist,
+      roleTitle: sa.roleTitle,
+      isActive: sa.isActive,
+    }));
+  }
+
+  async getSalonServices(id: bigint) {
+    const salonServices = await prisma.salonService.findMany({
+      where: { salonId: id },
+      include: {
+        service: {
+          include: { category: true },
+        },
+      },
+      orderBy: [{ order: 'asc' }, { service: { category: { order: 'asc' } } }],
+    });
+
+    // Group by category
+    const grouped = new Map<string, any>();
+
+    for (const ss of salonServices) {
+      const category = ss.service.category;
+      if (!grouped.has(category.id.toString())) {
+        grouped.set(category.id.toString(), {
+          category: {
+            id: category.id.toString(),
+            nameFa: category.nameFa,
+            slug: category.slug,
+          },
+          services: [],
+        });
+      }
+      grouped.get(category.id.toString()).services.push({
+        serviceId: ss.serviceId.toString(),
+        nameFa: ss.service.nameFa,
+        slug: ss.service.slug,
+        priceToman: ss.priceToman ? ss.priceToman.toString() : null,
+        durationMin: ss.durationMin,
+        isActive: ss.isActive,
+        notes: ss.notes,
+      });
+    }
+
+    return Array.from(grouped.values());
+  }
+
+  async getGallery(id: bigint, page: number, pageSize: number) {
+    const limit = pageSize;
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await Promise.all([
+      prisma.media.findMany({
+        where: {
+          entityType: EntityType.SALON,
+          entityId: id,
+          kind: 'GALLERY',
+          deletedAt: null,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.media.count({
+        where: {
+          entityType: EntityType.SALON,
+          entityId: id,
+          kind: 'GALLERY',
+          deletedAt: null,
+        },
+      }),
+    ]);
+
+    return {
+      items,
+      page,
+      limit,
+      total,
+    };
   }
 }

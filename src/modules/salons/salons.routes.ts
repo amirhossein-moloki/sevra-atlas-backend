@@ -6,7 +6,7 @@ import { UserRole } from '@prisma/client';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { createSalonSchema, updateSalonSchema, assignServicesSchema, linkArtistSchema, setMediaSchema } from './salons.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
-import { SalonSchema, ReviewSchema, MediaSchema } from '../../shared/openapi/schemas';
+import { SalonSchema, ReviewSchema, MediaSchema, SalonArtistResponseSchema, GroupedSalonServiceResponseSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new SalonsController();
@@ -72,6 +72,92 @@ registry.registerPath({
   }
 });
 router.get('/:idOrSlug/reviews', reviewsController.getSalonReviews);
+
+registry.registerPath({
+  method: 'get',
+  path: '/salons/{idOrSlug}/artists',
+  summary: 'Get salon artists',
+  tags: [tag],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
+  responses: {
+    200: {
+      description: 'List of artists in the salon',
+      content: { 'application/json': { schema: withApiSuccess(z.array(SalonArtistResponseSchema)) } }
+    }
+  }
+});
+router.get('/:idOrSlug/artists', controller.getSalonArtists);
+
+registry.registerPath({
+  method: 'get',
+  path: '/salons/{idOrSlug}/services',
+  summary: 'Get salon services grouped by category',
+  tags: [tag],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
+  responses: {
+    200: {
+      description: 'Salon services grouped by category',
+      content: { 'application/json': { schema: withApiSuccess(z.array(GroupedSalonServiceResponseSchema)) } }
+    }
+  }
+});
+router.get('/:idOrSlug/services', controller.getSalonServices);
+
+registry.registerPath({
+  method: 'get',
+  path: '/salons/{idOrSlug}/gallery',
+  summary: 'Get salon gallery',
+  tags: [tag],
+  parameters: [
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+    { name: 'pageSize', in: 'query', schema: { type: 'integer', default: 20 } },
+  ],
+  responses: {
+    200: {
+      description: 'Salon gallery images',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.object({
+            items: z.array(MediaSchema),
+            page: z.number(),
+            limit: z.number(),
+            total: z.number(),
+          }))
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/salons/{idOrSlug}/media',
+  summary: 'Get salon media (alias for gallery)',
+  tags: [tag],
+  parameters: [
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+    { name: 'pageSize', in: 'query', schema: { type: 'integer', default: 20 } },
+  ],
+  responses: {
+    200: {
+      description: 'Salon gallery images',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.object({
+            items: z.array(MediaSchema),
+            page: z.number(),
+            limit: z.number(),
+            total: z.number(),
+          }))
+        }
+      }
+    }
+  }
+});
+router.get('/:idOrSlug/gallery', controller.getGallery);
+router.get('/:idOrSlug/media', controller.getGallery); // Alias
 
 registry.registerPath({
   method: 'post',

@@ -17,44 +17,26 @@ export type ApiMeta = {
 export type ApiSuccess<T> = {
   success: true;
   data: T;
-  meta?: ApiMeta;
 };
 
 export type ApiFailure = {
   success: false;
-  error: {
-    code: string;
-    message: string;
-    details?: unknown;
-  };
-  meta?: ApiMeta;
+  data: null;
+  message: string;
 };
 
-function getRequestId(req: Request): string | undefined {
-  return req.requestId;
-}
-
-const withMeta = (req: Request, meta?: Omit<ApiMeta, 'requestId'>): ApiMeta | undefined => {
-  const requestId = getRequestId(req);
-  const merged: ApiMeta = { ...(meta ?? {}), requestId };
-  if (!merged.requestId && !merged.pagination) return undefined;
-  return merged;
-};
-
-export const sendOk = <T>(res: Response, data: T, meta?: Omit<ApiMeta, 'requestId'>) => {
+export const sendOk = <T>(res: Response, data: T) => {
   const body: ApiSuccess<T> = {
     success: true,
     data: serialize(data),
-    meta: withMeta(res.req, meta),
   };
   return res.status(200).json(body);
 };
 
-export const sendCreated = <T>(res: Response, data: T, meta?: Omit<ApiMeta, 'requestId'>) => {
+export const sendCreated = <T>(res: Response, data: T) => {
   const body: ApiSuccess<T> = {
     success: true,
     data: serialize(data),
-    meta: withMeta(res.req, meta),
   };
   return res.status(201).json(body);
 };
@@ -65,16 +47,14 @@ export const sendNoContent = (res: Response) => {
 
 export const sendFail = (
   res: Response,
-  code: string,
+  _code: string,
   message: string,
-  status = 400,
-  details?: unknown,
-  meta?: Omit<ApiMeta, 'requestId'>
+  status = 400
 ) => {
   const body: ApiFailure = {
     success: false,
-    error: { code, message, details: serialize(details) },
-    meta: withMeta(res.req, meta),
+    data: null,
+    message,
   };
   return res.status(status).json(body);
 };

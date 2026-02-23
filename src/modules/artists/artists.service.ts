@@ -406,26 +406,95 @@ export class ArtistsService {
     );
   }
 
-  async assignSpecialties(id: bigint, specialtyIds: number[], mode: 'replace' | 'append', userId: bigint, isAdmin: boolean) {
+  async assignSpecialties(
+    id: bigint,
+    specialties: {
+      specialtyId: string;
+      priceToman?: string;
+      durationMin?: number;
+      isActive?: boolean;
+      note?: string;
+      order?: number;
+    }[],
+    mode: 'replace' | 'append',
+    userId: bigint,
+    isAdmin: boolean
+  ) {
     return prisma.$transaction(async (tx) => {
       await this.checkOwnership(tx, id, userId, isAdmin);
-
-      const sIds = specialtyIds.map(sId => safeBigInt(sId, 'specialtyId'));
 
       if (mode === 'replace') {
         await tx.artistSpecialty.deleteMany({ where: { artistId: id } });
       }
 
       await tx.artistSpecialty.createMany({
-        data: sIds.map(specialtyId => ({
+        data: specialties.map(s => ({
           artistId: id,
-          specialtyId,
+          specialtyId: safeBigInt(s.specialtyId, 'specialtyId'),
+          priceToman: s.priceToman ? BigInt(s.priceToman) : null,
+          durationMin: s.durationMin,
+          isActive: s.isActive ?? true,
+          note: s.note,
+          order: s.order ?? 0,
         })),
         skipDuplicates: true,
       });
 
       return { ok: true };
     });
+  }
+
+  async getGallery(id: bigint, page: number, pageSize: number) {
+    const limit = pageSize;
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await Promise.all([
+      prisma.media.findMany({
+        where: {
+          entityType: EntityType.ARTIST,
+          entityId: id,
+          kind: 'GALLERY',
+          deletedAt: null,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.media.count({
+        where: {
+          entityType: EntityType.ARTIST,
+          entityId: id,
+          kind: 'GALLERY',
+          deletedAt: null,
+        },
+      }),
+    ]);
+
+    return {
+      items,
+      page,
+      limit,
+      total,
+    };
+  }
+
+  async getArtistSpecialties(id: bigint) {
+    const specialties = await prisma.artistSpecialty.findMany({
+      where: { artistId: id },
+      include: { specialty: true },
+      orderBy: { order: 'asc' },
+    });
+
+    return specialties.map(as => ({
+      specialtyId: as.specialtyId.toString(),
+      nameFa: as.specialty.nameFa,
+      slug: as.specialty.slug,
+      priceToman: as.priceToman ? as.priceToman.toString() : null,
+      durationMin: as.durationMin,
+      isActive: as.isActive,
+      note: as.note,
+      order: as.order,
+    }));
   }
 
 }

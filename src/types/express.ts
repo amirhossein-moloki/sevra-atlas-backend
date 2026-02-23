@@ -22,15 +22,13 @@ declare global {
     }
 
     interface Response {
-      ok<T>(data: T, meta?: Omit<ApiMeta, 'requestId'>): Response;
-      created<T>(data: T, meta?: Omit<ApiMeta, 'requestId'>): Response;
+      ok<T>(data: T): Response;
+      created<T>(data: T): Response;
       noContent(): Response;
       fail(
         code: string,
         message: string,
-        status?: number,
-        details?: unknown,
-        meta?: Omit<ApiMeta, 'requestId'>
+        status?: number
       ): Response;
     }
   }

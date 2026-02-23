@@ -28,19 +28,14 @@ export function withApiSuccess<T extends z.ZodTypeAny>(dataSchema: T) {
   return z.object({
     success: z.literal(true),
     data: dataSchema,
-    meta: ApiMetaSchema.optional(),
   });
 }
 
-export function withApiFailure(detailsSchema: z.ZodTypeAny = z.record(z.any()).nullable().openapi({ type: 'object' })) {
+export function withApiFailure() {
   return z.object({
     success: z.literal(false),
-    error: z.object({
-      code: z.string(),
-      message: z.string(),
-      details: detailsSchema.optional(),
-    }),
-    meta: ApiMetaSchema.optional(),
+    data: z.null(),
+    message: z.string(),
   });
 }
 

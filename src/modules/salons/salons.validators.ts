@@ -22,8 +22,8 @@ export const updateSalonSchema = z.object({
     phone: z.string().optional(),
     instagram: z.string().optional(),
     website: z.string().optional(),
-    cityId: z.coerce.number().optional(),
-    neighborhoodId: z.coerce.number().optional(),
+    cityId: z.coerce.string().optional(),
+    neighborhoodId: z.coerce.string().optional(),
     addressLine: z.string().optional(),
     postalCode: z.string().optional(),
     lat: z.number().optional(),
@@ -38,15 +38,20 @@ export const updateSalonSchema = z.object({
 export const assignServicesSchema = z.object({
   body: z.object({
     services: z.array(z.object({
-      serviceId: z.number(),
+      serviceId: z.coerce.string(),
+      priceToman: z.coerce.string().optional(),
+      durationMin: z.number().optional(),
+      isActive: z.boolean().default(true),
       notes: z.string().optional(),
+      order: z.number().optional(),
     })),
+    mode: z.enum(['replace', 'append']).default('replace'),
   }),
 }).openapi('AssignServices');
 
 export const linkArtistSchema = z.object({
   body: z.object({
-    artistId: z.coerce.number(),
+    artistId: z.coerce.string(),
     roleTitle: z.string().optional(),
     isActive: z.boolean().optional(),
     startedAt: z.string().optional(),

@@ -159,6 +159,42 @@ export const ArtistCertificationSchema = registry.register('ArtistCertification'
   media: MediaSchema.optional().nullable(),
 }));
 
+export const ArtistSpecialtyResponseSchema = registry.register('ArtistSpecialtyResponse', z.object({
+  specialtyId: z.string(),
+  nameFa: z.string(),
+  slug: z.string(),
+  priceToman: z.string().nullable(),
+  durationMin: z.number().nullable(),
+  isActive: z.boolean(),
+  note: z.string().nullable(),
+  order: z.number(),
+}));
+
+export const SalonArtistResponseSchema = registry.register('SalonArtistResponse', z.object({
+  artist: ArtistSchema,
+  roleTitle: z.string().nullable(),
+  isActive: z.boolean(),
+}));
+
+export const SalonServiceResponseSchema = registry.register('SalonServiceResponse', z.object({
+  serviceId: z.string(),
+  nameFa: z.string(),
+  slug: z.string(),
+  priceToman: z.string().nullable(),
+  durationMin: z.number().nullable(),
+  isActive: z.boolean(),
+  notes: z.string().nullable(),
+}));
+
+export const GroupedSalonServiceResponseSchema = registry.register('GroupedSalonServiceResponse', z.object({
+  category: z.object({
+    id: z.string(),
+    nameFa: z.string(),
+    slug: z.string(),
+  }),
+  services: z.array(SalonServiceResponseSchema),
+}));
+
 export const SeriesSchema = registry.register('Series', z.object({
   id: z.string(),
   title: z.string(),

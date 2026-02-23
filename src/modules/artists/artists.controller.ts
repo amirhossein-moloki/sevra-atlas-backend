@@ -17,8 +17,8 @@ export class ArtistsController {
   };
 
   getArtists = async (req: Request, res: Response) => {
-    const result = await artistsService.getArtists(req.query);
-    res.json(result);
+    const { data, meta } = await artistsService.getArtists(req.query);
+    res.paginated(data, meta, 'Artists fetched successfully');
   };
 
   listSpecialties = async (req: Request, res: Response) => {

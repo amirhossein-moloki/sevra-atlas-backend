@@ -22,7 +22,8 @@ declare global {
     }
 
     interface Response {
-      ok<T>(data: T): Response;
+      ok<T>(data: T, message?: string): Response;
+      paginated<T>(data: T[], meta: any, message?: string): Response;
       created<T>(data: T): Response;
       noContent(): Response;
       fail(

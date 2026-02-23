@@ -17,8 +17,8 @@ export class SalonsController {
   };
 
   getSalons = async (req: Request, res: Response) => {
-    const result = await salonsService.getSalons(req.query);
-    res.json(result);
+    const { data, meta } = await salonsService.getSalons(req.query);
+    res.paginated(data, meta, 'Salons fetched successfully');
   };
 
   getSalon = async (req: Request, res: Response) => {

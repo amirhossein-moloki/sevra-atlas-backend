@@ -22,8 +22,12 @@ export function responseMiddleware(_req: Request, res: Response, next: NextFunct
     return originalJson.call(this, serializedBody);
   };
 
-  res.ok = function <T>(data: T) {
-    return responseUtils.sendOk(res, data);
+  res.ok = function <T>(data: T, message?: string) {
+    return responseUtils.sendOk(res, data, message);
+  };
+
+  res.paginated = function <T>(data: T[], meta: responseUtils.PaginationMeta, message?: string) {
+    return responseUtils.sendPaginated(res, data, meta, message);
   };
 
   res.created = function <T>(data: T) {

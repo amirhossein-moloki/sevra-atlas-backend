@@ -3652,9 +3652,28 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Salon'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: number
+                      pageSize:
+                        type: number
+                      total:
+                        type: number
+                      totalPages:
+                        type: number
+                    required:
+                      - page
+                      - pageSize
+                      - total
+                  message:
+                    type: string
                 required:
                   - success
                   - data
+                  - meta
+                  - message
         '301':
           description: Permanent Redirect
         '302':
@@ -4791,9 +4810,28 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Artist'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: number
+                      pageSize:
+                        type: number
+                      total:
+                        type: number
+                      totalPages:
+                        type: number
+                    required:
+                      - page
+                      - pageSize
+                      - total
+                  message:
+                    type: string
                 required:
                   - success
                   - data
+                  - meta
+                  - message
         '301':
           description: Permanent Redirect
         '302':

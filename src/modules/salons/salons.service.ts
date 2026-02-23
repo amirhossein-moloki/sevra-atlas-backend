@@ -101,8 +101,13 @@ export class SalonsService {
     ]);
 
       return {
-        data: data,
-        meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+        data: data || [],
+        meta: {
+          page: parseInt(page as string || '1'),
+          pageSize: limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       };
     }, 300, { staleWhileRevalidate: 60 });
   }

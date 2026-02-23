@@ -6,6 +6,7 @@ import { CacheService } from '../../shared/redis/cache.service';
 import { CacheKeys } from '../../shared/redis/cache-keys';
 import { pickAllowedFields } from '../../shared/utils/object';
 import { safeBigInt } from '../../shared/utils/bigint';
+import { initialArtists } from './seed';
 
 export class ArtistsService {
   private readonly allowedFields = [
@@ -49,6 +50,8 @@ export class ArtistsService {
   }
 
   async getArtists(filters: Record<string, unknown>) {
+    await this.seedIfEmpty();
+
     const cacheKey = CacheKeys.ARTISTS_LIST(JSON.stringify(filters));
 
     return CacheService.wrap(cacheKey, async () => {
@@ -100,8 +103,13 @@ export class ArtistsService {
     ]);
 
       return {
-        data: data,
-        meta: { page: parseInt(page as string || '1'), pageSize: limit, total, totalPages: Math.ceil(total / limit) },
+        data: data || [],
+        meta: {
+          page: parseInt(page as string || '1'),
+          pageSize: limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       };
     }, 300, { staleWhileRevalidate: 60 });
   }
@@ -404,6 +412,40 @@ export class ArtistsService {
         data: { order: item.order }
       }))
     );
+  }
+
+  /**
+   * Automatically seed the database from a local seed source if no artists exist.
+   * Uses a PostgreSQL advisory lock for concurrency protection.
+   */
+  private async seedIfEmpty() {
+    const count = await prisma.artist.count({ where: { deletedAt: null } });
+    if (count > 0) return;
+
+    try {
+      await prisma.$transaction(async (tx) => {
+        // PostgreSQL advisory lock (transaction level)
+        // Lock ID 1001 used for artist seeding
+        await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock(1001);');
+
+        // Double-check count inside transaction
+        const doubleCheckCount = await tx.artist.count({ where: { deletedAt: null } });
+        if (doubleCheckCount > 0) return;
+
+        console.log('Artists table is empty. Starting auto-seed...');
+
+        for (const artist of initialArtists) {
+          await tx.artist.create({
+            data: artist,
+          });
+        }
+        console.log(`Successfully seeded ${initialArtists.length} artists from seed.ts`);
+      });
+    } catch (error) {
+      console.error('Error during artist auto-seeding:', error);
+      // We don't throw here to avoid failing the main request if seeding fails,
+      // but the main query will just return empty if seeding failed.
+    }
   }
 
   async assignSpecialties(

@@ -9,8 +9,8 @@ export const createArtistSchema = z.object({
     phone: z.string().optional(),
     instagram: z.string().optional(),
     website: z.string().optional(),
-    cityId: z.coerce.number().optional(),
-    neighborhoodId: z.coerce.number().optional(),
+    cityId: z.coerce.string().optional(),
+    neighborhoodId: z.coerce.string().optional(),
   }),
 });
 
@@ -32,13 +32,20 @@ export const certificationSchema = z.object({
     expiresAt: z.string().optional(),
     credentialId: z.string().optional(),
     credentialUrl: z.string().optional(),
-    mediaId: z.string().optional(),
+    mediaId: z.coerce.string().optional(),
   }),
 });
 
 export const assignSpecialtiesSchema = z.object({
   body: z.object({
-    specialtyIds: z.array(z.number()),
-    mode: z.enum(['replace', 'append']).optional(),
+    specialties: z.array(z.object({
+      specialtyId: z.coerce.string(),
+      priceToman: z.coerce.string().optional(),
+      durationMin: z.number().optional(),
+      isActive: z.boolean().default(true),
+      note: z.string().optional(),
+      order: z.number().optional(),
+    })),
+    mode: z.enum(['replace', 'append']).default('replace'),
   }),
 });

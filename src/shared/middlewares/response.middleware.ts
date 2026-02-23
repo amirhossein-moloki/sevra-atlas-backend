@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+import '../../types/express';
 import * as responseUtils from '../utils/response';
 import { serialize } from '../utils/serialize';
 
-export function responseMiddleware(req: Request, res: Response, next: NextFunction) {
+export function responseMiddleware(_req: Request, res: Response, next: NextFunction) {
   const originalJson = res.json.bind(res);
 
   res.json = function (body: unknown): Response {
@@ -10,20 +11,9 @@ export function responseMiddleware(req: Request, res: Response, next: NextFuncti
     const isAlreadyWrapped = body && typeof body === 'object' && 'success' in body;
 
     if (isSuccess && !isAlreadyWrapped && body !== undefined && body !== null) {
-      let data: unknown = body;
-      let meta: responseUtils.ApiMeta = { requestId: req.requestId };
-
-      // Flatten paginated responses
-      if (typeof body === 'object' && 'data' in body && 'meta' in body) {
-        const bodyObj = body as Record<string, unknown>;
-        data = bodyObj.data;
-        meta = { pagination: bodyObj.meta as responseUtils.PaginationMeta, ...meta };
-      }
-
       return originalJson.call(this, {
         success: true,
-        data: serialize(data),
-        meta,
+        data: serialize(body),
       });
     }
 
@@ -32,12 +22,12 @@ export function responseMiddleware(req: Request, res: Response, next: NextFuncti
     return originalJson.call(this, serializedBody);
   };
 
-  res.ok = function <T>(data: T, meta?: Omit<responseUtils.ApiMeta, 'requestId'>) {
-    return responseUtils.sendOk(res, data, meta);
+  res.ok = function <T>(data: T) {
+    return responseUtils.sendOk(res, data);
   };
 
-  res.created = function <T>(data: T, meta?: Omit<responseUtils.ApiMeta, 'requestId'>) {
-    return responseUtils.sendCreated(res, data, meta);
+  res.created = function <T>(data: T) {
+    return responseUtils.sendCreated(res, data);
   };
 
   res.noContent = function () {
@@ -47,11 +37,9 @@ export function responseMiddleware(req: Request, res: Response, next: NextFuncti
   res.fail = function (
     code: string,
     message: string,
-    status = 400,
-    details?: unknown,
-    meta?: Omit<responseUtils.ApiMeta, 'requestId'>
+    status = 400
   ) {
-    return responseUtils.sendFail(res, code, message, status, details, meta);
+    return responseUtils.sendFail(res, code, message, status);
   };
 
   next();

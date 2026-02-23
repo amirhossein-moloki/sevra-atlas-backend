@@ -103,7 +103,6 @@ function normalizeError(err: unknown): NormalizedError {
 }
 
 export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
-  const requestId = getRequestId(req);
   const normalized = normalizeError(err);
 
   if (res.headersSent) return;
@@ -116,6 +115,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     url: req.originalUrl,
     status: normalized.status,
     code: normalized.code,
+    requestId: getRequestId(req),
     ...(normalized.details ? { details: normalized.details } : {}),
   };
 
@@ -125,18 +125,10 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     logger.warn(logData, `Operational Error: ${normalized.message}`);
   }
 
-  // Only include details in non-production for debugging.
-  // In production, we strictly omit details to prevent information leakage (e.g. Prisma metadata).
-  const includeDetails = !config.isProduction && !config.isTest;
-
   const body: ApiFailure = {
     success: false,
-    error: {
-      code: normalized.code,
-      message: normalized.message,
-      ...(includeDetails && normalized.details ? { details: normalized.details } : {}),
-    },
-    meta: { requestId },
+    data: null,
+    message: normalized.message,
   };
 
   res.status(normalized.status).json(body);

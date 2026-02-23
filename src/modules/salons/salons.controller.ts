@@ -155,4 +155,24 @@ export class SalonsController {
     );
     res.json(result);
   };
+
+  getSalonArtists = async (req: Request, res: Response) => {
+    const id = await this.resolveSalonId(req.params.idOrSlug);
+    const result = await salonsService.getSalonArtists(id);
+    res.json(result);
+  };
+
+  getSalonServices = async (req: Request, res: Response) => {
+    const id = await this.resolveSalonId(req.params.idOrSlug);
+    const result = await salonsService.getSalonServices(id);
+    res.json(result);
+  };
+
+  getGallery = async (req: Request, res: Response) => {
+    const id = await this.resolveSalonId(req.params.idOrSlug);
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 20;
+    const result = await salonsService.getGallery(id, page, pageSize);
+    res.json(result);
+  };
 }

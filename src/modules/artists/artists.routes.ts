@@ -7,7 +7,7 @@ import { validate } from '../../shared/middlewares/validate.middleware';
 import { createArtistSchema, updateArtistSchema, certificationSchema, assignSpecialtiesSchema } from './artists.validators';
 import { setMediaSchema } from '../salons/salons.validators';
 import { registry, z, withApiSuccess } from '../../shared/openapi/registry';
-import { ArtistSchema, SpecialtySchema, ReviewSchema, MediaSchema, ArtistCertificationSchema } from '../../shared/openapi/schemas';
+import { ArtistSchema, SpecialtySchema, ReviewSchema, MediaSchema, ArtistCertificationSchema, ArtistSpecialtyResponseSchema } from '../../shared/openapi/schemas';
 
 const router = Router();
 const controller = new ArtistsController();
@@ -58,7 +58,7 @@ router.get('/specialties', controller.listSpecialties);
 registry.registerPath({
   method: 'get',
   path: '/artists/{idOrSlug}',
-  summary: 'Get artist by slug',
+  summary: 'Get artist by slug or ID',
   tags: [tag],
   parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
   responses: {
@@ -84,6 +84,53 @@ registry.registerPath({
   }
 });
 router.get('/:idOrSlug/reviews', reviewsController.getArtistReviews);
+
+registry.registerPath({
+  method: 'get',
+  path: '/artists/{idOrSlug}/gallery',
+  summary: 'Get artist gallery',
+  tags: [tag],
+  parameters: [
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+    { name: 'pageSize', in: 'query', schema: { type: 'integer', default: 20 } },
+  ],
+  responses: {
+    200: {
+      description: 'Artist gallery images',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.object({
+            items: z.array(MediaSchema),
+            page: z.number(),
+            limit: z.number(),
+            total: z.number(),
+          }))
+        }
+      }
+    }
+  }
+});
+router.get('/:idOrSlug/gallery', controller.getGallery);
+
+registry.registerPath({
+  method: 'get',
+  path: '/artists/{idOrSlug}/specialties',
+  summary: 'Get artist specialties (UI-ready)',
+  tags: [tag],
+  parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],
+  responses: {
+    200: {
+      description: 'List of artist specialties with price/duration',
+      content: {
+        'application/json': {
+          schema: withApiSuccess(z.array(ArtistSpecialtyResponseSchema))
+        }
+      }
+    }
+  }
+});
+router.get('/:idOrSlug/specialties', controller.getArtistSpecialties);
 
 registry.registerPath({
   method: 'post',

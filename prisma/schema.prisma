@@ -1047,15 +1047,21 @@ model PostService {
 }
 
 model SalonService {
-  id        BigInt @id @default(autoincrement())
-  salonId   BigInt
-  serviceId BigInt
-  notes     String? @db.Text
+  id          BigInt @id @default(autoincrement())
+  salonId     BigInt
+  serviceId   BigInt
+
+  priceToman  BigInt?
+  durationMin Int?
+  isActive    Boolean @default(true)
+  notes       String? @db.Text
+  order       Int     @default(0)
 
   salon   Salon             @relation(fields: [salonId], references: [id], onDelete: Cascade)
   service ServiceDefinition @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([salonId, serviceId])
   @@index([salonId])
@@ -1082,6 +1088,12 @@ model ArtistSpecialty {
   id          BigInt @id @default(autoincrement())
   artistId    BigInt
   specialtyId BigInt
+
+  priceToman  BigInt?
+  durationMin Int?
+  isActive    Boolean @default(true)
+  note        String? @db.Text
+  order       Int     @default(0)
 
   artist    Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
   specialty Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)

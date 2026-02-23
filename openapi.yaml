@@ -12,8 +12,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    ApiMeta:
-      type: object
     ApiFailure:
       type: object
       properties:
@@ -21,23 +19,15 @@ components:
           type: boolean
           enum:
             - false
-        error:
+        data:
+          nullable: true
           type: object
-          properties:
-            code:
-              type: string
-            message:
-              type: string
-            details:
-              type: object
-          required:
-            - code
-            - message
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        message:
+          type: string
       required:
         - success
-        - error
+        - data
+        - message
     Media:
       type: object
       properties:
@@ -532,6 +522,102 @@ components:
         - issuer
         - issuedAt
         - isVerified
+    ArtistSpecialtyResponse:
+      type: object
+      properties:
+        specialtyId:
+          type: string
+        nameFa:
+          type: string
+        slug:
+          type: string
+        priceToman:
+          type: string
+          nullable: true
+        durationMin:
+          type: number
+          nullable: true
+        isActive:
+          type: boolean
+        note:
+          type: string
+          nullable: true
+        order:
+          type: number
+      required:
+        - specialtyId
+        - nameFa
+        - slug
+        - priceToman
+        - durationMin
+        - isActive
+        - note
+        - order
+    SalonArtistResponse:
+      type: object
+      properties:
+        artist:
+          $ref: '#/components/schemas/Artist'
+        roleTitle:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+      required:
+        - artist
+        - roleTitle
+        - isActive
+    SalonServiceResponse:
+      type: object
+      properties:
+        serviceId:
+          type: string
+        nameFa:
+          type: string
+        slug:
+          type: string
+        priceToman:
+          type: string
+          nullable: true
+        durationMin:
+          type: number
+          nullable: true
+        isActive:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+      required:
+        - serviceId
+        - nameFa
+        - slug
+        - priceToman
+        - durationMin
+        - isActive
+        - notes
+    GroupedSalonServiceResponse:
+      type: object
+      properties:
+        category:
+          type: object
+          properties:
+            id:
+              type: string
+            nameFa:
+              type: string
+            slug:
+              type: string
+          required:
+            - id
+            - nameFa
+            - slug
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalonServiceResponse'
+      required:
+        - category
+        - services
     Series:
       type: object
       properties:
@@ -1037,8 +1123,6 @@ paths:
                         type: string
                     required:
                       - message
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1091,8 +1175,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/AuthResponse'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1138,8 +1220,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/AuthResponse'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1226,8 +1306,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1276,8 +1354,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/User'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1353,8 +1429,6 @@ paths:
                     required:
                       - ok
                       - user
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1405,8 +1479,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Follow'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1455,8 +1527,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Save'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1548,8 +1618,6 @@ paths:
                     required:
                       - data
                       - meta
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1625,8 +1693,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1706,8 +1772,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1762,8 +1826,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Province'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1812,8 +1874,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Province'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1886,8 +1946,6 @@ paths:
                             - provinceId
                             - nameFa
                             - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -1950,8 +2008,6 @@ paths:
                           - provinceId
                           - nameFa
                           - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2033,8 +2089,6 @@ paths:
                           - provinceId
                           - nameFa
                           - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2110,8 +2164,6 @@ paths:
                             - cityId
                             - nameFa
                             - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2188,8 +2240,6 @@ paths:
                           - provinceId
                           - nameFa
                           - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2269,8 +2319,6 @@ paths:
                           - cityId
                           - nameFa
                           - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2355,8 +2403,6 @@ paths:
                           - cityId
                           - nameFa
                           - slug
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2420,8 +2466,6 @@ paths:
                                 $ref: '#/components/schemas/Service'
                           required:
                             - services
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2474,8 +2518,113 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Service'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /services/{slug}:
+    get:
+      summary: Get service details by slug
+      tags:
+        - Services
+      parameters:
+        - name: slug
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Service details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: '#/components/schemas/Service'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /services/categories:
+    post:
+      summary: Create a service category (Admin)
+      tags:
+        - Services
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nameFa:
+                  type: string
+                slug:
+                  type: string
+                order:
+                  type: number
+              required:
+                - nameFa
+                - slug
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: '#/components/schemas/ServiceCategory'
                 required:
                   - success
                   - data
@@ -2504,51 +2653,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
   /services/{id}:
-    get:
-      summary: Get service details
-      tags:
-        - Services
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Service details
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    $ref: '#/components/schemas/Service'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '301':
-          description: Permanent Redirect
-        '302':
-          description: Temporary Redirect
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '404':
-          description: Resource Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
     patch:
       summary: Update a service (Admin)
       tags:
@@ -2590,8 +2694,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Service'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2656,8 +2758,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2685,71 +2785,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
-  /services/categories:
-    post:
-      summary: Create a service category (Admin)
-      tags:
-        - Services
-      security:
-        - bearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                nameFa:
-                  type: string
-                slug:
-                  type: string
-                order:
-                  type: number
-              required:
-                - nameFa
-                - slug
-      responses:
-        '201':
-          description: Category created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    $ref: '#/components/schemas/ServiceCategory'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '415':
-          description: Unsupported Media Type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
   /media:
     get:
       summary: List all media (Staff)
@@ -2773,8 +2808,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2887,8 +2920,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -2960,8 +2991,6 @@ paths:
                       - mediaId
                       - status
                       - url
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3025,8 +3054,6 @@ paths:
                       - mediaId
                       - status
                       - hasVariants
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3071,8 +3098,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3140,8 +3165,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3206,8 +3229,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3298,8 +3319,6 @@ paths:
                     required:
                       - toPath
                       - type
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3389,8 +3408,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/SeoMeta'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3462,8 +3479,6 @@ paths:
                         type: string
                     required:
                       - id
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3517,8 +3532,6 @@ paths:
                         type: string
                     required:
                       - message
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3639,8 +3652,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Salon'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3701,8 +3712,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Salon'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3755,8 +3764,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Salon'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3809,10 +3816,10 @@ paths:
                 website:
                   type: string
                 cityId:
-                  type: number
+                  type: string
                   nullable: true
                 neighborhoodId:
-                  type: number
+                  type: string
                   nullable: true
                 addressLine:
                   type: string
@@ -3846,8 +3853,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Salon'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3912,8 +3917,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3968,8 +3971,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Review'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -3989,9 +3990,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
-  /salons/{idOrSlug}/services:
+  /salons/{idOrSlug}/artists:
+    get:
+      summary: Get salon artists
+      tags:
+        - Salons
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List of artists in the salon
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SalonArtistResponse'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
     post:
-      summary: Assign services to salon
+      summary: Link artist to salon
       tags:
         - Salons
       security:
@@ -4008,22 +4054,18 @@ paths:
             schema:
               type: object
               properties:
-                services:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      serviceId:
-                        type: number
-                      notes:
-                        type: string
-                    required:
-                      - serviceId
-              required:
-                - services
+                artistId:
+                  type: string
+                  nullable: true
+                roleTitle:
+                  type: string
+                isActive:
+                  type: boolean
+                startedAt:
+                  type: string
       responses:
         '200':
-          description: Services assigned
+          description: Artist linked
           content:
             application/json:
               schema:
@@ -4036,12 +4078,14 @@ paths:
                   data:
                     type: object
                     properties:
-                      ok:
-                        type: boolean
+                      id:
+                        type: string
+                      roleTitle:
+                        type: string
+                        nullable: true
                     required:
-                      - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
+                      - id
+                      - roleTitle
                 required:
                   - success
                   - data
@@ -4071,6 +4115,333 @@ paths:
                 $ref: '#/components/schemas/ApiFailure'
         '415':
           description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /salons/{idOrSlug}/services:
+    get:
+      summary: Get salon services grouped by category
+      tags:
+        - Salons
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Salon services grouped by category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupedSalonServiceResponse'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+    post:
+      summary: Assign services to salon
+      tags:
+        - Salons
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                services:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      serviceId:
+                        type: string
+                        nullable: true
+                      priceToman:
+                        type: string
+                        nullable: true
+                      durationMin:
+                        type: number
+                      isActive:
+                        type: boolean
+                        default: true
+                      notes:
+                        type: string
+                      order:
+                        type: number
+                mode:
+                  type: string
+                  enum:
+                    - replace
+                    - append
+                  default: replace
+              required:
+                - services
+      responses:
+        '200':
+          description: Services assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                    required:
+                      - ok
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /salons/{idOrSlug}/gallery:
+    get:
+      summary: Get salon gallery
+      tags:
+        - Salons
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Salon gallery images
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Media'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+    post:
+      summary: Add to salon gallery
+      tags:
+        - Salons
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mediaId:
+                  type: string
+                mediaIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Gallery updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: '#/components/schemas/Media'
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /salons/{idOrSlug}/media:
+    get:
+      summary: Get salon media (alias for gallery)
+      tags:
+        - Salons
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Salon gallery images
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Media'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
           content:
             application/json:
               schema:
@@ -4112,8 +4483,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4178,8 +4547,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4252,170 +4619,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '404':
-          description: Resource Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '415':
-          description: Unsupported Media Type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-  /salons/{idOrSlug}/gallery:
-    post:
-      summary: Add to salon gallery
-      tags:
-        - Salons
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: idOrSlug
-          in: path
-          schema:
-            type: string
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                mediaId:
-                  type: string
-                mediaIds:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: Gallery updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '404':
-          description: Resource Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '415':
-          description: Unsupported Media Type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-  /salons/{idOrSlug}/artists:
-    post:
-      summary: Link artist to salon
-      tags:
-        - Salons
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: idOrSlug
-          in: path
-          schema:
-            type: string
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                artistId:
-                  type: number
-                  nullable: true
-                roleTitle:
-                  type: string
-                isActive:
-                  type: boolean
-                startedAt:
-                  type: string
-              required:
-                - artistId
-      responses:
-        '200':
-          description: Artist linked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      roleTitle:
-                        type: string
-                        nullable: true
-                    required:
-                      - id
-                      - roleTitle
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4486,8 +4689,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4590,8 +4791,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Artist'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4632,10 +4831,10 @@ paths:
                 website:
                   type: string
                 cityId:
-                  type: number
+                  type: string
                   nullable: true
                 neighborhoodId:
-                  type: number
+                  type: string
                   nullable: true
               required:
                 - fullName
@@ -4654,8 +4853,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Artist'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4704,8 +4901,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Specialty'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4721,7 +4916,7 @@ paths:
                 $ref: '#/components/schemas/ApiFailure'
   /artists/{idOrSlug}:
     get:
-      summary: Get artist by slug
+      summary: Get artist by slug or ID
       tags:
         - Artists
       parameters:
@@ -4744,8 +4939,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Artist'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4798,10 +4991,10 @@ paths:
                 website:
                   type: string
                 cityId:
-                  type: number
+                  type: string
                   nullable: true
                 neighborhoodId:
-                  type: number
+                  type: string
                   nullable: true
                 avatarMediaId:
                   type: string
@@ -4823,8 +5016,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Artist'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4889,8 +5080,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4945,8 +5134,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Review'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -4962,6 +5149,277 @@ paths:
                 $ref: '#/components/schemas/ApiFailure'
         '404':
           description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /artists/{idOrSlug}/gallery:
+    get:
+      summary: Get artist gallery
+      tags:
+        - Artists
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Artist gallery images
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Media'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+    post:
+      summary: Add to artist gallery
+      tags:
+        - Artists
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mediaId:
+                  type: string
+                mediaIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Gallery updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: '#/components/schemas/Media'
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /artists/{idOrSlug}/specialties:
+    get:
+      summary: Get artist specialties (UI-ready)
+      tags:
+        - Artists
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List of artist specialties with price/duration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArtistSpecialtyResponse'
+                required:
+                  - success
+                  - data
+        '301':
+          description: Permanent Redirect
+        '302':
+          description: Temporary Redirect
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+    post:
+      summary: Assign specialties to artist
+      tags:
+        - Artists
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                specialties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      specialtyId:
+                        type: string
+                        nullable: true
+                      priceToman:
+                        type: string
+                        nullable: true
+                      durationMin:
+                        type: number
+                      isActive:
+                        type: boolean
+                        default: true
+                      note:
+                        type: string
+                      order:
+                        type: number
+                mode:
+                  type: string
+                  enum:
+                    - replace
+                    - append
+                  default: replace
+              required:
+                - specialties
+      responses:
+        '200':
+          description: Specialties assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                    required:
+                      - ok
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
           content:
             application/json:
               schema:
@@ -5003,8 +5461,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5077,82 +5533,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '404':
-          description: Resource Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '415':
-          description: Unsupported Media Type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-  /artists/{idOrSlug}/gallery:
-    post:
-      summary: Add to artist gallery
-      tags:
-        - Artists
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: idOrSlug
-          in: path
-          schema:
-            type: string
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                mediaId:
-                  type: string
-                mediaIds:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: Gallery updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    $ref: '#/components/schemas/Media'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5225,6 +5605,7 @@ paths:
                   type: string
                 mediaId:
                   type: string
+                  nullable: true
               required:
                 - title
                 - issuer
@@ -5242,8 +5623,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/ArtistCertification'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5321,6 +5700,7 @@ paths:
                   type: string
                 mediaId:
                   type: string
+                  nullable: true
               required:
                 - title
                 - issuer
@@ -5338,8 +5718,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/ArtistCertification'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5409,8 +5787,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5475,92 +5851,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '404':
-          description: Resource Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '415':
-          description: Unsupported Media Type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-  /artists/{idOrSlug}/specialties:
-    post:
-      summary: Assign specialties to artist
-      tags:
-        - Artists
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: idOrSlug
-          in: path
-          schema:
-            type: string
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                specialtyIds:
-                  type: array
-                  items:
-                    type: number
-                mode:
-                  type: string
-                  enum:
-                    - replace
-                    - append
-              required:
-                - specialtyIds
-      responses:
-        '200':
-          description: Specialties assigned
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    type: object
-                    properties:
-                      ok:
-                        type: boolean
-                    required:
-                      - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5615,8 +5905,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Specialty'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5662,8 +5950,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Specialty'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5728,8 +6014,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Specialty'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5794,8 +6078,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -5914,8 +6196,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6015,8 +6295,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6069,8 +6347,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6178,8 +6454,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6244,8 +6518,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6298,8 +6570,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6346,8 +6616,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6394,8 +6662,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6442,8 +6708,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6490,8 +6754,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Comment'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6551,8 +6813,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Comment'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6613,8 +6873,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/BlogPost'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6694,8 +6952,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Review'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6765,8 +7021,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6832,8 +7086,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6895,8 +7147,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Follow'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -6962,8 +7212,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7008,8 +7256,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Follow'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7069,8 +7315,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Save'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7136,8 +7380,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7182,8 +7424,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Save'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7263,8 +7503,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Report'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7314,8 +7552,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Report'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7383,8 +7619,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Report'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7471,8 +7705,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/VerificationRequest'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7523,8 +7755,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/VerificationRequest'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7594,8 +7824,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/VerificationRequest'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7663,8 +7891,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/AdminAuthResponse'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7815,8 +8041,6 @@ paths:
                       - counts
                       - distributions
                       - topCities
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -7948,8 +8172,6 @@ paths:
                           - newPosts
                     required:
                       - series
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8021,8 +8243,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8096,8 +8316,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8171,8 +8389,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8242,8 +8458,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8319,8 +8533,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8376,8 +8588,6 @@ paths:
                   data:
                     type: object
                     properties: {}
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8462,8 +8672,6 @@ paths:
                       - timestamp
                       - data
                       - returnValue
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8522,8 +8730,6 @@ paths:
                     required:
                       - status
                       - timestamp
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8583,8 +8789,6 @@ paths:
                       - timestamp
                       - environment
                       - services
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8659,8 +8863,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Plan'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8716,8 +8918,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Subscription'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8782,8 +8982,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Subscription'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8856,8 +9054,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8916,8 +9112,6 @@ paths:
                     required:
                       - totalRevenue
                       - revenueByPlan
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -8984,8 +9178,6 @@ paths:
                       - totalChurns
                       - churnRate
                       - revenueByCity
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9035,8 +9227,6 @@ paths:
                     items:
                       nullable: true
                       type: object
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9088,8 +9278,6 @@ paths:
                         type: number
                     required:
                       - count
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9143,8 +9331,6 @@ paths:
                         type: string
                     required:
                       - code
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9201,8 +9387,6 @@ paths:
                     required:
                       - totalInvites
                       - acceptedInvites
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9269,8 +9453,6 @@ paths:
                         type: string
                     required:
                       - id
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9349,8 +9531,6 @@ paths:
                     required:
                       - trackId
                       - payUrl
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9418,8 +9598,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9460,8 +9638,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Payment'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9536,8 +9712,6 @@ paths:
                       - salons
                       - artists
                       - posts
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9572,8 +9746,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Category'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9633,8 +9805,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Category'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9687,8 +9857,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Category'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9757,8 +9925,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Category'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9823,8 +9989,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9873,8 +10037,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Tag'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9929,8 +10091,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Tag'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -9983,8 +10143,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Tag'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10048,8 +10206,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Tag'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10114,8 +10270,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10164,8 +10318,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Series'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10226,8 +10378,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Series'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10280,8 +10430,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Series'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10349,8 +10497,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Series'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10415,8 +10561,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10473,8 +10617,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Revision'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10546,8 +10688,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Reaction'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10596,8 +10736,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Page'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10669,8 +10807,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Page'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10698,13 +10834,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
-  /blog/misc/pages/{id}:
+  /blog/misc/pages/{slug}:
     get:
       summary: Get page by slug
       tags:
         - Blog Misc
       parameters:
-        - name: id
+        - name: slug
           in: path
           schema:
             type: string
@@ -10723,8 +10859,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Page'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10744,6 +10878,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
+  /blog/misc/pages/{id}:
     patch:
       summary: Update page (Admin)
       tags:
@@ -10804,8 +10939,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Page'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10870,8 +11003,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10899,13 +11030,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
-  /blog/misc/menus/{id}:
+  /blog/misc/menus/{location}:
     get:
       summary: Get menu by location
       tags:
         - Blog Misc
       parameters:
-        - name: id
+        - name: location
           in: path
           schema:
             type: string
@@ -10924,8 +11055,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Menu'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -10945,6 +11074,74 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
+  /blog/misc/menus:
+    post:
+      summary: Create menu (Admin)
+      tags:
+        - Blog Misc
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                location:
+                  type: string
+                  enum:
+                    - header
+                    - footer
+                    - sidebar
+              required:
+                - name
+                - location
+      responses:
+        '201':
+          description: Menu created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: '#/components/schemas/Menu'
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+  /blog/misc/menus/{id}:
     patch:
       summary: Update menu (Admin)
       tags:
@@ -10987,8 +11184,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Menu'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11053,8 +11248,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11078,75 +11271,6 @@ paths:
                 $ref: '#/components/schemas/ApiFailure'
         '404':
           description: Resource Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-  /blog/misc/menus:
-    post:
-      summary: Create menu (Admin)
-      tags:
-        - Blog Misc
-      security:
-        - bearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  minLength: 1
-                  maxLength: 255
-                location:
-                  type: string
-                  enum:
-                    - header
-                    - footer
-                    - sidebar
-              required:
-                - name
-                - location
-      responses:
-        '201':
-          description: Menu created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    enum:
-                      - true
-                  data:
-                    $ref: '#/components/schemas/Menu'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
-                required:
-                  - success
-                  - data
-        '400':
-          description: Bad Request / Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiFailure'
-        '415':
-          description: Unsupported Media Type
           content:
             application/json:
               schema:
@@ -11200,8 +11324,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/MenuItem'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11278,8 +11400,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/MenuItem'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11344,8 +11464,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11394,8 +11512,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Author'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11448,8 +11564,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Author'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11502,8 +11616,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Author'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11562,8 +11674,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Author'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11628,8 +11738,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11678,8 +11786,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Comment'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11735,8 +11841,6 @@ paths:
                       - true
                   data:
                     $ref: '#/components/schemas/Comment'
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data
@@ -11802,8 +11906,6 @@ paths:
                         type: boolean
                     required:
                       - ok
-                  meta:
-                    $ref: '#/components/schemas/ApiMeta'
                 required:
                   - success
                   - data

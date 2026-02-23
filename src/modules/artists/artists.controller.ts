@@ -178,11 +178,25 @@ export class ArtistsController {
     const mode = (req.body.mode as 'replace' | 'append') || 'replace';
     const result = await artistsService.assignSpecialties(
       id,
-      req.body.specialtyIds,
+      req.body.specialties,
       mode,
       req.user!.id,
       adminMode
     );
+    res.json(result);
+  };
+
+  getGallery = async (req: Request, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug);
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 20;
+    const result = await artistsService.getGallery(id, page, pageSize);
+    res.json(result);
+  };
+
+  getArtistSpecialties = async (req: Request, res: Response) => {
+    const id = await this.resolveArtistId(req.params.idOrSlug);
+    const result = await artistsService.getArtistSpecialties(id);
     res.json(result);
   };
 }

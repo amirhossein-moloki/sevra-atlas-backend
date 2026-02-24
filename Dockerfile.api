@@ -26,8 +26,9 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
-# Copy seeder datasets to dist
+# Copy seeder datasets and other script assets to dist
 RUN mkdir -p dist/scripts/seeder/datasets && cp -r scripts/seeder/datasets/* dist/scripts/seeder/datasets/
+RUN cp scripts/*.json dist/scripts/ 2>/dev/null || true
 
 # Remove development dependencies
 RUN npm prune --production
@@ -50,6 +51,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/scripts ./scripts
 
 # Create and set permissions for uploads directory
 RUN mkdir -p uploads && chown -R node:node /app/uploads

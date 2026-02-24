@@ -14,16 +14,24 @@ async function main() {
     { name: 'شینیون حرفه‌ای', slug: 'pro-hairstyling' },
     { name: 'خدمات تخصصی ناخن', slug: 'nail-services' },
     { name: 'فیشیال و پاکسازی پوست', slug: 'facial-skin-care' },
+    { name: 'کانتورینگ حرفه‌ای', slug: 'pro-contouring' },
+    { name: 'گریم سینمایی', slug: 'cinematic-makeup' },
+    { name: 'بافت مو تخصصی', slug: 'specialized-braiding' },
+    { name: 'اکستنشن مو', slug: 'hair-extension' },
+    { name: 'کاشت ناخن پودری', slug: 'powder-nail-extension' },
+    { name: 'طراحی ناخن (دیزاین)', slug: 'nail-design' },
+    { name: 'پاکسازی تخصصی پوست', slug: 'pro-skin-cleansing' },
+    { name: 'ماساژ صورت و جوانسازی', slug: 'face-massage' },
   ];
 
-  const specialties = [];
+  const specialtyMap: Record<string, any> = {};
   for (const s of specialtyNames) {
     const specialty = await prisma.specialty.upsert({
       where: { slug: s.slug },
       update: { nameFa: s.name },
       create: { nameFa: s.name, slug: s.slug },
     });
-    specialties.push(specialty);
+    specialtyMap[s.slug] = specialty;
   }
 
   // 2. Find or Create Owner User
@@ -68,8 +76,17 @@ async function main() {
     },
   });
 
-  // 4. Link Artist to Specialties
-  for (const s of specialties) {
+  // 4. Link Artist to Specialties (Bahar gets the main ones)
+  const baharSpecialties = [
+    'bridal-makeup',
+    'makeup-training',
+    'pro-hairstyling',
+    'nail-services',
+    'facial-skin-care'
+  ];
+
+  for (const slug of baharSpecialties) {
+    const s = specialtyMap[slug];
     await prisma.artistSpecialty.upsert({
       where: {
         artistId_specialtyId: {
@@ -77,11 +94,17 @@ async function main() {
           specialtyId: s.id,
         },
       },
-      update: {},
+      update: {
+        isActive: true,
+        priceToman: BigInt(5000000), // Premium price for Bahar
+        durationMin: 120,
+      },
       create: {
         artistId: artist.id,
         specialtyId: s.id,
         isActive: true,
+        priceToman: BigInt(5000000),
+        durationMin: 120,
       },
     });
   }
@@ -134,10 +157,30 @@ async function main() {
 
   // 7. Add other employees as Artists and link to Salon
   const employees = [
-    { name: 'لیلا افشاری', slug: 'leila-afshari', role: 'متخصص گریم و کانتورینگ' },
-    { name: 'مریم راد', slug: 'maryam-rad', role: 'هیر استایلیست و شینیون' },
-    { name: 'سپیده حسینی', slug: 'sepideh-hosseini', role: 'ناخن‌کار حرفه‌ای' },
-    { name: 'عاطفه امینی', slug: 'atefeh-amini', role: 'تکنیسین فیشیال پوست' },
+    {
+      name: 'لیلا افشاری',
+      slug: 'leila-afshari',
+      role: 'متخصص گریم و کانتورینگ',
+      specialties: ['pro-contouring', 'cinematic-makeup']
+    },
+    {
+      name: 'مریم راد',
+      slug: 'maryam-rad',
+      role: 'هیر استایلیست و شینیون',
+      specialties: ['pro-hairstyling', 'hair-extension']
+    },
+    {
+      name: 'سپیده حسینی',
+      slug: 'sepideh-hosseini',
+      role: 'ناخن‌کار حرفه‌ای',
+      specialties: ['nail-services', 'nail-design']
+    },
+    {
+      name: 'عاطفه امینی',
+      slug: 'atefeh-amini',
+      role: 'تکنیسین فیشیال پوست',
+      specialties: ['facial-skin-care', 'pro-skin-cleansing']
+    },
   ];
 
   for (const emp of employees) {
@@ -169,6 +212,33 @@ async function main() {
         isActive: true,
       },
     });
+
+    // Add specialties for employees (2 specialties each as requested)
+    for (const sSlug of emp.specialties) {
+      const spec = specialtyMap[sSlug];
+      if (spec) {
+        await prisma.artistSpecialty.upsert({
+          where: {
+            artistId_specialtyId: {
+              artistId: empArtist.id,
+              specialtyId: spec.id,
+            },
+          },
+          update: {
+            isActive: true,
+            priceToman: BigInt(1500000),
+            durationMin: 90,
+          },
+          create: {
+            artistId: empArtist.id,
+            specialtyId: spec.id,
+            isActive: true,
+            priceToman: BigInt(1500000),
+            durationMin: 90,
+          },
+        });
+      }
+    }
   }
 
   // 8. Add Images to Profile

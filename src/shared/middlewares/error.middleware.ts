@@ -45,6 +45,13 @@ function normalizeError(err: unknown): NormalizedError {
           message: 'The requested record was not found.',
           details: err.meta,
         };
+      case 'P2023':
+        return {
+          status: 400,
+          code: 'INCONSISTENT_DATA',
+          message: 'Invalid data format provided for a database field.',
+          details: { prismaCode: err.code, meta: err.meta },
+        };
       default:
         return {
           status: 400,
@@ -117,12 +124,19 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     code: normalized.code,
     requestId: getRequestId(req),
     ...(normalized.details ? { details: normalized.details } : {}),
+    // Include stack trace in logs for non-production or for internal errors
+    ...(config.env !== 'production' || isServerError ? { stack: err instanceof Error ? err.stack : undefined } : {}),
   };
 
   if (isServerError) {
     logger.error({ err, ...logData }, `Server Error: ${normalized.message}`);
   } else {
-    logger.warn(logData, `Operational Error: ${normalized.message}`);
+    // For database errors that are masked, log them as warnings but include details
+    if (normalized.code === 'DB_REQUEST_FAILED' || normalized.code === 'INCONSISTENT_DATA') {
+      logger.warn({ err, ...logData }, `Database Error: ${normalized.message}`);
+    } else {
+      logger.warn(logData, `Operational Error: ${normalized.message}`);
+    }
   }
 
   const body: ApiFailure = {

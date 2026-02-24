@@ -33,7 +33,7 @@ export class ServicesService {
 
   async getServiceByIdentifier(identifier: string) {
     const where: any = { deletedAt: null };
-    if (/^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = BigInt(identifier);
     } else {
       where.slug = identifier;

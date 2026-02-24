@@ -41,7 +41,8 @@ export class ArtistsService {
 
   async findArtistByIdentifier(identifier: string) {
     const where: Prisma.ArtistWhereInput = { deletedAt: null };
-    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+    // Numeric ID must be digits and within valid range for BigInt
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = safeBigInt(identifier, 'artist_id');
     } else {
       where.slug = identifier;
@@ -117,7 +118,7 @@ export class ArtistsService {
   async getArtistByIdentifier(identifier: string) {
     return CacheService.wrap(CacheKeys.ARTIST_DETAIL(identifier), async () => {
       const where: Prisma.ArtistWhereInput = { deletedAt: null };
-      if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+      if (/^\d+$/.test(identifier) && identifier.length < 20) {
         where.id = safeBigInt(identifier, 'artist_id');
       } else {
         where.slug = identifier;

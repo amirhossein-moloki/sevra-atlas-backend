@@ -114,7 +114,7 @@ export class SalonsService {
 
   async findSalonByIdentifier(identifier: string) {
     const where: Prisma.SalonWhereInput = { deletedAt: null };
-    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = safeBigInt(identifier, 'salon_id');
     } else {
       where.slug = identifier;
@@ -125,7 +125,7 @@ export class SalonsService {
   async getSalonByIdentifier(identifier: string) {
     return CacheService.wrap(CacheKeys.SALON_DETAIL(identifier), async () => {
       const where: Prisma.SalonWhereInput = { deletedAt: null };
-      if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+      if (/^\d+$/.test(identifier) && identifier.length < 20) {
         where.id = safeBigInt(identifier, 'salon_id');
       } else {
         where.slug = identifier;

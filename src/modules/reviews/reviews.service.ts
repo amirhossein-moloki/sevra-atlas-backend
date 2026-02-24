@@ -40,17 +40,25 @@ export class ReviewsService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getReviews(targetType: 'SALON' | 'ARTIST', slug: string, query: any) {
+  async getReviews(targetType: 'SALON' | 'ARTIST', identifier: string, query: any) {
     const { page = 1, pageSize = 20, status } = query;
     const limit = parseInt(pageSize as string) || 20;
     const skip = (parseInt(page as string || '1') - 1) * limit;
+
+    // Determine if identifier is ID or slug
+    const isId = /^\d+$/.test(identifier) && identifier.length < 20;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       status: status || ReviewStatus.PUBLISHED,
       deletedAt: null,
-      ...(targetType === 'SALON' ? { salon: { slug } } : { artist: { slug } }),
     };
+
+    if (targetType === 'SALON') {
+      where.salon = isId ? { id: BigInt(identifier) } : { slug: identifier };
+    } else {
+      where.artist = isId ? { id: BigInt(identifier) } : { slug: identifier };
+    }
 
     const [data, total] = await Promise.all([
       prisma.review.findMany({

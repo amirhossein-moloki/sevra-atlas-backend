@@ -71,7 +71,7 @@ export class PostsService {
     }
     if (visibility) where.visibility = visibility as PostVisibility;
     if (author) {
-      if (!isNaN(Number(author))) {
+      if (!isNaN(Number(author)) && /^\d+$/.test(author)) {
         where.authorId = safeBigInt(author, 'author');
       } else {
         where.author = { user: { username: author } };
@@ -113,10 +113,10 @@ export class PostsService {
     };
   }
 
-  async getPostBySlug(identifier: string, user?: { id: bigint, role: UserRole }) {
+  async getPostByIdentifier(identifier: string, user?: { id: bigint, role: UserRole }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { deletedAt: null };
-    if (!isNaN(Number(identifier))) {
+    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
       where.id = safeBigInt(identifier, 'post_id');
     } else {
       where.slug = identifier;
@@ -197,7 +197,7 @@ export class PostsService {
   }
 
   async findPostByIdentifier(identifier: string) {
-    if (!isNaN(Number(identifier))) {
+    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
       const id = safeBigInt(identifier, 'post_id');
       return prisma.post.findFirst({ where: { id, deletedAt: null } });
     }

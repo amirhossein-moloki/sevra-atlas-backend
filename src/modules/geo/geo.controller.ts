@@ -10,17 +10,17 @@ export class GeoController {
   }
 
   async getProvinceCities(req: Request, res: Response) {
-    const result = await geoService.getProvinceCities(req.params.slug);
+    const result = await geoService.getProvinceCities(req.params.slug || req.params.provinceId);
     res.json(result);
   }
 
   async getCity(req: Request, res: Response) {
-    const result = await geoService.getCityBySlug(req.params.slug);
+    const result = await geoService.getCityByIdentifier(req.params.slug || req.params.cityId);
     res.json(result);
   }
 
   async getCityNeighborhoods(req: Request, res: Response) {
-    const result = await geoService.getCityNeighborhoods(req.params.slug);
+    const result = await geoService.getCityNeighborhoods(req.params.slug || req.params.cityId);
     res.json(result);
   }
 

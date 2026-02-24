@@ -114,22 +114,29 @@ export class ArtistsService {
     }, 300, { staleWhileRevalidate: 60 });
   }
 
-  async getArtistBySlug(slug: string) {
-    return CacheService.wrap(CacheKeys.ARTIST_DETAIL(slug), async () => {
+  async getArtistByIdentifier(identifier: string) {
+    return CacheService.wrap(CacheKeys.ARTIST_DETAIL(identifier), async () => {
+      const where: Prisma.ArtistWhereInput = { deletedAt: null };
+      if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+        where.id = safeBigInt(identifier, 'artist_id');
+      } else {
+        where.slug = identifier;
+      }
+
       const artist = await prisma.artist.findFirst({
-      where: { slug, deletedAt: null },
-      select: {
-        ...this.publicArtistFields,
-        avatar: true,
-        cover: true,
-        city: true,
-        neighborhood: true,
-        specialties: { include: { specialty: true } },
-        certifications: { include: { media: true } },
-        salonArtists: { include: { salon: true } },
-        seoMeta: true,
-      },
-    });
+        where,
+        select: {
+          ...this.publicArtistFields,
+          avatar: true,
+          cover: true,
+          city: true,
+          neighborhood: true,
+          specialties: { include: { specialty: true } },
+          certifications: { include: { media: true } },
+          salonArtists: { include: { salon: true } },
+          seoMeta: true,
+        },
+      });
 
       if (!artist || artist.status !== AccountStatus.ACTIVE) {
         throw new ApiError(404, 'Artist not found');

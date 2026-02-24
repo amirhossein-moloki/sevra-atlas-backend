@@ -12,17 +12,31 @@ export class GeoService {
     return provinces;
   }
 
-  async getProvinceCities(slug: string) {
+  async getProvinceCities(identifier: string) {
+    const where: any = {};
+    if (/^\d+$/.test(identifier)) {
+      where.provinceId = BigInt(identifier);
+    } else {
+      where.province = { slug: identifier };
+    }
+
     const cities = await prisma.city.findMany({
-      where: { province: { slug } },
+      where,
       orderBy: { nameFa: 'asc' },
     });
     return cities;
   }
 
-  async getCityBySlug(slug: string) {
+  async getCityByIdentifier(identifier: string) {
+    const where: any = {};
+    if (/^\d+$/.test(identifier)) {
+      where.id = BigInt(identifier);
+    } else {
+      where.slug = identifier;
+    }
+
     const city = await prisma.city.findFirst({
-      where: { slug },
+      where,
       include: { neighborhoods: true, cityStats: true },
     });
     return city;
@@ -54,9 +68,16 @@ export class GeoService {
     });
   }
 
-  async getCityNeighborhoods(slug: string) {
+  async getCityNeighborhoods(identifier: string) {
+    const where: any = {};
+    if (/^\d+$/.test(identifier)) {
+      where.cityId = BigInt(identifier);
+    } else {
+      where.city = { slug: identifier };
+    }
+
     const neighborhoods = await prisma.neighborhood.findMany({
-      where: { city: { slug } },
+      where,
       orderBy: { nameFa: 'asc' },
     });
     return neighborhoods;

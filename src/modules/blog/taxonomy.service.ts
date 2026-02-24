@@ -27,10 +27,18 @@ export class BlogTaxonomyService {
     });
   }
 
-  async getCategory(id: string | bigint) {
-    const categoryId = BigInt(id);
+  async getCategory(identifier: string | bigint) {
+    const where: any = { deletedAt: null };
+    if (typeof identifier === 'string' && /^\d+$/.test(identifier)) {
+      where.id = BigInt(identifier);
+    } else if (typeof identifier === 'bigint') {
+      where.id = identifier;
+    } else {
+      where.slug = identifier;
+    }
+
     const category = await prisma.category.findFirst({
-      where: { id: categoryId, deletedAt: null },
+      where,
       include: { parent: true }
     });
     if (!category) throw new ApiError(404, 'Category not found');
@@ -86,10 +94,18 @@ export class BlogTaxonomyService {
     });
   }
 
-  async getTag(id: string | bigint) {
-    const tagId = BigInt(id);
+  async getTag(identifier: string | bigint) {
+    const where: any = { deletedAt: null };
+    if (typeof identifier === 'string' && /^\d+$/.test(identifier)) {
+      where.id = BigInt(identifier);
+    } else if (typeof identifier === 'bigint') {
+      where.id = identifier;
+    } else {
+      where.slug = identifier;
+    }
+
     const tag = await prisma.tag.findFirst({
-      where: { id: tagId, deletedAt: null }
+      where
     });
     if (!tag) throw new ApiError(404, 'Tag not found');
     return tag;
@@ -137,10 +153,18 @@ export class BlogTaxonomyService {
     });
   }
 
-  async getSeries(id: string | bigint) {
-    const seriesId = BigInt(id);
+  async getSeries(identifier: string | bigint) {
+    const where: any = { deletedAt: null };
+    if (typeof identifier === 'string' && /^\d+$/.test(identifier)) {
+      where.id = BigInt(identifier);
+    } else if (typeof identifier === 'bigint') {
+      where.id = identifier;
+    } else {
+      where.slug = identifier;
+    }
+
     const series = await prisma.series.findFirst({
-      where: { id: seriesId, deletedAt: null }
+      where
     });
     if (!series) throw new ApiError(404, 'Series not found');
     return series;

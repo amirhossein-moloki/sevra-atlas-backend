@@ -45,7 +45,7 @@ export class ArtistsController {
 
   getArtist = async (req: Request, res: Response) => {
     const identifier = req.params.idOrSlug || req.params.slug;
-    const result = await artistsService.getArtistBySlug(identifier);
+    const result = await artistsService.getArtistByIdentifier(identifier);
 
     // Background click tracking
     runInBackground(

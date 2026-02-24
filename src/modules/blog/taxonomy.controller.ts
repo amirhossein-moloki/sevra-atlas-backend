@@ -16,8 +16,7 @@ export class BlogTaxonomyController {
   }
 
   async getCategory(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
-    const result = await taxonomyService.getCategory(id);
+    const result = await taxonomyService.getCategory(req.params.id);
     res.json(result);
   }
 
@@ -44,8 +43,7 @@ export class BlogTaxonomyController {
   }
 
   async getTag(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
-    const result = await taxonomyService.getTag(id);
+    const result = await taxonomyService.getTag(req.params.id);
     res.json(result);
   }
 
@@ -72,8 +70,7 @@ export class BlogTaxonomyController {
   }
 
   async getSeries(req: Request, res: Response) {
-    const id = safeBigInt(req.params.id);
-    const result = await taxonomyService.getSeries(id);
+    const result = await taxonomyService.getSeries(req.params.id);
     res.json(result);
   }
 

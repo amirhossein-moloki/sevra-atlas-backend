@@ -31,9 +31,16 @@ export class ServicesService {
     };
   }
 
-  async getServiceBySlug(slug: string) {
+  async getServiceByIdentifier(identifier: string) {
+    const where: any = { deletedAt: null };
+    if (/^\d+$/.test(identifier)) {
+      where.id = BigInt(identifier);
+    } else {
+      where.slug = identifier;
+    }
+
     const service = await prisma.serviceDefinition.findFirst({
-      where: { slug, deletedAt: null },
+      where,
     });
     if (!service) throw new ApiError(404, 'Service not found');
     return service;

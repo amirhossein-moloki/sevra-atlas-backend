@@ -45,9 +45,16 @@ export class BlogMiscService {
     return pages;
   }
 
-  async getPage(slug: string) {
+  async getPage(identifier: string) {
+    const where: any = { deletedAt: null };
+    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+      where.id = BigInt(identifier);
+    } else {
+      where.slug = identifier;
+    }
+
     const page = await prisma.page.findFirst({
-      where: { slug, deletedAt: null }
+      where
     });
     if (!page) throw new ApiError(404, 'Page not found');
     return page;

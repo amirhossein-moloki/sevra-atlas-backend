@@ -14,7 +14,7 @@ export class GeoService {
 
   async getProvinceCities(identifier: string) {
     const where: any = {};
-    if (/^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.provinceId = BigInt(identifier);
     } else {
       where.province = { slug: identifier };
@@ -29,7 +29,7 @@ export class GeoService {
 
   async getCityByIdentifier(identifier: string) {
     const where: any = {};
-    if (/^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = BigInt(identifier);
     } else {
       where.slug = identifier;
@@ -70,7 +70,7 @@ export class GeoService {
 
   async getCityNeighborhoods(identifier: string) {
     const where: any = {};
-    if (/^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.cityId = BigInt(identifier);
     } else {
       where.city = { slug: identifier };

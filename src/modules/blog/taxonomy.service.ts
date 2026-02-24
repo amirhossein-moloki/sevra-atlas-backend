@@ -29,7 +29,7 @@ export class BlogTaxonomyService {
 
   async getCategory(identifier: string | bigint) {
     const where: any = { deletedAt: null };
-    if (typeof identifier === 'string' && /^\d+$/.test(identifier)) {
+    if (typeof identifier === 'string' && /^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = BigInt(identifier);
     } else if (typeof identifier === 'bigint') {
       where.id = identifier;
@@ -96,7 +96,7 @@ export class BlogTaxonomyService {
 
   async getTag(identifier: string | bigint) {
     const where: any = { deletedAt: null };
-    if (typeof identifier === 'string' && /^\d+$/.test(identifier)) {
+    if (typeof identifier === 'string' && /^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = BigInt(identifier);
     } else if (typeof identifier === 'bigint') {
       where.id = identifier;
@@ -155,7 +155,7 @@ export class BlogTaxonomyService {
 
   async getSeries(identifier: string | bigint) {
     const where: any = { deletedAt: null };
-    if (typeof identifier === 'string' && /^\d+$/.test(identifier)) {
+    if (typeof identifier === 'string' && /^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = BigInt(identifier);
     } else if (typeof identifier === 'bigint') {
       where.id = identifier;

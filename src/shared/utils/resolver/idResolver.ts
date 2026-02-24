@@ -11,7 +11,7 @@ export async function resolveId(
   }
 
   // If it's a numeric ID
-  if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+  if (/^\d+$/.test(identifier) && identifier.length < 20) {
     return safeBigInt(identifier);
   }
 

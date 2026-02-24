@@ -23,12 +23,14 @@ export class ReviewsController {
   }
 
   async getSalonReviews(req: AuthRequest, res: Response) {
-    const result = await reviewsService.getReviews('SALON', req.params.slug, req.query);
+    const identifier = req.params.idOrSlug || req.params.slug;
+    const result = await reviewsService.getReviews('SALON', identifier, req.query);
     res.json(result);
   }
 
   async getArtistReviews(req: AuthRequest, res: Response) {
-    const result = await reviewsService.getReviews('ARTIST', req.params.slug, req.query);
+    const identifier = req.params.idOrSlug || req.params.slug;
+    const result = await reviewsService.getReviews('ARTIST', identifier, req.query);
     res.json(result);
   }
 

@@ -116,7 +116,7 @@ export class PostsService {
   async getPostByIdentifier(identifier: string, user?: { id: bigint, role: UserRole }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { deletedAt: null };
-    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       where.id = safeBigInt(identifier, 'post_id');
     } else {
       where.slug = identifier;
@@ -197,7 +197,7 @@ export class PostsService {
   }
 
   async findPostByIdentifier(identifier: string) {
-    if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) && identifier.length < 20) {
       const id = safeBigInt(identifier, 'post_id');
       return prisma.post.findFirst({ where: { id, deletedAt: null } });
     }

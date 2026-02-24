@@ -21,6 +21,8 @@
     "verify:prod": "node dist/scripts/verify-production-config.js",
     "admin:create": "ts-node scripts/admin-create.ts",
     "admin:create:prod": "node dist/scripts/admin-create.js",
+    "update:bahar": "ts-node scripts/update_bahar_profile.ts",
+    "update:bahar:prod": "node dist/scripts/update_bahar_profile.js",
     "test:contract": "npm run openapi:generate && ts-node scripts/audit-routes.ts",
     "test:audit": "npm run openapi:generate && ts-node scripts/test-coverage-audit.ts",
     "test:prod_safe": "NODE_ENV=production jest --testPathPattern=tests/prod_safe",

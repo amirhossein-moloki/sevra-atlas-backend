@@ -122,7 +122,7 @@ export class SalonsService {
     return prisma.salon.findFirst({ where });
   }
 
-  async getSalonBySlug(identifier: string) {
+  async getSalonByIdentifier(identifier: string) {
     return CacheService.wrap(CacheKeys.SALON_DETAIL(identifier), async () => {
       const where: Prisma.SalonWhereInput = { deletedAt: null };
       if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {

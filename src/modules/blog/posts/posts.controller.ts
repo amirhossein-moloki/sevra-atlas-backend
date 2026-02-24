@@ -11,7 +11,7 @@ export class PostsController {
   }
 
   async getPost(req: Request, res: Response) {
-    const result = await postsService.getPostBySlug(req.params.slug, req.user);
+    const result = await postsService.getPostByIdentifier(req.params.slug, req.user);
     res.json(result);
   }
 

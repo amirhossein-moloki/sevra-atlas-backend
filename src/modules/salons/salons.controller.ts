@@ -22,7 +22,7 @@ export class SalonsController {
   };
 
   getSalon = async (req: Request, res: Response) => {
-    const result = await salonsService.getSalonBySlug(req.params.idOrSlug || req.params.slug);
+    const result = await salonsService.getSalonByIdentifier(req.params.idOrSlug || req.params.slug);
 
     // Background click tracking
     runInBackground(

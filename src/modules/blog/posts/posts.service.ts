@@ -113,7 +113,7 @@ export class PostsService {
     };
   }
 
-  async getPostBySlug(identifier: string, user?: { id: bigint, role: UserRole }) {
+  async getPostByIdentifier(identifier: string, user?: { id: bigint, role: UserRole }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { deletedAt: null };
     if (!isNaN(Number(identifier)) && /^\d+$/.test(identifier)) {

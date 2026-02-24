@@ -92,7 +92,9 @@ export class ArtistsService {
         select: {
           ...this.publicArtistFields,
           avatar: true,
-          city: true,
+          city: {
+            include: { province: true }
+          },
           neighborhood: true,
           plan: true,
         },
@@ -130,7 +132,9 @@ export class ArtistsService {
           ...this.publicArtistFields,
           avatar: true,
           cover: true,
-          city: true,
+          city: {
+            include: { province: true }
+          },
           neighborhood: true,
           specialties: { include: { specialty: true } },
           certifications: { include: { media: true } },

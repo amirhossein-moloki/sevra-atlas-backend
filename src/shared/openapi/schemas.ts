@@ -36,11 +36,19 @@ export const SeoMetaSchema = registry.register('SeoMeta', z.object({
   breadcrumbLabel: z.string().nullable(),
 }));
 
+export const ProvinceSchema = registry.register('Province', z.object({
+  id: z.string(),
+  nameFa: z.string(),
+  nameEn: z.string().nullable(),
+  slug: z.string(),
+}));
+
 export const CitySchema = registry.register('City', z.object({
   id: z.string(),
   nameFa: z.string(),
   nameEn: z.string().nullable(),
   slug: z.string(),
+  province: ProvinceSchema.optional().nullable(),
 }));
 
 export const NeighborhoodSchema = registry.register('Neighborhood', z.object({
@@ -56,25 +64,6 @@ export const SpecialtySchema = registry.register('Specialty', z.object({
   order: z.number(),
 }));
 
-export const SalonSchema = registry.register('Salon', z.object({
-  id: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  summary: z.string().nullable(),
-  description: z.string().nullable(),
-  phone: z.string().nullable(),
-  instagram: z.string().nullable(),
-  website: z.string().nullable(),
-  addressLine: z.string().nullable(),
-  avgRating: z.number(),
-  reviewCount: z.number(),
-  verification: z.string(),
-  status: z.string(),
-  avatar: MediaSchema.optional().nullable(),
-  city: CitySchema.optional().nullable(),
-  neighborhood: NeighborhoodSchema.optional().nullable(),
-}));
-
 export const ArtistSchema = registry.register('Artist', z.object({
   id: z.string(),
   fullName: z.string(),
@@ -87,6 +76,33 @@ export const ArtistSchema = registry.register('Artist', z.object({
   status: z.string(),
   avatar: MediaSchema.optional().nullable(),
   city: CitySchema.optional().nullable(),
+}));
+
+export const SalonArtistResponseSchema = registry.register('SalonArtistResponse', z.object({
+  artist: ArtistSchema,
+  roleTitle: z.string().nullable(),
+  isActive: z.boolean(),
+}));
+
+export const SalonSchema = registry.register('Salon', z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  summary: z.string().nullable(),
+  description: z.string().nullable(),
+  phone: z.string().nullable(),
+  instagram: z.string().nullable(),
+  website: z.string().nullable(),
+  addressLine: z.string().nullable(),
+  fullAddress: z.string().optional().nullable(),
+  avgRating: z.number(),
+  reviewCount: z.number(),
+  verification: z.string(),
+  status: z.string(),
+  avatar: MediaSchema.optional().nullable(),
+  city: CitySchema.optional().nullable(),
+  neighborhood: NeighborhoodSchema.optional().nullable(),
+  salonArtists: z.array(SalonArtistResponseSchema).optional(),
 }));
 
 export const BlogPostSchema = registry.register('BlogPost', z.object({
@@ -168,12 +184,6 @@ export const ArtistSpecialtyResponseSchema = registry.register('ArtistSpecialtyR
   isActive: z.boolean(),
   note: z.string().nullable(),
   order: z.number(),
-}));
-
-export const SalonArtistResponseSchema = registry.register('SalonArtistResponse', z.object({
-  artist: ArtistSchema,
-  roleTitle: z.string().nullable(),
-  isActive: z.boolean(),
 }));
 
 export const SalonServiceResponseSchema = registry.register('SalonServiceResponse', z.object({

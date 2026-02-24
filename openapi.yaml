@@ -143,6 +143,23 @@ components:
         - twitterDesc
         - h1
         - breadcrumbLabel
+    Province:
+      type: object
+      properties:
+        id:
+          type: string
+        nameFa:
+          type: string
+        nameEn:
+          type: string
+          nullable: true
+        slug:
+          type: string
+      required:
+        - id
+        - nameFa
+        - nameEn
+        - slug
     City:
       type: object
       properties:
@@ -155,6 +172,16 @@ components:
           nullable: true
         slug:
           type: string
+        province:
+          nullable: true
+          anyOf:
+            - allOf:
+                - $ref: '#/components/schemas/Province'
+            - type: object
+              nullable: true
+              enum:
+                - null
+          type: object
       required:
         - id
         - nameFa
@@ -189,85 +216,6 @@ components:
         - nameFa
         - slug
         - order
-    Salon:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        slug:
-          type: string
-        summary:
-          type: string
-          nullable: true
-        description:
-          type: string
-          nullable: true
-        phone:
-          type: string
-          nullable: true
-        instagram:
-          type: string
-          nullable: true
-        website:
-          type: string
-          nullable: true
-        addressLine:
-          type: string
-          nullable: true
-        avgRating:
-          type: number
-        reviewCount:
-          type: number
-        verification:
-          type: string
-        status:
-          type: string
-        avatar:
-          nullable: true
-          anyOf:
-            - allOf:
-                - $ref: '#/components/schemas/Media'
-            - type: object
-              nullable: true
-              enum:
-                - null
-          type: object
-        city:
-          nullable: true
-          anyOf:
-            - allOf:
-                - $ref: '#/components/schemas/City'
-            - type: object
-              nullable: true
-              enum:
-                - null
-          type: object
-        neighborhood:
-          nullable: true
-          anyOf:
-            - allOf:
-                - $ref: '#/components/schemas/Neighborhood'
-            - type: object
-              nullable: true
-              enum:
-                - null
-          type: object
-      required:
-        - id
-        - name
-        - slug
-        - summary
-        - description
-        - phone
-        - instagram
-        - website
-        - addressLine
-        - avgRating
-        - reviewCount
-        - verification
-        - status
     Artist:
       type: object
       properties:
@@ -317,6 +265,106 @@ components:
         - slug
         - summary
         - bio
+        - avgRating
+        - reviewCount
+        - verification
+        - status
+    SalonArtistResponse:
+      type: object
+      properties:
+        artist:
+          $ref: '#/components/schemas/Artist'
+        roleTitle:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+      required:
+        - artist
+        - roleTitle
+        - isActive
+    Salon:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        instagram:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        addressLine:
+          type: string
+          nullable: true
+        fullAddress:
+          type: string
+          nullable: true
+        avgRating:
+          type: number
+        reviewCount:
+          type: number
+        verification:
+          type: string
+        status:
+          type: string
+        avatar:
+          nullable: true
+          anyOf:
+            - allOf:
+                - $ref: '#/components/schemas/Media'
+            - type: object
+              nullable: true
+              enum:
+                - null
+          type: object
+        city:
+          nullable: true
+          anyOf:
+            - allOf:
+                - $ref: '#/components/schemas/City'
+            - type: object
+              nullable: true
+              enum:
+                - null
+          type: object
+        neighborhood:
+          nullable: true
+          anyOf:
+            - allOf:
+                - $ref: '#/components/schemas/Neighborhood'
+            - type: object
+              nullable: true
+              enum:
+                - null
+          type: object
+        salonArtists:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalonArtistResponse'
+      required:
+        - id
+        - name
+        - slug
+        - summary
+        - description
+        - phone
+        - instagram
+        - website
+        - addressLine
         - avgRating
         - reviewCount
         - verification
@@ -553,20 +601,6 @@ components:
         - isActive
         - note
         - order
-    SalonArtistResponse:
-      type: object
-      properties:
-        artist:
-          $ref: '#/components/schemas/Artist'
-        roleTitle:
-          type: string
-          nullable: true
-        isActive:
-          type: boolean
-      required:
-        - artist
-        - roleTitle
-        - isActive
     SalonServiceResponse:
       type: object
       properties:
@@ -1000,22 +1034,6 @@ components:
         - cityId
         - createdAt
         - updatedAt
-    Province:
-      type: object
-      properties:
-        id:
-          type: string
-        nameFa:
-          type: string
-        nameEn:
-          type: string
-          nullable: true
-        slug:
-          type: string
-      required:
-        - id
-        - nameFa
-        - slug
     ServiceCategory:
       type: object
       properties:
@@ -1825,7 +1843,12 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Province'
+                      allOf:
+                        - $ref: '#/components/schemas/Province'
+                        - required:
+                            - id
+                            - nameFa
+                            - slug
                 required:
                   - success
                   - data
@@ -1873,7 +1896,12 @@ paths:
                     enum:
                       - true
                   data:
-                    $ref: '#/components/schemas/Province'
+                    allOf:
+                      - $ref: '#/components/schemas/Province'
+                      - required:
+                          - id
+                          - nameFa
+                          - slug
                 required:
                   - success
                   - data
@@ -3652,28 +3680,9 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Salon'
-                  meta:
-                    type: object
-                    properties:
-                      page:
-                        type: number
-                      pageSize:
-                        type: number
-                      total:
-                        type: number
-                      totalPages:
-                        type: number
-                    required:
-                      - page
-                      - pageSize
-                      - total
-                  message:
-                    type: string
                 required:
                   - success
                   - data
-                  - meta
-                  - message
         '301':
           description: Permanent Redirect
         '302':
@@ -4316,9 +4325,23 @@ paths:
                     enum:
                       - true
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Media'
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Media'
+                      page:
+                        type: number
+                      limit:
+                        type: number
+                      total:
+                        type: number
+                    required:
+                      - items
+                      - page
+                      - limit
+                      - total
                 required:
                   - success
                   - data
@@ -4443,9 +4466,23 @@ paths:
                     enum:
                       - true
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Media'
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Media'
+                      page:
+                        type: number
+                      limit:
+                        type: number
+                      total:
+                        type: number
+                    required:
+                      - items
+                      - page
+                      - limit
+                      - total
                 required:
                   - success
                   - data
@@ -4810,28 +4847,9 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Artist'
-                  meta:
-                    type: object
-                    properties:
-                      page:
-                        type: number
-                      pageSize:
-                        type: number
-                      total:
-                        type: number
-                      totalPages:
-                        type: number
-                    required:
-                      - page
-                      - pageSize
-                      - total
-                  message:
-                    type: string
                 required:
                   - success
                   - data
-                  - meta
-                  - message
         '301':
           description: Permanent Redirect
         '302':
@@ -5225,9 +5243,23 @@ paths:
                     enum:
                       - true
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Media'
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Media'
+                      page:
+                        type: number
+                      limit:
+                        type: number
+                      total:
+                        type: number
+                    required:
+                      - items
+                      - page
+                      - limit
+                      - total
                 required:
                   - success
                   - data

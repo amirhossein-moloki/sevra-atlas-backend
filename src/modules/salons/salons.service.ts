@@ -89,7 +89,9 @@ export class SalonsService {
         select: {
           ...this.publicSalonFields,
           avatar: true,
-          city: true,
+          city: {
+            include: { province: true }
+          },
           neighborhood: true,
           plan: true,
         },
@@ -100,8 +102,13 @@ export class SalonsService {
       prisma.salon.count({ where }),
     ]);
 
+      const items = (data || []).map(salon => ({
+        ...salon,
+        fullAddress: this.formatFullAddress(salon)
+      }));
+
       return {
-        data: data || [],
+        data: items,
         meta: {
           page: parseInt(page as string || '1'),
           pageSize: limit,
@@ -137,10 +144,23 @@ export class SalonsService {
         ...this.publicSalonFields,
         avatar: true,
         cover: true,
-        city: true,
+        city: {
+          include: { province: true }
+        },
         neighborhood: true,
         services: { include: { service: true } },
-        salonArtists: { include: { artist: true } },
+        salonArtists: {
+          include: {
+            artist: {
+              include: {
+                avatar: true,
+                city: {
+                  include: { province: true }
+                }
+              }
+            }
+          }
+        },
         seoMeta: true,
         openingHours: true,
       },
@@ -150,7 +170,10 @@ export class SalonsService {
         throw new ApiError(404, 'Salon not found');
       }
 
-      return salon;
+      return {
+        ...salon,
+        fullAddress: this.formatFullAddress(salon)
+      };
     }, 1800, { staleWhileRevalidate: 300 });
   }
 
@@ -425,7 +448,9 @@ export class SalonsService {
             verification: true,
             status: true,
             avatar: true,
-            city: true,
+            city: {
+              include: { province: true }
+            },
           },
         },
       },
@@ -477,6 +502,15 @@ export class SalonsService {
     }
 
     return Array.from(grouped.values());
+  }
+
+  private formatFullAddress(salon: any) {
+    const parts = [];
+    if (salon.city?.province?.nameFa) parts.push(salon.city.province.nameFa);
+    if (salon.city?.nameFa) parts.push(salon.city.nameFa);
+    if (salon.neighborhood?.nameFa) parts.push(salon.neighborhood.nameFa);
+    if (salon.addressLine) parts.push(salon.addressLine);
+    return parts.join('، '); // Persian comma
   }
 
   async getGallery(id: bigint, page: number, pageSize: number) {

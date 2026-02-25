@@ -1,0 +1,126 @@
+{
+  "nail": [
+    {
+      "title": "نمونه کار ناخن – مانیکور در حال لاک زدن",
+      "url": "https://images.pexels.com/photos/4677845/pexels-photo-4677845.jpeg",
+      "alt": "Manicure in progress",
+      "localPath": "/uploads/seeded/nail_1.jpeg"
+    },
+    {
+      "title": "نمونه کار ناخن – طراحی مانیکور قرمز و سفید",
+      "url": "https://images.pexels.com/photos/887352/pexels-photo-887352.jpeg",
+      "alt": "Red and white manicure design",
+      "localPath": "/uploads/seeded/nail_2.jpeg"
+    },
+    {
+      "title": "نمونه کار ناخن – طراحی هنری روی ناخن",
+      "url": "https://images.pexels.com/photos/939836/pexels-photo-939836.jpeg",
+      "alt": "Artistic nail design",
+      "localPath": "/uploads/seeded/nail_3.jpeg"
+    },
+    {
+      "title": "نمونه کار ناخن – طراحی ناخن خطوط سیاه و سفید",
+      "url": "https://images.pexels.com/photos/939835/pexels-photo-939835.jpeg",
+      "alt": "Black and white lines nail art",
+      "localPath": "/uploads/seeded/nail_4.jpeg"
+    },
+    {
+      "title": "نمونه کار ناخن – طراحی خلاقانه بر روی ناخن",
+      "url": "https://images.pexels.com/photos/973405/pexels-photo-973405.jpeg",
+      "alt": "Creative nail art",
+      "localPath": "/uploads/seeded/nail_5.jpeg"
+    }
+  ],
+  "salon": [
+    {
+      "title": "سالن زیبایی – فضای داخلی سالن مدرن و شیک",
+      "url": "https://cdn.pixabay.com/photo/2019/03/08/20/17/beauty-salon-4043096_1280.jpg",
+      "alt": "Modern salon interior",
+      "localPath": "/uploads/seeded/salon_1.jpg"
+    },
+    {
+      "title": "سالن زیبایی – محیطی شبیه اسپای مدرن",
+      "url": "https://cdn.pixabay.com/photo/2019/09/16/17/18/spa-4481538_1280.jpg",
+      "alt": "Modern spa environment",
+      "localPath": "/uploads/seeded/salon_2.jpg"
+    },
+    {
+      "title": "سالن زیبایی – سالن آرایشگاه با صندلی‌های شیک",
+      "url": "https://cdn.pixabay.com/photo/2018/02/22/17/09/barber-shop-3173422_1280.jpg",
+      "alt": "Barber shop with stylish chairs",
+      "localPath": "/uploads/seeded/salon_3.jpg"
+    },
+    {
+      "title": "سالن زیبایی – نمایی از سولاریوم",
+      "url": "https://cdn.pixabay.com/photo/2015/11/27/02/24/solarium-1064815_1280.jpg",
+      "alt": "Solarium view",
+      "localPath": "/uploads/seeded/salon_4.jpg"
+    },
+    {
+      "title": "سالن زیبایی – میز مانیکور و ابزارها",
+      "url": "https://cdn.pixabay.com/photo/2022/04/11/18/18/manicure-7126386_1280.png",
+      "alt": "Manicure table and tools",
+      "localPath": "/uploads/seeded/salon_5.png"
+    },
+    {
+      "title": "سالن زیبایی – میز آرایش با لوازم آرایشی",
+      "url": "https://cdn.pixabay.com/photo/2017/08/24/11/12/makeup-2676392_1280.jpg",
+      "alt": "Makeup table with cosmetics",
+      "localPath": "/uploads/seeded/salon_6.jpg"
+    },
+    {
+      "title": "سالن زیبایی – آرایشگاه مدرن با صندلی‌های چرمی",
+      "url": "https://cdn.pixabay.com/photo/2020/05/24/02/00/barber-shop-5212059_1280.jpg",
+      "alt": "Modern barber shop with leather chairs",
+      "localPath": "/uploads/seeded/salon_7.jpg"
+    },
+    {
+      "title": "سالن زیبایی – فضای نشیمن سالن آرایش",
+      "url": "https://cdn.pixabay.com/photo/2016/01/22/01/17/salon-1155094_1280.jpg",
+      "alt": "Salon lounge area",
+      "localPath": "/uploads/seeded/salon_8.jpg"
+    },
+    {
+      "title": "سالن زیبایی – دکوراسیون داخلی مدرن",
+      "url": "https://cdn.pixabay.com/photo/2016/07/17/10/31/living-room-1523480_1280.jpg",
+      "alt": "Modern interior decoration",
+      "localPath": "/uploads/seeded/salon_9.jpg"
+    },
+    {
+      "title": "سالن زیبایی – خانم در سالن آرایش",
+      "url": "https://cdn.pixabay.com/photo/2017/07/25/10/37/woman-2537564_1280.jpg",
+      "alt": "Woman in beauty salon",
+      "localPath": "/uploads/seeded/salon_10.jpg"
+    },
+    {
+      "title": "سالن زیبایی – فضای وسیع و شیک در سن دیگو",
+      "url": "https://images.pexels.com/photos/853427/pexels-photo-853427.jpeg",
+      "alt": "Spacious and stylish salon",
+      "localPath": "/uploads/seeded/salon_11.jpeg"
+    },
+    {
+      "title": "سالن زیبایی – خانمی در حال دریافت خدمات آرایشگری",
+      "url": "https://images.pexels.com/photos/696285/pexels-photo-696285.jpeg",
+      "alt": "Woman receiving hair services",
+      "localPath": "/uploads/seeded/salon_12.jpeg"
+    },
+    {
+      "title": "سالن زیبایی – سالن روشن و مجهز با صندلی‌های مدرن",
+      "url": "https://images.pexels.com/photos/3993308/pexels-photo-3993308.jpeg",
+      "alt": "Bright equipped salon",
+      "localPath": "/uploads/seeded/salon_13.jpeg"
+    },
+    {
+      "title": "سالن زیبایی – حالت دادن مو با دستگاه فر",
+      "url": "https://images.pexels.com/photos/973403/pexels-photo-973403.jpeg",
+      "alt": "Hair styling with curling iron",
+      "localPath": "/uploads/seeded/salon_14.jpeg"
+    },
+    {
+      "title": "سالن زیبایی – رنگ کردن مو توسط آرایشگر",
+      "url": "https://images.pexels.com/photos/3993312/pexels-photo-3993312.jpeg",
+      "alt": "Hair coloring by professional",
+      "localPath": "/uploads/seeded/salon_15.jpeg"
+    }
+  ]
+}

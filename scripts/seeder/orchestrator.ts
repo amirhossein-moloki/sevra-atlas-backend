@@ -2,7 +2,9 @@ import { PrismaClient, UserRole, AccountStatus, EntityType, PlanTier, ReviewStat
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
+import { config } from '../../src/config';
 import { slugify, randomInt, pickOne, pickMany, skew } from './utils/common';
+import { downloadImage } from './utils/download';
 import { printReport, TargetPlan } from './report';
 import { introspectApi, getDbCounts } from './utils/introspection';
 import { deriveTargets, SeedMode } from './utils/deriver';
@@ -16,6 +18,32 @@ const salonNames = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'salon_nam
 const geoFa = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'geo_fa.json'), 'utf-8')) as { province: string, cities: string[] }[];
 const reviewsData = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'reviews.json'), 'utf-8')) as { rating: number, text: string }[];
 const mediaAssets = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'media_assets.json'), 'utf-8')) as { salon: string[], artist: string[], blog: string[] };
+
+const userImageUrls = [
+  'https://images.pexels.com/photos/4677845/pexels-photo-4677845.jpeg',
+  'https://images.pexels.com/photos/887352/pexels-photo-887352.jpeg',
+  'https://images.pexels.com/photos/939836/pexels-photo-939836.jpeg',
+  'https://images.pexels.com/photos/939835/pexels-photo-939835.jpeg',
+  'https://images.pexels.com/photos/973405/pexels-photo-973405.jpeg'
+];
+
+const salonImageUrls = [
+  'https://cdn.pixabay.com/photo/2019/03/08/20/17/beauty-salon-4043096_1280.jpg',
+  'https://cdn.pixabay.com/photo/2019/09/16/17/18/spa-4481538_1280.jpg',
+  'https://cdn.pixabay.com/photo/2018/02/22/17/09/barber-shop-3173422_1280.jpg',
+  'https://cdn.pixabay.com/photo/2015/11/27/02/24/solarium-1064815_1280.jpg',
+  'https://cdn.pixabay.com/photo/2022/04/11/18/18/manicure-7126386_1280.png',
+  'https://cdn.pixabay.com/photo/2017/08/24/11/12/makeup-2676392_1280.jpg',
+  'https://cdn.pixabay.com/photo/2020/05/24/02/00/barber-shop-5212059_1280.jpg',
+  'https://cdn.pixabay.com/photo/2016/01/22/01/17/salon-1155094_1280.jpg',
+  'https://cdn.pixabay.com/photo/2016/07/17/10/31/living-room-1523480_1280.jpg',
+  'https://cdn.pixabay.com/photo/2017/07/25/10/37/woman-2537564_1280.jpg',
+  'https://images.pexels.com/photos/853427/pexels-photo-853427.jpeg',
+  'https://images.pexels.com/photos/696285/pexels-photo-696285.jpeg',
+  'https://images.pexels.com/photos/3993308/pexels-photo-3993308.jpeg',
+  'https://images.pexels.com/photos/973403/pexels-photo-973403.jpeg',
+  'https://images.pexels.com/photos/3993312/pexels-photo-3993312.jpeg'
+];
 
 async function main() {
   const isDryRun = process.argv.includes('--dry-run');
@@ -63,7 +91,62 @@ async function main() {
   }
   const cities = await prisma.city.findMany();
 
-  // 2. Users
+  // 2. Media (Moved up to provide templates for Users/Salons)
+  console.log('Seeding Media assets...');
+  const getMime = (url: string) => url.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+  const allMediaUrls = [...mediaAssets.salon, ...mediaAssets.artist, ...mediaAssets.blog];
+  for (const url of allMediaUrls) {
+    try {
+      const { storageKey } = await downloadImage(url, 'seeded/legacy');
+      const exists = await prisma.media.findFirst({ where: { storageKey } });
+      if (!exists) {
+        await prisma.media.create({
+          data: {
+            storageKey,
+            url: `/${config.storage.uploadDir}/${storageKey}`,
+            type: 'image',
+            mime: getMime(url),
+            status: MediaStatus.COMPLETED,
+            sizeBytes: 2048,
+            altText: 'Seeded asset'
+          }
+        });
+      }
+    } catch (err) {
+      console.warn(`Failed to download legacy asset ${url}:`, err);
+    }
+  }
+
+  const userMediaTemplates: { url: string, storageKey: string }[] = [];
+  for (const url of userImageUrls) {
+    try {
+      const { storageKey } = await downloadImage(url, 'seeded/users');
+      userMediaTemplates.push({
+        url: `/${config.storage.uploadDir}/${storageKey}`,
+        storageKey
+      });
+    } catch (err) {
+      console.warn(`Failed to download user asset ${url}:`, err);
+    }
+  }
+
+  const salonMediaTemplates: { url: string, storageKey: string }[] = [];
+  for (const url of salonImageUrls) {
+    try {
+      const { storageKey } = await downloadImage(url, 'seeded/salons');
+      salonMediaTemplates.push({
+        url: `/${config.storage.uploadDir}/${storageKey}`,
+        storageKey
+      });
+    } catch (err) {
+      console.warn(`Failed to download salon asset ${url}:`, err);
+    }
+  }
+
+  const allMedia = await prisma.media.findMany();
+
+  // 3. Users
   const userDelta = plans.find(p => p.model === 'User')?.delta || 0;
   console.log(`Seeding ${userDelta} Users...`);
   const password = await bcrypt.hash('Password@123', 10);
@@ -81,7 +164,27 @@ async function main() {
       referralCode: `REF_${mode}_${i}`, cityId: cities[i % cities.length].id
     };
     UserSeedSchema.parse(userData);
-    await prisma.user.upsert({ where: { username }, update: {}, create: userData });
+    const user = await prisma.user.upsert({ where: { username }, update: {}, create: userData });
+
+    // Assign 5 nail sample images to each user
+    const existingMediaCount = await prisma.media.count({ where: { uploadedBy: user.id, kind: MediaKind.GALLERY } });
+    if (existingMediaCount < 5) {
+      for (const template of userMediaTemplates) {
+        await prisma.media.create({
+          data: {
+            storageKey: template.storageKey,
+            url: template.url,
+            type: 'image',
+            mime: getMime(template.url),
+            status: MediaStatus.COMPLETED,
+            sizeBytes: 2048,
+            altText: 'نمونه کار ناخن',
+            uploadedBy: user.id,
+            kind: MediaKind.GALLERY
+          }
+        });
+      }
+    }
   }
   const users = await prisma.user.findMany({ where: { role: UserRole.USER } });
   const owners = await prisma.user.findMany({ where: { role: UserRole.SALON } });
@@ -95,18 +198,6 @@ async function main() {
     });
   }
   const authorProfiles = await prisma.authorProfile.findMany();
-
-  // 3. Media
-  console.log('Seeding Media assets...');
-  const allMediaUrls = [...mediaAssets.salon, ...mediaAssets.artist, ...mediaAssets.blog];
-  for (const url of allMediaUrls) {
-    const storageKey = url.split('/').pop() || 'default';
-    const exists = await prisma.media.findFirst({ where: { storageKey } });
-    if (!exists) {
-      await prisma.media.create({ data: { storageKey, url, type: 'image', mime: 'image/jpeg', status: MediaStatus.COMPLETED, sizeBytes: 2048, altText: 'Seeded asset' } });
-    }
-  }
-  const allMedia = await prisma.media.findMany();
 
   // 4. Salons
   const salonDelta = plans.find(p => p.model === 'Salon')?.delta || 0;
@@ -127,7 +218,7 @@ async function main() {
       verification: i % 10 === 0 ? VerificationStatus.NONE : VerificationStatus.VERIFIED
     };
     SalonSeedSchema.parse(salonData);
-    await prisma.salon.upsert({
+    const salon = await prisma.salon.upsert({
       where: { slug }, update: {},
       create: {
         ...salonData,
@@ -138,6 +229,30 @@ async function main() {
         reviewCount: 0
       }
     });
+
+    // Assign 5 random salon images to each salon
+    const existingSalonMediaCount = await prisma.media.count({
+      where: { entityType: EntityType.SALON, entityId: salon.id, kind: MediaKind.GALLERY }
+    });
+    if (existingSalonMediaCount < 5) {
+      const selectedTemplates = pickMany(salonMediaTemplates, 5);
+      for (const template of selectedTemplates) {
+        await prisma.media.create({
+          data: {
+            storageKey: template.storageKey,
+            url: template.url,
+            type: 'image',
+            mime: getMime(template.url),
+            status: MediaStatus.COMPLETED,
+            sizeBytes: 2048,
+            altText: 'فضای سالن زیبایی',
+            entityType: EntityType.SALON,
+            entityId: salon.id,
+            kind: MediaKind.GALLERY
+          }
+        });
+      }
+    }
   }
   const salons = await prisma.salon.findMany();
 

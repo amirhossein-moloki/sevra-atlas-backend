@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient, UserRole, AccountStatus, EntityType, PlanTier, ReviewStatus, MediaStatus, MediaKind, PostStatus, PostVisibility, Gender, VerificationStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
@@ -16,6 +17,31 @@ const salonNames = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'salon_nam
 const geoFa = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'geo_fa.json'), 'utf-8')) as { province: string, cities: string[] }[];
 const reviewsData = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'reviews.json'), 'utf-8')) as { rating: number, text: string }[];
 const mediaAssets = JSON.parse(fs.readFileSync(path.join(datasetsPath, 'media_assets.json'), 'utf-8')) as { salon: string[], artist: string[], blog: string[] };
+
+interface BeautyAsset {
+  title: string;
+  url: string;
+  alt: string;
+  localPath?: string;
+}
+
+interface BeautyAssets {
+  nail: BeautyAsset[];
+  salon: BeautyAsset[];
+}
+
+const beautyAssetsPath = path.join(__dirname, '..', '..', 'scripts', 'beauty_assets_v2.json');
+let beautyAssets: BeautyAssets = { nail: [], salon: [] };
+if (fs.existsSync(beautyAssetsPath)) {
+  beautyAssets = JSON.parse(fs.readFileSync(beautyAssetsPath, 'utf-8'));
+}
+
+const getMimeType = (url: string) => {
+  const ext = url.split('.').pop()?.toLowerCase();
+  if (ext === 'png') return 'image/png';
+  if (ext === 'webp') return 'image/webp';
+  return 'image/jpeg';
+};
 
 async function main() {
   const isDryRun = process.argv.includes('--dry-run');
@@ -127,7 +153,7 @@ async function main() {
       verification: i % 10 === 0 ? VerificationStatus.NONE : VerificationStatus.VERIFIED
     };
     SalonSeedSchema.parse(salonData);
-    await prisma.salon.upsert({
+    const salon = await prisma.salon.upsert({
       where: { slug }, update: {},
       create: {
         ...salonData,
@@ -138,6 +164,35 @@ async function main() {
         reviewCount: 0
       }
     });
+
+    // Add 5 random salon gallery images
+    if (beautyAssets.salon.length > 0) {
+      const existingGallery = await prisma.media.count({
+        where: { entityType: EntityType.SALON, entityId: salon.id, kind: MediaKind.GALLERY }
+      });
+
+      if (existingGallery === 0) {
+        const selectedSalonImages = pickMany(beautyAssets.salon, 5);
+        for (const img of selectedSalonImages) {
+          const url = img.localPath || img.url;
+          const fileName = url.split('/').pop() || 'image.jpg';
+          await prisma.media.create({
+            data: {
+              storageKey: `salon_${salon.id}_${fileName}`,
+              url: url,
+              type: 'image',
+              mime: getMimeType(url),
+              status: MediaStatus.COMPLETED,
+              kind: MediaKind.GALLERY,
+              entityType: EntityType.SALON,
+              entityId: salon.id,
+              altText: img.alt,
+              title: img.title
+            }
+          });
+        }
+      }
+    }
   }
   const salons = await prisma.salon.findMany();
 
@@ -150,7 +205,7 @@ async function main() {
     const fullNameFa = `${fNameFa} ${lNameFa} ${i}`;
     const slug = slugify(fullNameFa);
 
-    await prisma.artist.upsert({
+    const artist = await prisma.artist.upsert({
       where: { slug }, update: {},
       create: {
         fullName: fullNameFa, slug, cityId: cities[i % cities.length].id,
@@ -160,6 +215,34 @@ async function main() {
         avgRating: 0, reviewCount: 0
       }
     });
+
+    // Add all 5 nail gallery images for every artist (as requested for "users")
+    if (beautyAssets.nail.length > 0) {
+      const existingGallery = await prisma.media.count({
+        where: { entityType: EntityType.ARTIST, entityId: artist.id, kind: MediaKind.GALLERY }
+      });
+
+      if (existingGallery === 0) {
+        for (const img of beautyAssets.nail) {
+          const url = img.localPath || img.url;
+          const fileName = url.split('/').pop() || 'image.jpg';
+          await prisma.media.create({
+            data: {
+              storageKey: `artist_${artist.id}_${fileName}`,
+              url: url,
+              type: 'image',
+              mime: getMimeType(url),
+              status: MediaStatus.COMPLETED,
+              kind: MediaKind.GALLERY,
+              entityType: EntityType.ARTIST,
+              entityId: artist.id,
+              altText: img.alt,
+              title: img.title
+            }
+          });
+        }
+      }
+    }
   }
   const artists = await prisma.artist.findMany();
 

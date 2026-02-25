@@ -49,6 +49,7 @@
     "@tiptap/react": "^2.10.4",
     "@tiptap/starter-kit": "^2.10.4",
     "adminjs": "^7.8.17",
+    "axios": "^1.7.7",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.68.0",
     "compression": "^1.7.4",

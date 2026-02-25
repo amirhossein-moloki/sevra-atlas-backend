@@ -123,6 +123,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - uploads_prod_data:/app/uploads
+      - ./scripts/seeder/local_images:/app/scripts/seeder/local_images
     networks:
       - sevra-prod-network
     expose:
@@ -163,6 +164,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - uploads_prod_data:/app/uploads
+      - ./scripts/seeder/local_images:/app/scripts/seeder/local_images
     networks:
       - sevra-prod-network
 
@@ -179,6 +181,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    volumes:
+      - ./scripts/seeder/local_images:/app/scripts/seeder/local_images
     command: npm run seed:prod
     networks:
       - sevra-prod-network

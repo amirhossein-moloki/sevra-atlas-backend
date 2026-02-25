@@ -88,6 +88,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - uploads_data:/app/uploads
+      - ./scripts/seeder/local_images:/app/scripts/seeder/local_images
     networks:
       - sevra-network
     ports:
@@ -116,6 +117,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - uploads_data:/app/uploads
+      - ./scripts/seeder/local_images:/app/scripts/seeder/local_images
     networks:
       - sevra-network
 

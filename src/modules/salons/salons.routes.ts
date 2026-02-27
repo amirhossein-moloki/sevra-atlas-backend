@@ -229,9 +229,36 @@ router.delete(
 );
 
 registry.registerPath({
+  method: 'put',
+  path: '/salons/{idOrSlug}/services',
+  summary: 'Bulk upsert services for salon',
+  tags: [tag],
+  security: [{ bearerAuth: [] }],
+  parameters: [
+    { name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true },
+    { name: 'replace', in: 'query', schema: { type: 'boolean' }, description: 'If true, services not in body will be removed' }
+  ],
+  request: {
+    body: { content: { 'application/json': { schema: assignServicesSchema.shape.body } } }
+  },
+  responses: {
+    200: {
+      description: 'Services assigned',
+      content: { 'application/json': { schema: withApiSuccess(z.object({ ok: z.boolean() })) } }
+    }
+  }
+});
+router.put(
+  '/:idOrSlug/services',
+  requireAuth(),
+  validate(assignServicesSchema),
+  controller.assignServices
+);
+
+registry.registerPath({
   method: 'post',
   path: '/salons/{idOrSlug}/services',
-  summary: 'Assign services to salon',
+  summary: 'Assign services to salon (Legacy)',
   tags: [tag],
   security: [{ bearerAuth: [] }],
   parameters: [{ name: 'idOrSlug', in: 'path', schema: { type: 'string' }, required: true }],

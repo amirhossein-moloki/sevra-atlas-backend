@@ -190,8 +190,12 @@ export const SalonServiceResponseSchema = registry.register('SalonServiceRespons
   serviceId: z.string(),
   nameFa: z.string(),
   slug: z.string(),
-  priceToman: z.string().nullable(),
-  durationMin: z.number().nullable(),
+  priceToman: z.string().nullable(), // deprecated
+  minPriceToman: z.string(),
+  maxPriceToman: z.string(),
+  durationMin: z.number().nullable(), // deprecated
+  minDurationMin: z.number().nullable(),
+  maxDurationMin: z.number().nullable(),
   isActive: z.boolean(),
   notes: z.string().nullable(),
 }));

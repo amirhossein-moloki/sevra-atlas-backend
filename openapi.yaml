@@ -613,7 +613,17 @@ components:
         priceToman:
           type: string
           nullable: true
+        minPriceToman:
+          type: string
+        maxPriceToman:
+          type: string
         durationMin:
+          type: number
+          nullable: true
+        minDurationMin:
+          type: number
+          nullable: true
+        maxDurationMin:
           type: number
           nullable: true
         isActive:
@@ -626,7 +636,11 @@ components:
         - nameFa
         - slug
         - priceToman
+        - minPriceToman
+        - maxPriceToman
         - durationMin
+        - minDurationMin
+        - maxDurationMin
         - isActive
         - notes
     GroupedSalonServiceResponse:
@@ -4193,8 +4207,121 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiFailure'
+    put:
+      summary: Bulk upsert services for salon
+      tags:
+        - Salons
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: replace
+          in: query
+          schema:
+            type: boolean
+          description: If true, services not in body will be removed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                services:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      serviceId:
+                        type: string
+                        nullable: true
+                      minPriceToman:
+                        type: string
+                        nullable: true
+                      maxPriceToman:
+                        type: string
+                        nullable: true
+                      minDurationMin:
+                        type: number
+                      maxDurationMin:
+                        type: number
+                      priceToman:
+                        type: string
+                        nullable: true
+                      durationMin:
+                        type: number
+                      isActive:
+                        type: boolean
+                        default: true
+                      notes:
+                        type: string
+                      order:
+                        type: number
+                mode:
+                  type: string
+                  enum: &ref_0
+                    - replace
+                    - append
+                  default: replace
+              required:
+                - services
+      responses:
+        '200':
+          description: Services assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                    required:
+                      - ok
+                required:
+                  - success
+                  - data
+        '400':
+          description: Bad Request / Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiFailure'
     post:
-      summary: Assign services to salon
+      summary: Assign services to salon (Legacy)
       tags:
         - Salons
       security:
@@ -4219,6 +4346,16 @@ paths:
                       serviceId:
                         type: string
                         nullable: true
+                      minPriceToman:
+                        type: string
+                        nullable: true
+                      maxPriceToman:
+                        type: string
+                        nullable: true
+                      minDurationMin:
+                        type: number
+                      maxDurationMin:
+                        type: number
                       priceToman:
                         type: string
                         nullable: true
@@ -4233,9 +4370,7 @@ paths:
                         type: number
                 mode:
                   type: string
-                  enum:
-                    - replace
-                    - append
+                  enum: *ref_0
                   default: replace
               required:
                 - services
@@ -10427,7 +10562,7 @@ paths:
                   default: ''
                 orderStrategy:
                   type: string
-                  enum: &ref_0
+                  enum: &ref_1
                     - manual
                     - by_date
                   default: manual
@@ -10551,7 +10686,7 @@ paths:
                   default: ''
                 orderStrategy:
                   type: string
-                  enum: *ref_0
+                  enum: *ref_1
                   default: manual
       responses:
         '200':

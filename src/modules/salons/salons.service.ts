@@ -262,6 +262,10 @@ export class SalonsService {
     id: bigint,
     serviceData: {
       serviceId: string;
+      minPriceToman: string;
+      maxPriceToman: string;
+      minDurationMin?: number;
+      maxDurationMin?: number;
       priceToman?: string;
       durationMin?: number;
       isActive?: boolean;
@@ -279,15 +283,26 @@ export class SalonsService {
         await tx.salonService.deleteMany({ where: { salonId: id } });
       }
 
-      const dataToUpsert = serviceData.map(item => ({
-        salonId: id,
-        serviceId: safeBigInt(item.serviceId, 'serviceId'),
-        priceToman: item.priceToman ? BigInt(item.priceToman) : null,
-        durationMin: item.durationMin,
-        isActive: item.isActive ?? true,
-        notes: item.notes,
-        order: item.order ?? 0,
-      }));
+      const dataToUpsert = serviceData.map(item => {
+        const minPrice = item.minPriceToman ?? item.priceToman ?? '0';
+        const maxPrice = item.maxPriceToman ?? item.priceToman ?? '0';
+        const minDur = item.minDurationMin ?? item.durationMin ?? null;
+        const maxDur = item.maxDurationMin ?? item.durationMin ?? null;
+
+        return {
+          salonId: id,
+          serviceId: safeBigInt(item.serviceId, 'serviceId'),
+          minPriceToman: BigInt(minPrice),
+          maxPriceToman: BigInt(maxPrice),
+          minDurationMin: minDur,
+          maxDurationMin: maxDur,
+          priceToman: item.priceToman ? BigInt(item.priceToman) : null,
+          durationMin: item.durationMin,
+          isActive: item.isActive ?? true,
+          notes: item.notes,
+          order: item.order ?? 0,
+        };
+      });
 
       if (mode === 'replace') {
         await tx.salonService.createMany({
@@ -315,6 +330,10 @@ export class SalonsService {
               salonId_serviceId: { salonId: id, serviceId: item.serviceId },
             },
             data: {
+              minPriceToman: item.minPriceToman,
+              maxPriceToman: item.maxPriceToman,
+              minDurationMin: item.minDurationMin,
+              maxDurationMin: item.maxDurationMin,
               priceToman: item.priceToman,
               durationMin: item.durationMin,
               isActive: item.isActive,
@@ -323,6 +342,12 @@ export class SalonsService {
             },
           });
         }
+      }
+
+      // Invalidate cache
+      const salon = await tx.salon.findUnique({ where: { id }, select: { slug: true } });
+      if (salon) {
+        await CacheService.del(CacheKeys.SALON_DETAIL(salon.slug));
       }
       return { ok: true };
     });
@@ -495,7 +520,11 @@ export class SalonsService {
         nameFa: ss.service.nameFa,
         slug: ss.service.slug,
         priceToman: ss.priceToman ? ss.priceToman.toString() : null,
+        minPriceToman: ss.minPriceToman.toString(),
+        maxPriceToman: ss.maxPriceToman.toString(),
         durationMin: ss.durationMin,
+        minDurationMin: ss.minDurationMin,
+        maxDurationMin: ss.maxDurationMin,
         isActive: ss.isActive,
         notes: ss.notes,
       });

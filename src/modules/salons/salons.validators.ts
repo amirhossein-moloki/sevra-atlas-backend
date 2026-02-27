@@ -39,11 +39,41 @@ export const assignServicesSchema = z.object({
   body: z.object({
     services: z.array(z.object({
       serviceId: z.coerce.string(),
-      priceToman: z.coerce.string().optional(),
-      durationMin: z.number().optional(),
+      minPriceToman: z.coerce.string().optional(),
+      maxPriceToman: z.coerce.string().optional(),
+      minDurationMin: z.number().optional(),
+      maxDurationMin: z.number().optional(),
+      priceToman: z.coerce.string().optional(), // deprecated
+      durationMin: z.number().optional(), // deprecated
       isActive: z.boolean().default(true),
       notes: z.string().optional(),
       order: z.number().optional(),
+    }).refine(data => {
+      const minVal = data.minPriceToman ?? data.priceToman;
+      const maxVal = data.maxPriceToman ?? data.priceToman;
+
+      if (minVal === undefined || maxVal === undefined) return false;
+
+      const isNumeric = (val: string) => /^\d+$/.test(val);
+      if (!isNumeric(minVal) || !isNumeric(maxVal)) return false;
+
+      const min = BigInt(minVal);
+      const max = BigInt(maxVal);
+      return min <= max && min >= 0;
+    }, {
+      message: "Prices must be valid non-negative numbers and min must be <= max",
+      path: ["minPriceToman"]
+    }).refine(data => {
+      const minDur = data.minDurationMin ?? data.durationMin;
+      const maxDur = data.maxDurationMin ?? data.durationMin;
+
+      if (minDur !== undefined && maxDur !== undefined) {
+        return minDur <= maxDur && minDur >= 0;
+      }
+      return true;
+    }, {
+      message: "minDurationMin must be less than or equal to maxDurationMin and non-negative",
+      path: ["minDurationMin"]
     })),
     mode: z.enum(['replace', 'append']).default('replace'),
   }),

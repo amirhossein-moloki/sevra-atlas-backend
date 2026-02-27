@@ -1051,8 +1051,14 @@ model SalonService {
   salonId     BigInt
   serviceId   BigInt
 
-  priceToman  BigInt?
-  durationMin Int?
+  priceToman  BigInt? // deprecated: use minPriceToman/maxPriceToman
+  minPriceToman BigInt @default(0)
+  maxPriceToman BigInt @default(0)
+
+  durationMin Int? // deprecated: use minDurationMin/maxDurationMin
+  minDurationMin Int?
+  maxDurationMin Int?
+
   isActive    Boolean @default(true)
   notes       String? @db.Text
   order       Int     @default(0)

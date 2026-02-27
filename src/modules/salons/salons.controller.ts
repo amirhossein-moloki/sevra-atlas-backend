@@ -68,7 +68,12 @@ export class SalonsController {
   assignServices = async (req: AuthRequest, res: Response) => {
     const id = await this.resolveSalonId(req.params.idOrSlug || req.params.id);
     const adminMode = isAdmin(req.user?.role);
-    const mode = (req.query.mode as 'append' | 'replace') || 'append';
+    const queryMode = req.query.mode as 'append' | 'replace' | undefined;
+    const bodyMode = req.body.mode as 'append' | 'replace' | undefined;
+    const isReplace = req.query.replace === 'true';
+
+    const mode = isReplace ? 'replace' : (queryMode || bodyMode || 'append');
+
     const result = await salonsService.assignServices(
       id,
       req.body.services,
